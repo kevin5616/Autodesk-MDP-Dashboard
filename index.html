@@ -11,27 +11,130 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; color: #333; -webkit-tap-highlight-color: transparent; }
+        
         .navbar { background: linear-gradient(135deg, #142940 0%, #000000 100%); color: white; padding: 22px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .navbar h1 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
         
-        .tab-nav-container { background: #dbe4ee; padding: 18px 40px 0 40px; display: flex; align-items: flex-end; border-bottom: none; user-select: none; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; position: relative; }
+        /* 파일철(Folder Tab) 네비게이션 컨테이너 */
+        .tab-nav-container { 
+            background: #dbe4ee; 
+            padding: 18px 40px 0 40px; 
+            display: flex; 
+            align-items: flex-end;
+            border-bottom: none;
+            user-select: none;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+
         .tab-nav-container::-webkit-scrollbar { display: none; }
-        .tab-nav-container::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(to top, rgba(0, 0, 0, 0.08), transparent); pointer-events: none; z-index: 2; }
-        
-        .tab-btn { display: inline-flex; align-items: center; justify-content: flex-start; gap: 10px; min-width: 180px; padding: 13px 40px 12px 26px; font-size: 14.5px; font-weight: 600; color: #64748b; background: #e4eaf2; border: none; cursor: pointer; position: relative; margin-right: -13px; z-index: 1; white-space: nowrap; outline: none; transition: transform 0.18s ease, background-color 0.2s ease, color 0.2s ease; border-radius: 10px 28px 0 0; clip-path: polygon(0% 0%, calc(100% - 24px) 0%, 100% 100%, 0% 100%); box-shadow: 3px -2px 8px rgba(0,0,0,0.04); overflow: hidden; }
-        .tab-btn::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; opacity: 0.85; transition: opacity 0.2s, height 0.2s; }
+
+        .tab-nav-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.08), transparent);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* 탭 기본 스타일 (비활성화 상태: 상단 띠와 어우러지는 연한 파스텔톤 배경 적용) */
+        .tab-btn { 
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            min-width: 180px; 
+            padding: 13px 40px 12px 26px; 
+            font-size: 14.5px; 
+            font-weight: 600; 
+            color: #475569; 
+            background: #e4eaf2; 
+            border: none;
+            cursor: pointer; 
+            position: relative; 
+            margin-right: -13px; 
+            z-index: 1;
+            white-space: nowrap; 
+            outline: none;
+            transition: transform 0.18s ease, background-color 0.2s ease, color 0.2s ease;
+            
+            border-radius: 10px 28px 0 0;
+            clip-path: polygon(0% 0%, calc(100% - 24px) 0%, 100% 100%, 0% 100%);
+            box-shadow: 3px -2px 8px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+
+        /* 상단 파스텔 컬러 띠 */
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            opacity: 0.85;
+            transition: opacity 0.2s, height 0.2s;
+        }
+
+        /* 탭별 고유 테마: 상단 띠 색상 + 동일 계열의 아주 연한 투명 파스텔톤 바탕색 매칭 */
         .tab-btn.theme-blue::before { background: #38bdf8; }     
+        .tab-btn.theme-blue { background: rgba(56, 189, 248, 0.12); }     /* 연한 파스텔 하늘색 바탕 */
+
         .tab-btn.theme-purple::before { background: #a78bfa; }  
+        .tab-btn.theme-purple { background: rgba(167, 139, 250, 0.12); }  /* 연한 파스텔 보라색 바탕 */
+
         .tab-btn.theme-green::before { background: #34d399; }   
-        .tab-btn:hover { background: #eef3f8; color: #142940; z-index: 5; }
+        .tab-btn.theme-green { background: rgba(52, 211, 153, 0.12); }   /* 연한 파스텔 초록색 바탕 */
+
+        .tab-btn.theme-amber::before { background: #fbbf24; }   
+        .tab-btn.theme-amber { background: rgba(251, 191, 36, 0.12); }   /* 연한 파스텔 앰버 바탕 */
+
+        .tab-btn.theme-rose::before { background: #f472b6; }    
+        .tab-btn.theme-rose { background: rgba(244, 114, 182, 0.12); }    /* 연한 파스텔 로즈 바탕 */
+
+        .tab-btn:hover { 
+            filter: brightness(0.96);
+            color: #142940; 
+            z-index: 5;
+        }
         .tab-btn:hover::before { opacity: 1; }
-        .tab-btn.active { color: #142940; background: #f4f6f8; z-index: 10 !important; box-shadow: 0 -4px 14px rgba(0,0,0,0.07); font-weight: 700; }
+
+        /* 활성화된 탭 : 메인 영역(#f4f6f8)과 완전히 결합되어 전면 돌출 */
+        .tab-btn.active { 
+            color: #142940; 
+            background: #f4f6f8 !important; 
+            z-index: 10 !important; 
+            box-shadow: 0 -4px 14px rgba(0,0,0,0.07);
+            font-weight: 700;
+        }
         .tab-btn.active::before { opacity: 1; height: 6px; }
 
-        .tab-icon { width: 18px; height: 18px; stroke-width: 2.2; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; flex-shrink: 0; }
+        /* 탭 내 SVG 아이콘 */
+        .tab-icon {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2.2;
+            stroke: currentColor;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.2s;
+            flex-shrink: 0;
+        }
+
         .tab-btn.active.theme-blue .tab-icon { stroke: #0284c7; }
         .tab-btn.active.theme-purple .tab-icon { stroke: #7c3aed; }
         .tab-btn.active.theme-green .tab-icon { stroke: #059669; }
+        .tab-btn.active.theme-amber .tab-icon { stroke: #d97706; }
+        .tab-btn.active.theme-rose .tab-icon { stroke: #db2777; }
 
         .tab-btn[draggable="true"] { cursor: grab; }
         .tab-btn[draggable="true"]:active { cursor: grabbing; }
@@ -39,6 +142,7 @@
         .tab-btn.drag-over { filter: brightness(0.9); }
 
         .container { padding: 35px 40px 40px 40px; max-width: 1400px; margin: 0 auto; }
+        
         .tab-content { display: none !important; }
         .tab-content.active { display: block !important; }
 
@@ -50,6 +154,7 @@
         .kpi-card { padding: 25px; border-radius: 10px; flex: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: center; text-align: center; }
         .kpi-card h3 { margin: 0 0 10px 0; font-size: 14px; color: #555; }
         .kpi-card p { margin: 0; font-size: 28px; font-weight: bold; color: #142940; }
+
         .kpi-card-blue { background-color: #e3f2fd; border-left: 5px solid #90caf9; }
         .kpi-card-orange { background-color: #fff3e0; border-left: 5px solid #ffcc80; }
         .kpi-card-green { background-color: #e8f5e9; border-left: 5px solid #a5d6a7; }
@@ -67,6 +172,7 @@
 
         .report-section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .report-header { font-size: 20px; font-weight: bold; color: #142940; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        
         .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
         @media (max-width: 1024px) { .report-grid { grid-template-columns: 1fr; } }
 
@@ -103,6 +209,7 @@
         .badge-dm { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
         .badge-aec { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
         .badge-all { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        
         .badge-tactic { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
         .badge-lifecycle { background-color: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
         .badge-persona { background-color: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
@@ -124,6 +231,7 @@
         
         .modal-header h2 { margin-top: 0; color: #142940; margin-bottom: 5px; }
         .modal-header .sub-info { color: #666; font-size: 14px; margin-bottom: 20px; }
+        
         .form-modal-header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #142940; padding-bottom: 12px; margin-bottom: 20px; }
         .form-modal-header-container .header-text h2 { margin: 0 0 5px 0; color: #142940; }
         .form-modal-header-container .header-text .sub-info { color: #666; font-size: 13px; margin: 0; }
@@ -132,12 +240,15 @@
         .summary-card { border-radius: 8px; padding: 16px 15px; flex: 1; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
         .summary-card .label { font-size: 12px; margin-bottom: 6px; font-weight: 600; }
         .summary-card .value { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+
         .summary-card-date { background-color: #f0f7ff; border: 1px solid #bae6fd; }
         .summary-card-date .label { color: #0284c7; }
         .summary-card-date .value { color: #0369a1; }
+
         .summary-card-req { background-color: #fff7ed; border: 1px solid #fed7aa; }
         .summary-card-req .label { color: #ea580c; }
         .summary-card-req .value { color: #c2410c; }
+
         .summary-card-app { background-color: #f0fdf4; border: 1px solid #bbf7d0; }
         .summary-card-app .label { color: #16a34a; }
         .summary-card-app .value { color: #15803d; }
@@ -147,6 +258,7 @@
         .modal-section-header h3 { margin: 0; color: #142940; font-size: 18px; border: none; padding: 0; }
         
         .desc-box { background-color: #f8f9fa; padding: 15px; border-radius: 6px; white-space: pre-wrap; font-size: 14px; line-height: 1.6; font-family: inherit; column-count: 2; column-gap: 25px; }
+        
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; min-width: 500px; }
         .detail-table th, .detail-table td { border: 1px solid #ddd; padding: 10px; }
@@ -163,6 +275,7 @@
         .form-group label { display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; outline: none; font-family: inherit; color: #333; background-color: #fff; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #142940; }
+        
         .form-row { display: flex; gap: 20px; }
         .form-row .form-group { flex: 1; }
 
@@ -181,7 +294,21 @@
         .multiselect-item:hover { background-color: #f1f5f9; }
         .multiselect-item input[type="checkbox"] { width: 15px; height: 15px; margin: 0; cursor: pointer; accent-color: #142940; flex-shrink: 0; }
 
-        .horizontal-checkbox-group { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap: 24px; padding: 9px 16px; height: 44px; border: 1px solid #ddd; border-radius: 6px; background-color: #fff; box-sizing: border-box; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .horizontal-checkbox-group { 
+            display: flex; 
+            flex-wrap: nowrap; 
+            align-items: center; 
+            justify-content: flex-start; 
+            gap: 24px; 
+            padding: 9px 16px; 
+            height: 44px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            background-color: #fff; 
+            box-sizing: border-box; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+        }
         .horizontal-checkbox-group label { display: inline-flex; align-items: center; gap: 6px; font-weight: normal; font-size: 13px; cursor: pointer; margin-bottom: 0; white-space: nowrap; }
         .horizontal-checkbox-group input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; margin: 0; accent-color: #142940; }
 
@@ -209,10 +336,41 @@
         .modal-action-buttons { display: flex; gap: 8px; align-items: center; }
         .form-bottom-actions { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 35px; margin-bottom: 10px; }
 
-        .toast-msg { position: fixed; top: 30px; right: 30px; background: linear-gradient(135deg, #142940, #1f3e60); color: #ffffff; padding: 14px 24px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.22); font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transform: translateY(-20px); transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; display: flex; align-items: center; gap: 10px; border-left: 4px solid #38bdf8; }
+        .toast-msg {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #142940, #1f3e60);
+            color: #ffffff;
+            padding: 14px 24px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid #38bdf8;
+        }
         .toast-msg.show { opacity: 1; transform: translateY(0); }
 
-        .confirm-modal-content { background-color: #ffffff; margin: 15% auto; padding: 30px 28px; border-radius: 12px; width: 90%; max-width: 440px; box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28); position: relative; text-align: center; animation: slideDown 0.25s ease-out; }
+        .confirm-modal-content {
+            background-color: #ffffff;
+            margin: 15% auto;
+            padding: 30px 28px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+            position: relative;
+            text-align: center;
+            animation: slideDown 0.25s ease-out;
+        }
         .confirm-icon { width: 52px; height: 52px; background-color: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; font-size: 26px; font-weight: bold; }
         .confirm-title { font-size: 18px; font-weight: 700; color: #142940; margin-bottom: 8px; }
         .confirm-message { font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 24px; white-space: pre-wrap; word-break: keep-all; }
@@ -222,55 +380,81 @@
         @media (max-width: 768px) {
             .navbar { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 5px; }
             .navbar h1 { font-size: 18px; }
+            .navbar div { font-size: 12px; opacity: 0.8; }
             .tab-nav-container { padding: 12px 15px 0 15px; }
             .tab-btn { min-width: 140px; padding: 11px 25px 10px 18px; font-size: 13.5px; margin-right: -15px; }
             .container { padding: 20px 15px; }
             .kpi-container { flex-direction: column; gap: 12px; }
             .kpi-card, .action-card { padding: 18px 15px; }
+            .kpi-card p { font-size: 22px; }
             .filter-container { padding: 15px; gap: 10px; }
             .filter-container input, .filter-container select { min-width: 100%; flex: none; }
+            .reset-btn { width: 100%; }
             .fy-section { padding: 18px 15px; }
+            .fy-header { font-size: 17px; }
+            .fy-count { font-size: 12px; }
             .modal-content { width: 95%; margin: 5% auto; padding: 22px 18px; }
+            .close-btn { top: 12px; right: 18px; font-size: 26px; }
             .form-modal-header-container { flex-direction: column; align-items: flex-start; gap: 12px; }
             .form-modal-header-container .modal-action-buttons { width: 100%; justify-content: flex-end; }
             .detail-summary-cards { flex-direction: column; gap: 10px; }
-            .desc-box { column-count: 1 !important; }
+            .summary-card { padding: 12px; }
+            .summary-card .value { font-size: 18px; }
+            .desc-box { column-count: 1 !important; font-size: 13px; padding: 12px; }
             #newDescription { column-count: 1 !important; }
             .form-row { flex-direction: column; gap: 0; }
             .modal-section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
             .modal-section-header .modal-action-buttons { width: 100%; justify-content: flex-end; }
+            .toast-msg { top: 20px; right: 20px; left: 20px; font-size: 13px; padding: 12px 18px; }
+            .confirm-modal-content { margin: 30% auto; padding: 24px 20px; }
         }
     </style>
 </head>
 <body>
 
+    <!-- 상단 네비게이션바 -->
     <div class="navbar">
         <h1>ZOOMINTECH | Autodesk MDP Dashboard</h1>
         <div>Marketing Development Program</div>
     </div>
 
+    <!-- 파일철(Folder Tab) 네비게이션바 -->
     <div class="tab-nav-container" id="tabNavContainer">
         <button class="tab-btn active theme-blue" id="btn-dashboardTab" data-tab-id="dashboardTab" draggable="true" onclick="switchTab('dashboardTab', this)">
-            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>
+            <svg class="tab-icon" viewBox="0 0 24 24">
+                <path d="M3 3v18h18" />
+                <path d="m19 9-5 5-4-4-3 3" />
+            </svg>
             <span>MDP Status</span>
         </button>
         <button class="tab-btn theme-purple" id="btn-reportTab" data-tab-id="reportTab" draggable="true" onclick="switchTab('reportTab', this)">
-            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M12 20V10" /><path d="M18 20V4" /><path d="M6 20v-4" /></svg>
+            <svg class="tab-icon" viewBox="0 0 24 24">
+                <path d="M12 20V10" />
+                <path d="M18 20V4" />
+                <path d="M6 20v-4" />
+            </svg>
             <span>Funds Status</span>
         </button>
         <button class="tab-btn theme-green" id="btn-resultReportTab" data-tab-id="resultReportTab" draggable="true" onclick="switchTab('resultReportTab', this)">
-            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <svg class="tab-icon" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
             <span>Result & Report</span>
         </button>
     </div>
 
     <div class="container">
-        <!-- 상태 표시 UI -->
+        <!-- 로딩 UI -->
         <div id="loader">
             <div class="spinner"></div><br>
-            <span id="loaderText">초고속으로 데이터를 불러오는 중입니다...</span>
+            <span id="loaderText">데이터를 불러오는 중입니다...</span>
         </div>
 
+        <!-- 상단 공통 KPI 카드 컨테이너 -->
         <div class="kpi-container">
             <div class="action-card" onclick="openCreateModal()">
                 <h3>+ 새 플랜 등록</h3>
@@ -290,62 +474,110 @@
             </div>
         </div>
 
+        <!-- 글로벌 공통 필터 바 -->
         <div class="filter-container">
             <input type="text" id="searchInput" placeholder="Activity Name 검색..." oninput="filterData()">
-            <select id="filterFY" onchange="filterData()"><option value="">모든 FY</option></select>
+            <select id="filterFY" onchange="filterData()">
+                <option value="">모든 FY</option>
+            </select>
             <select id="filterFQ" onchange="filterData()">
                 <option value="">모든 FQ</option>
-                <option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option>
+                <option value="Q1">Q1</option>
+                <option value="Q2">Q2</option>
+                <option value="Q3">Q3</option>
+                <option value="Q4">Q4</option>
             </select>
-            <select id="filterIndustry" onchange="filterData()"><option value="">모든 Industry</option></select>
-            <select id="filterTactics" onchange="filterData()"><option value="">모든 Tactics</option></select>
+            <select id="filterIndustry" onchange="filterData()">
+                <option value="">모든 Industry</option>
+            </select>
+            <select id="filterTactics" onchange="filterData()">
+                <option value="">모든 Tactics</option>
+            </select>
             <button class="reset-btn" onclick="resetFilters()">초기화</button>
         </div>
 
+        <!-- [그룹 1] MDP 대시보드 탭 콘텐츠 -->
         <div id="dashboardTab" class="tab-content active">
             <div id="fy-groups-container"></div>
         </div>
 
+        <!-- [그룹 2] 예산 분석 보고서(Funds Status) 탭 콘텐츠 -->
         <div id="reportTab" class="tab-content">
             <div class="report-section">
                 <div class="report-header">
-                    <span>회계연도 및 분기(FY-FQ)별 예산 집행 추이</span><span style="font-size: 13px; color: #666; font-weight: normal;">USD ($)</span>
+                    <span>회계연도 및 분기(FY-FQ)별 예산 집행 추이</span>
+                    <span style="font-size: 13px; color: #666; font-weight: normal;">USD ($)</span>
                 </div>
-                <div style="position: relative; height: 350px; width: 100%;"><canvas id="fyChart"></canvas></div>
+                <div style="position: relative; height: 350px; width: 100%;">
+                    <canvas id="fyChart"></canvas>
+                </div>
             </div>
+
             <div class="report-grid">
                 <div class="report-section" style="margin-bottom: 0;">
-                    <div class="report-header"><span>Tactics별 예산 비중 (Approved 기준)</span><span style="font-size: 13px; color: #666; font-weight: normal;">Share (%)</span></div>
-                    <div style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center;"><canvas id="tacticsPieChart"></canvas></div>
+                    <div class="report-header">
+                        <span>Tactics별 예산 비중 (Approved 기준)</span>
+                        <span style="font-size: 13px; color: #666; font-weight: normal;">Share (%)</span>
+                    </div>
+                    <div style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="tacticsPieChart"></canvas>
+                    </div>
                 </div>
                 <div class="report-section" style="margin-bottom: 0;">
-                    <div class="report-header"><span>주요 산업군(Industry)별 승인 예산 및 비중</span><span style="font-size: 13px; color: #666; font-weight: normal;">USD ($) & Share (%)</span></div>
-                    <div style="position: relative; height: 320px; width: 100%;"><canvas id="industryBarChart"></canvas></div>
+                    <div class="report-header">
+                        <span>주요 산업군(Industry)별 승인 예산 및 비중</span>
+                        <span style="font-size: 13px; color: #666; font-weight: normal;">USD ($) & Share (%)</span>
+                    </div>
+                    <div style="position: relative; height: 320px; width: 100%;">
+                        <canvas id="industryBarChart"></canvas>
+                    </div>
                 </div>
             </div>
+
             <div class="report-grid" style="margin-top: 25px;">
                 <div class="report-section" style="margin-bottom: 0;">
-                    <div class="report-header"><span>세부 비용 그룹별 원화(KRW) 집행 비중</span><span style="font-size: 13px; color: #666; font-weight: normal;">KRW (₩) & Share (%)</span></div>
-                    <div style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center;"><canvas id="costGroupDoughnutChart"></canvas></div>
+                    <div class="report-header">
+                        <span>세부 비용 그룹별 원화(KRW) 집행 비중</span>
+                        <span style="font-size: 13px; color: #666; font-weight: normal;">KRW (₩) & Share (%)</span>
+                    </div>
+                    <div style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="costGroupDoughnutChart"></canvas>
+                    </div>
                 </div>
                 <div class="report-section" style="margin-bottom: 0;">
-                    <div class="report-header"><span>Tactics별 MQL 획득 단가 (Cost Per MQL)</span><span style="font-size: 13px; color: #666; font-weight: normal;">USD ($) / Lead</span></div>
-                    <div style="position: relative; height: 320px; width: 100%;"><canvas id="cplBarChart"></canvas></div>
+                    <div class="report-header">
+                        <span>Tactics별 MQL 획득 단가 (Cost Per MQL)</span>
+                        <span style="font-size: 13px; color: #666; font-weight: normal;">USD ($) / Lead</span>
+                    </div>
+                    <div style="position: relative; height: 320px; width: 100%;">
+                        <canvas id="cplBarChart"></canvas>
+                    </div>
                 </div>
             </div>
+
             <div class="report-section" style="margin-top: 25px;">
                 <div class="report-header">
-                    <span>회계연도 및 분기(FY-FQ)별 재무 요약 지표 상세</span><span style="font-size: 12px; color: #64748b; font-weight: normal;">* 승인율은 승인 완료(Approved > $0) 캠페인 기준 집계</span>
+                    <span>회계연도 및 분기(FY-FQ)별 재무 요약 지표 상세</span>
+                    <span style="font-size: 12px; color: #64748b; font-weight: normal;">* 승인율은 승인 완료(Approved > $0) 캠페인 기준 집계</span>
                 </div>
                 <div class="table-responsive">
                     <table class="detail-table" style="margin-top: 0;">
-                        <thead><tr><th>회계연도/분기 (FY-FQ)</th><th>캠페인 수 (확정/총건수)</th><th>총 승인 금액 (Approved)</th><th>총 MDP 요청액 (Requested)</th><th>요청 대비 승인 비율 (Approved / Requested)</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>회계연도/분기 (FY-FQ)</th>
+                                <th>캠페인 수 (확정/총건수)</th>
+                                <th>총 승인 금액 (Approved)</th>
+                                <th>총 MDP 요청액 (Requested)</th>
+                                <th>요청 대비 승인 비율 (Approved / Requested)</th>
+                            </tr>
+                        </thead>
                         <tbody id="report-summary-tbody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
+        <!-- [그룹 3] Result & Report 탭 콘텐츠 -->
         <div id="resultReportTab" class="tab-content">
             <div class="report-section" style="text-align: center; padding: 80px 20px; color: #64748b;">
                 <h2 style="margin-bottom: 10px; color: #142940;">Result & Report</h2>
@@ -354,16 +586,31 @@
         </div>
     </div>
 
-    <!-- 상세 모달, 신규 생성 모달, 확인 다이얼로그 및 Datalist 영역 (기존과 완벽히 동일) -->
+    <!-- 상세 정보 모달 창 -->
     <div id="detailModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div class="modal-header"><h2 id="modal-title">캠페인 상세 정보</h2><div class="sub-info" id="modal-subtitle">진행일자 / 타겟 페르소나</div></div>
-            <div class="detail-summary-cards">
-                <div class="summary-card summary-card-date"><div class="label">Date of Activity (진행 일자)</div><div class="value" id="modal-summary-date">-</div></div>
-                <div class="summary-card summary-card-req"><div class="label">Requested ($) - MDP 요청액</div><div class="value" id="modal-summary-req">$0</div></div>
-                <div class="summary-card summary-card-app"><div class="label">Approved ($) - 총 승인 금액</div><div class="value" id="modal-summary-app">$0</div></div>
+            
+            <div class="modal-header">
+                <h2 id="modal-title">캠페인 상세 정보</h2>
+                <div class="sub-info" id="modal-subtitle">진행일자 / 타겟 페르소나</div>
             </div>
+
+            <div class="detail-summary-cards">
+                <div class="summary-card summary-card-date">
+                    <div class="label">Date of Activity (진행 일자)</div>
+                    <div class="value" id="modal-summary-date">-</div>
+                </div>
+                <div class="summary-card summary-card-req">
+                    <div class="label">Requested ($) - MDP 요청액</div>
+                    <div class="value" id="modal-summary-req">$0</div>
+                </div>
+                <div class="summary-card summary-card-app">
+                    <div class="label">Approved ($) - 총 승인 금액</div>
+                    <div class="value" id="modal-summary-app">$0</div>
+                </div>
+            </div>
+
             <div class="modal-section">
                 <div class="modal-section-header">
                     <h3>Activity Description (기획 상세 내용)</h3>
@@ -372,28 +619,57 @@
                         <button type="button" class="btn-danger" id="deleteBtn" onclick="deleteCurrentCampaign()">이 플랜 삭제</button>
                     </div>
                 </div>
+
                 <div class="detail-meta-group">
-                    <div class="detail-meta-row"><span class="detail-meta-title">Campaign</span><div class="detail-meta-badges" id="modal-meta-campaign"></div></div>
-                    <div class="detail-meta-row"><span class="detail-meta-title">Tactic</span><div class="detail-meta-badges" id="modal-meta-tactic"></div></div>
-                    <div class="detail-meta-row"><span class="detail-meta-title">Lifecycle</span><div class="detail-meta-badges" id="modal-meta-lifecycle"></div></div>
-                    <div class="detail-meta-row"><span class="detail-meta-title">Persona</span><div class="detail-meta-badges" id="modal-meta-persona"></div></div>
+                    <div class="detail-meta-row">
+                        <span class="detail-meta-title">Campaign</span>
+                        <div class="detail-meta-badges" id="modal-meta-campaign"></div>
+                    </div>
+                    <div class="detail-meta-row">
+                        <span class="detail-meta-title">Tactic</span>
+                        <div class="detail-meta-badges" id="modal-meta-tactic"></div>
+                    </div>
+                    <div class="detail-meta-row">
+                        <span class="detail-meta-title">Lifecycle</span>
+                        <div class="detail-meta-badges" id="modal-meta-lifecycle"></div>
+                    </div>
+                    <div class="detail-meta-row">
+                        <span class="detail-meta-title">Persona</span>
+                        <div class="detail-meta-badges" id="modal-meta-persona"></div>
+                    </div>
                 </div>
+
                 <div class="desc-box" id="modal-desc"></div>
             </div>
+
             <div class="modal-section">
                 <h3>비용 상세 내역 (KRW 기준)</h3>
                 <div class="table-responsive">
                     <table class="detail-table">
-                        <thead><tr><th style="width: 25%;">비용 그룹</th><th style="width: 50%; text-align: left;">세부 항목명</th><th style="width: 25%;">금액</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">비용 그룹</th>
+                                <th style="width: 50%; text-align: left;">세부 항목명</th>
+                                <th style="width: 25%;">금액</th>
+                            </tr>
+                        </thead>
                         <tbody id="modal-cost-list"></tbody>
                     </table>
                 </div>
             </div>
+
             <div class="modal-section">
                 <h3>핵심 성과 지표 (ROI) - 목표 대비 달성도</h3>
                 <div class="table-responsive">
                     <table class="detail-table">
-                        <thead><tr><th style="width: 25%;">지표명</th><th style="width: 25%;">목표 수치</th><th style="width: 25%;">결과 수치 (실적)</th><th style="width: 25%;">달성도 (Progress)</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">지표명</th>
+                                <th style="width: 25%;">목표 수치</th>
+                                <th style="width: 25%;">결과 수치 (실적)</th>
+                                <th style="width: 25%;">달성도 (Progress)</th>
+                            </tr>
+                        </thead>
                         <tbody id="modal-roi-list"></tbody>
                     </table>
                 </div>
@@ -401,73 +677,181 @@
         </div>
     </div>
 
+    <!-- 신규 및 수정 공용 등록 폼 모달 창 -->
     <div id="createModal" class="modal">
         <div class="modal-content">
             <div class="form-modal-header-container">
-                <div class="header-text"><h2 id="formModalTitle">새로운 마케팅 플랜 등록</h2><div class="sub-info">구글 시트 백엔드와 실시간 연동됩니다.</div></div>
+                <div class="header-text">
+                    <h2 id="formModalTitle">새로운 마케팅 플랜 등록</h2>
+                    <div class="sub-info">구글 시트 백엔드와 실시간 연동됩니다.</div>
+                </div>
                 <div class="modal-action-buttons">
-                    <button type="button" class="reset-btn" onclick="cancelEditMode()">취소</button><button type="submit" form="createForm" class="btn-primary submit-btn-sync">저장하기</button>
+                    <button type="button" class="reset-btn" onclick="cancelEditMode()">취소</button>
+                    <button type="submit" form="createForm" class="btn-primary submit-btn-sync">저장하기</button>
                 </div>
             </div>
+
             <form id="createForm" onsubmit="submitPlanData(event)">
                 <input type="hidden" id="editCampaignId">
+                
                 <div class="form-row">
-                    <div class="form-group"><label>Industry</label><select id="newIndustry" required><option value="D&M">D&M</option><option value="AEC">AEC</option><option value="ALL">ALL</option></select></div>
-                    <div class="form-group"><label>Activity Name (프로그램명)</label><input type="text" id="newActivityName" placeholder="캠페인 프로그램명 입력" required></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>Tactics</label><input type="text" id="newTactics" list="tacticsList" placeholder="선택 또는 수기 입력" onfocus="this.select()" onmousedown="handleDatalistClick(this)" required></div>
-                    <div class="form-group"><label>Date of Activity (진행 일자)</label><input type="date" id="newActivityDate" required></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>Requested ($) - MDP 요청액 (자동 산정)</label><input type="text" id="newRequested" placeholder="0" oninput="formatInputNumber(this)" required></div>
                     <div class="form-group">
-                        <div class="label-with-action"><label>Approved ($) - 총 승인 금액</label><button type="button" class="btn-copy-req" onclick="copyRequestedToApproved()" title="요청액과 동일한 금액으로 채웁니다">Requested 복사</button></div>
+                        <label>Industry</label>
+                        <select id="newIndustry" required>
+                            <option value="D&M">D&M</option>
+                            <option value="AEC">AEC</option>
+                            <option value="ALL">ALL</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Name (프로그램명)</label>
+                        <input type="text" id="newActivityName" placeholder="캠페인 프로그램명 입력" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tactics</label>
+                        <input type="text" id="newTactics" list="tacticsList" placeholder="선택 또는 수기 입력" 
+                               onfocus="this.select()" onmousedown="handleDatalistClick(this)" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Activity (진행 일자)</label>
+                        <input type="date" id="newActivityDate" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Requested ($) - MDP 요청액 (자동 산정)</label>
+                        <input type="text" id="newRequested" placeholder="0" oninput="formatInputNumber(this)" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="label-with-action">
+                            <label>Approved ($) - 총 승인 금액</label>
+                            <button type="button" class="btn-copy-req" onclick="copyRequestedToApproved()" title="요청액과 동일한 금액으로 채웁니다">Requested 복사</button>
+                        </div>
                         <input type="text" id="newApproved" placeholder="0" oninput="formatInputNumber(this)" required>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label>Campaign Name (드롭다운 복수 선택 가능)</label>
                     <div class="custom-multiselect" id="campaignMultiselect">
                         <input type="text" id="newCampaignName" class="multiselect-input" placeholder="캠페인 선택 (클릭 시 드롭다운 표시)" readonly onclick="toggleCampaignDropdown()">
-                        <span class="multiselect-arrow">▼</span><div class="multiselect-dropdown" id="campaignDropdownList"></div>
+                        <span class="multiselect-arrow">▼</span>
+                        <div class="multiselect-dropdown" id="campaignDropdownList"></div>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label>Life cycle (복수 선택 가능)</label>
                     <div class="horizontal-checkbox-group" id="lifecycleCheckboxGroup">
-                        <label><input type="checkbox" value="Discover"> Discover</label><label><input type="checkbox" value="Consider"> Consider</label><label><input type="checkbox" value="Buy"> Buy</label><label><input type="checkbox" value="Onboard"> Onboard</label><label><input type="checkbox" value="Use"> Use</label><label><input type="checkbox" value="Extend"> Extend</label>
+                        <label><input type="checkbox" value="Discover"> Discover</label>
+                        <label><input type="checkbox" value="Consider"> Consider</label>
+                        <label><input type="checkbox" value="Buy"> Buy</label>
+                        <label><input type="checkbox" value="Onboard"> Onboard</label>
+                        <label><input type="checkbox" value="Use"> Use</label>
+                        <label><input type="checkbox" value="Extend"> Extend</label>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label>Persona (복수 선택 가능)</label>
                     <div class="horizontal-checkbox-group" id="personaCheckboxGroup">
-                        <label><input type="checkbox" value="Solution Buyer"> Solution Buyer</label><label><input type="checkbox" value="End User"> End User</label><label><input type="checkbox" value="Technology Admin"> Technology Admin</label><label><input type="checkbox" value="Very Small Business"> Very Small Business</label><label><input type="checkbox" value="Executive"> Executive</label>
+                        <label><input type="checkbox" value="Solution Buyer"> Solution Buyer</label>
+                        <label><input type="checkbox" value="End User"> End User</label>
+                        <label><input type="checkbox" value="Technology Admin"> Technology Admin</label>
+                        <label><input type="checkbox" value="Very Small Business"> Very Small Business</label>
+                        <label><input type="checkbox" value="Executive"> Executive</label>
                     </div>
                 </div>
-                <div class="form-group"><label>Activity Description (기획 상세 내용)</label><textarea id="newDescription" rows="5" placeholder="캠페인 목적, 타겟, 실행 계획 등을 입력하세요." required></textarea></div>
-                <div class="modal-section" style="margin-top: 20px;">
-                    <div class="modal-section-header"><h3>비용 상세 내역 (KRW) 입력</h3><button type="button" class="btn-small" onclick="addCostRow()">+ 항목 추가</button></div>
-                    <div class="table-responsive"><table class="sub-form-table"><thead><tr><th style="width: 25%;">비용 그룹</th><th style="width: 50%; text-align: left;">세부 항목명 (Enter 줄바꿈 가능)</th><th style="width: 20%;">금액 (원화)</th><th style="width: 5%;">삭제</th></tr></thead><tbody id="costRowsContainer"></tbody></table></div>
+
+                <div class="form-group">
+                    <label>Activity Description (기획 상세 내용)</label>
+                    <textarea id="newDescription" rows="5" placeholder="캠페인 목적, 타겟, 실행 계획 등을 입력하세요." required></textarea>
                 </div>
+
                 <div class="modal-section" style="margin-top: 20px;">
-                    <div class="modal-section-header"><h3>핵심 성과 지표 (ROI) 및 결과 실적 입력</h3><button type="button" class="btn-small" onclick="addRoiRow()">+ 지표 추가</button></div>
-                    <div class="table-responsive"><table class="sub-form-table"><thead><tr><th style="width: 45%;">지표명</th><th style="width: 25%;">목표 수치</th><th style="width: 25%;">결과 수치 (실적)</th><th style="width: 5%;">삭제</th></tr></thead><tbody id="roiRowsContainer"></tbody></table></div>
+                    <div class="modal-section-header">
+                        <h3>비용 상세 내역 (KRW) 입력</h3>
+                        <button type="button" class="btn-small" onclick="addCostRow()">+ 항목 추가</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="sub-form-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">비용 그룹</th>
+                                    <th style="width: 50%; text-align: left;">세부 항목명 (Enter 줄바꿈 가능)</th>
+                                    <th style="width: 20%;">금액 (원화)</th>
+                                    <th style="width: 5%;">삭제</th>
+                                </tr>
+                            </thead>
+                            <tbody id="costRowsContainer"></tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="form-bottom-actions"><button type="button" class="reset-btn" onclick="cancelEditMode()">취소</button><button type="submit" class="btn-primary submit-btn-sync">저장하기</button></div>
+
+                <div class="modal-section" style="margin-top: 20px;">
+                    <div class="modal-section-header">
+                        <h3>핵심 성과 지표 (ROI) 및 결과 실적 입력</h3>
+                        <button type="button" class="btn-small" onclick="addRoiRow()">+ 지표 추가</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="sub-form-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45%;">지표명</th>
+                                    <th style="width: 25%;">목표 수치</th>
+                                    <th style="width: 25%;">결과 수치 (실적)</th>
+                                    <th style="width: 5%;">삭제</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roiRowsContainer"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-bottom-actions">
+                    <button type="button" class="reset-btn" onclick="cancelEditMode()">취소</button>
+                    <button type="submit" class="btn-primary submit-btn-sync">저장하기</button>
+                </div>
             </form>
         </div>
     </div>
 
+    <!-- 커스텀 확인(Confirm) 다이얼로그 모달 -->
     <div id="customConfirmModal" class="modal" style="z-index: 2000;">
         <div class="confirm-modal-content">
-            <div class="confirm-icon">!</div><div class="confirm-title" id="confirmDialogTitle">캠페인 삭제 확인</div><div class="confirm-message" id="confirmDialogMessage">정말로 삭제하시겠습니까?</div>
-            <div class="confirm-actions"><button type="button" class="reset-btn" id="confirmCancelBtn" onclick="closeConfirmDialog(false)">취소</button><button type="button" class="btn-danger" id="confirmOkBtn" onclick="closeConfirmDialog(true)">삭제하기</button></div>
+            <div class="confirm-icon">!</div>
+            <div class="confirm-title" id="confirmDialogTitle">캠페인 삭제 확인</div>
+            <div class="confirm-message" id="confirmDialogMessage">정말로 삭제하시겠습니까?</div>
+            <div class="confirm-actions">
+                <button type="button" class="reset-btn" id="confirmCancelBtn" onclick="closeConfirmDialog(false)">취소</button>
+                <button type="button" class="btn-danger" id="confirmOkBtn" onclick="closeConfirmDialog(true)">삭제하기</button>
+            </div>
         </div>
     </div>
 
-    <datalist id="costGroupList"><option value="광고비"><option value="제작비"><option value="인건비"><option value="운영비"><option value="프로모션비"><option value="기타"></datalist>
-    <datalist id="roiNameList"><option value="MGL"><option value="MQL"><option value="MQA"><option value="ATTENDENCE"><option value="CLICK"></datalist>
+    <!-- Datalist 정의 -->
+    <datalist id="costGroupList">
+        <option value="광고비">
+        <option value="제작비">
+        <option value="인건비">
+        <option value="운영비">
+        <option value="프로모션비">
+        <option value="기타">
+    </datalist>
+
+    <datalist id="roiNameList">
+        <option value="MGL">
+        <option value="MQL">
+        <option value="MQA">
+        <option value="ATTENDENCE">
+        <option value="CLICK">
+    </datalist>
+
     <datalist id="tacticsList"></datalist>
 
     <script>
@@ -487,11 +871,10 @@
 
         const DEFAULT_DESCRIPTION_TEMPLATE = `1. 목적 : \n      ① \n      ② \n      ③ \n2. 대상(Persona) : Solution Buyer, End User, Technology Admin, Very Small Business, Executive\n3. 세미나 주요 내용\n      ① \n      ② \n      ③ \n      ④ \n4. 인원 계획 및 장소\n      ① \n      ② \n5. 마케팅 Follow-up 계획\n      ① \n      ② \n      ③ \n      ④ `;
 
-        // --- 1. [자동 재시도 로직 탑재 Fetch 함수] 타임아웃 및 네트워크 방어 ---
         async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
             for (let i = 0; i < retries; i++) {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15초 타임아웃
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
                 try {
                     const res = await fetch(url, { ...options, signal: controller.signal });
                     clearTimeout(timeoutId);
@@ -502,7 +885,7 @@
                     if (i === retries - 1) throw err;
                     const loaderText = document.getElementById("loaderText");
                     if(loaderText) loaderText.innerText = "서버 지연으로 데이터를 재요청 중입니다... (" + (i+1) + "/3)";
-                    await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i))); // 지수 백오프 대기
+                    await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i)));
                 }
             }
         }
@@ -534,7 +917,7 @@
             if (confirmResolveCallback) { confirmResolveCallback(result); confirmResolveCallback = null; }
         }
 
-        /* 탭 드래그 앤 드롭 유지 */
+        /* HTML5 Drag and Drop 탭 순서 변경 로직 */
         let draggedTab = null, isTabDragging = false;
         function initTabDragAndDrop() {
             const container = document.getElementById("tabNavContainer");
@@ -642,7 +1025,6 @@
             document.getElementById("newCampaignName").value = selected.join(", ");
         }
 
-        // --- 2. [어댑터] 백엔드 2차원 매트릭스 데이터를 파싱하는 함수 ---
         function parseMatrixData(matrixObj) {
             if (!matrixObj || !matrixObj.headers || !matrixObj.rows) return Array.isArray(matrixObj) ? matrixObj : [];
             const headers = matrixObj.headers;
@@ -662,8 +1044,6 @@
         async function loadData() {
             try {
                 const data = await fetchWithRetry(`${API_URL}?t=${Date.now()}`, { method: "GET", cache: "no-store", redirect: "follow" });
-                
-                // 매트릭스 2차원 배열 데이터를 기존 객체 모델로 매핑
                 globalData = {
                     campaigns: parseMatrixData(data.master),
                     rois: parseMatrixData(data.rois),
@@ -742,8 +1122,6 @@
             renderReportOnly(campaigns);
         }
 
-        // --- 3. [비동기 DOM 청크 렌더링 도입] ---
-        // 수천 건이 넘는 렌더링 시 브라우저 메인 스레드 멈춤 방지 (requestAnimationFrame 분할)
         function asyncRenderDashboard(htmlBlocks, callback) {
             const container = document.getElementById("fy-groups-container");
             container.innerHTML = "";
@@ -800,7 +1178,6 @@
             else { content.classList.add('open'); iconBtn.classList.add('active'); headerElement.classList.add('open'); if (fyName) openFys.add(fyName); }
         }
 
-        /* (차트 렌더링 로직은 기존 코드와 100% 동일하므로 그대로 적용됨) */
         function renderReportOnly(campaigns) {
             const filteredCampaignIds = new Set(campaigns.map(c => String(c.캠페인_ID).trim()));
             const fyFqMap = {};
@@ -979,7 +1356,6 @@
             };
 
             try {
-                // 저장 시 에러 방어를 위해 자동 재시도 로직 적용
                 const result = await fetchWithRetry(API_URL, { method: "POST", body: JSON.stringify(payload), headers: { "Content-Type": "text/plain;charset=utf-8" } }, 2, 1000);
                 submitBtns.forEach(btn => { btn.innerText = "저장하기"; btn.disabled = false; });
                 if(result.status === "success" || result.success) {
