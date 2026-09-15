@@ -48,7 +48,7 @@
             z-index: 2;
         }
 
-        /* 첨부 이미지 기반 정통 폴더 인덱스 탭 디자인 (왼쪽 모서리 R=10, 겹침 간격 -13px) */
+        /* 첨부 이미지 기반 정통 폴더 인덱스 탭 디자인 (비활성화 탭 바탕색을 더 밝고 세련된 파스텔톤으로 조정) */
         .tab-btn { 
             display: inline-flex;
             align-items: center;
@@ -59,7 +59,7 @@
             font-size: 14.5px; 
             font-weight: 600; 
             color: #64748b; 
-            background: #c3cfde; 
+            background: #e4eaf2; /* 더 밝고 산뜻한 세련된 파스텔톤 배경색 */
             border: none;
             cursor: pointer; 
             position: relative; 
@@ -72,7 +72,7 @@
             /* 왼쪽 모서리 R=10, 우측 사선 디자인 */
             border-radius: 10px 28px 0 0;
             clip-path: polygon(0% 0%, calc(100% - 24px) 0%, 100% 100%, 0% 100%);
-            box-shadow: 3px -2px 8px rgba(0,0,0,0.05);
+            box-shadow: 3px -2px 8px rgba(0,0,0,0.04);
             overflow: hidden;
         }
 
@@ -96,7 +96,7 @@
         .tab-btn.theme-rose::before { background: #f472b6; }    /* 파스텔 로즈 */
 
         .tab-btn:hover { 
-            background: #d3deea; 
+            background: #eef3f8; /* 호버 시 더욱 밝고 화사하게 반응 */
             color: #142940; 
             z-index: 5;
         }
