@@ -11,122 +11,27 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; color: #333; -webkit-tap-highlight-color: transparent; }
-        
         .navbar { background: linear-gradient(135deg, #142940 0%, #000000 100%); color: white; padding: 22px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .navbar h1 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
         
-        /* 파일철(Folder Tab) 네비게이션 컨테이너 */
-        .tab-nav-container { 
-            background: #dbe4ee; 
-            padding: 18px 40px 0 40px; 
-            display: flex; 
-            align-items: flex-end;
-            border-bottom: none;
-            user-select: none;
-            overflow-x: auto;
-            overflow-y: hidden;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            -webkit-overflow-scrolling: touch;
-            position: relative;
-        }
-
-        .tab-nav-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tab-nav-container::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.08), transparent);
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .tab-btn { 
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
-            min-width: 180px; 
-            padding: 13px 40px 12px 26px; 
-            font-size: 14.5px; 
-            font-weight: 600; 
-            color: #64748b; 
-            background: #e4eaf2; 
-            border: none;
-            cursor: pointer; 
-            position: relative; 
-            margin-right: -13px; 
-            z-index: 1;
-            white-space: nowrap; 
-            outline: none;
-            transition: transform 0.18s ease, background-color 0.2s ease, color 0.2s ease;
-            border-radius: 10px 28px 0 0;
-            clip-path: polygon(0% 0%, calc(100% - 24px) 0%, 100% 100%, 0% 100%);
-            box-shadow: 3px -2px 8px rgba(0,0,0,0.04);
-            overflow: hidden;
-        }
-
-        .tab-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            opacity: 0.85;
-            transition: opacity 0.2s, height 0.2s;
-        }
-
+        .tab-nav-container { background: #dbe4ee; padding: 18px 40px 0 40px; display: flex; align-items: flex-end; border-bottom: none; user-select: none; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; position: relative; }
+        .tab-nav-container::-webkit-scrollbar { display: none; }
+        .tab-nav-container::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(to top, rgba(0, 0, 0, 0.08), transparent); pointer-events: none; z-index: 2; }
+        
+        .tab-btn { display: inline-flex; align-items: center; justify-content: flex-start; gap: 10px; min-width: 180px; padding: 13px 40px 12px 26px; font-size: 14.5px; font-weight: 600; color: #64748b; background: #e4eaf2; border: none; cursor: pointer; position: relative; margin-right: -13px; z-index: 1; white-space: nowrap; outline: none; transition: transform 0.18s ease, background-color 0.2s ease, color 0.2s ease; border-radius: 10px 28px 0 0; clip-path: polygon(0% 0%, calc(100% - 24px) 0%, 100% 100%, 0% 100%); box-shadow: 3px -2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        .tab-btn::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; opacity: 0.85; transition: opacity 0.2s, height 0.2s; }
         .tab-btn.theme-blue::before { background: #38bdf8; }     
         .tab-btn.theme-purple::before { background: #a78bfa; }  
         .tab-btn.theme-green::before { background: #34d399; }   
-        .tab-btn.theme-amber::before { background: #fbbf24; }   
-        .tab-btn.theme-rose::before { background: #f472b6; }    
+        .tab-btn:hover { background: #eef3f8; color: #142940; z-index: 5; }
+        .tab-btn:hover::before { opacity: 1; }
+        .tab-btn.active { color: #142940; background: #f4f6f8; z-index: 10 !important; box-shadow: 0 -4px 14px rgba(0,0,0,0.07); font-weight: 700; }
+        .tab-btn.active::before { opacity: 1; height: 6px; }
 
-        .tab-btn:hover { 
-            background: #eef3f8; 
-            color: #142940; 
-            z-index: 5;
-        }
-        .tab-btn:hover::before {
-            opacity: 1;
-        }
-
-        .tab-btn.active { 
-            color: #142940; 
-            background: #f4f6f8; 
-            z-index: 10 !important; 
-            box-shadow: 0 -4px 14px rgba(0,0,0,0.07);
-            font-weight: 700;
-        }
-        .tab-btn.active::before {
-            opacity: 1;
-            height: 6px;
-        }
-
-        .tab-icon {
-            width: 18px;
-            height: 18px;
-            stroke-width: 2.2;
-            stroke: currentColor;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            transition: stroke 0.2s;
-            flex-shrink: 0;
-        }
-
+        .tab-icon { width: 18px; height: 18px; stroke-width: 2.2; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; flex-shrink: 0; }
         .tab-btn.active.theme-blue .tab-icon { stroke: #0284c7; }
         .tab-btn.active.theme-purple .tab-icon { stroke: #7c3aed; }
         .tab-btn.active.theme-green .tab-icon { stroke: #059669; }
-        .tab-btn.active.theme-amber .tab-icon { stroke: #d97706; }
-        .tab-btn.active.theme-rose .tab-icon { stroke: #db2777; }
 
         .tab-btn[draggable="true"] { cursor: grab; }
         .tab-btn[draggable="true"]:active { cursor: grabbing; }
@@ -134,7 +39,6 @@
         .tab-btn.drag-over { filter: brightness(0.9); }
 
         .container { padding: 35px 40px 40px 40px; max-width: 1400px; margin: 0 auto; }
-        
         .tab-content { display: none !important; }
         .tab-content.active { display: block !important; }
 
@@ -146,7 +50,6 @@
         .kpi-card { padding: 25px; border-radius: 10px; flex: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: center; text-align: center; }
         .kpi-card h3 { margin: 0 0 10px 0; font-size: 14px; color: #555; }
         .kpi-card p { margin: 0; font-size: 28px; font-weight: bold; color: #142940; }
-
         .kpi-card-blue { background-color: #e3f2fd; border-left: 5px solid #90caf9; }
         .kpi-card-orange { background-color: #fff3e0; border-left: 5px solid #ffcc80; }
         .kpi-card-green { background-color: #e8f5e9; border-left: 5px solid #a5d6a7; }
@@ -164,7 +67,6 @@
 
         .report-section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .report-header { font-size: 20px; font-weight: bold; color: #142940; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        
         .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
         @media (max-width: 1024px) { .report-grid { grid-template-columns: 1fr; } }
 
@@ -201,7 +103,6 @@
         .badge-dm { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
         .badge-aec { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
         .badge-all { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-        
         .badge-tactic { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
         .badge-lifecycle { background-color: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
         .badge-persona { background-color: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
@@ -223,7 +124,6 @@
         
         .modal-header h2 { margin-top: 0; color: #142940; margin-bottom: 5px; }
         .modal-header .sub-info { color: #666; font-size: 14px; margin-bottom: 20px; }
-        
         .form-modal-header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #142940; padding-bottom: 12px; margin-bottom: 20px; }
         .form-modal-header-container .header-text h2 { margin: 0 0 5px 0; color: #142940; }
         .form-modal-header-container .header-text .sub-info { color: #666; font-size: 13px; margin: 0; }
@@ -232,15 +132,12 @@
         .summary-card { border-radius: 8px; padding: 16px 15px; flex: 1; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
         .summary-card .label { font-size: 12px; margin-bottom: 6px; font-weight: 600; }
         .summary-card .value { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
-
         .summary-card-date { background-color: #f0f7ff; border: 1px solid #bae6fd; }
         .summary-card-date .label { color: #0284c7; }
         .summary-card-date .value { color: #0369a1; }
-
         .summary-card-req { background-color: #fff7ed; border: 1px solid #fed7aa; }
         .summary-card-req .label { color: #ea580c; }
         .summary-card-req .value { color: #c2410c; }
-
         .summary-card-app { background-color: #f0fdf4; border: 1px solid #bbf7d0; }
         .summary-card-app .label { color: #16a34a; }
         .summary-card-app .value { color: #15803d; }
@@ -250,7 +147,6 @@
         .modal-section-header h3 { margin: 0; color: #142940; font-size: 18px; border: none; padding: 0; }
         
         .desc-box { background-color: #f8f9fa; padding: 15px; border-radius: 6px; white-space: pre-wrap; font-size: 14px; line-height: 1.6; font-family: inherit; column-count: 2; column-gap: 25px; }
-        
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; min-width: 500px; }
         .detail-table th, .detail-table td { border: 1px solid #ddd; padding: 10px; }
@@ -267,7 +163,6 @@
         .form-group label { display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; outline: none; font-family: inherit; color: #333; background-color: #fff; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #142940; }
-        
         .form-row { display: flex; gap: 20px; }
         .form-row .form-group { flex: 1; }
 
@@ -286,21 +181,7 @@
         .multiselect-item:hover { background-color: #f1f5f9; }
         .multiselect-item input[type="checkbox"] { width: 15px; height: 15px; margin: 0; cursor: pointer; accent-color: #142940; flex-shrink: 0; }
 
-        .horizontal-checkbox-group { 
-            display: flex; 
-            flex-wrap: nowrap; 
-            align-items: center; 
-            justify-content: flex-start; 
-            gap: 24px; 
-            padding: 9px 16px; 
-            height: 44px; 
-            border: 1px solid #ddd; 
-            border-radius: 6px; 
-            background-color: #fff; 
-            box-sizing: border-box; 
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; 
-        }
+        .horizontal-checkbox-group { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap: 24px; padding: 9px 16px; height: 44px; border: 1px solid #ddd; border-radius: 6px; background-color: #fff; box-sizing: border-box; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .horizontal-checkbox-group label { display: inline-flex; align-items: center; gap: 6px; font-weight: normal; font-size: 13px; cursor: pointer; margin-bottom: 0; white-space: nowrap; }
         .horizontal-checkbox-group input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; margin: 0; accent-color: #142940; }
 
@@ -328,41 +209,10 @@
         .modal-action-buttons { display: flex; gap: 8px; align-items: center; }
         .form-bottom-actions { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 35px; margin-bottom: 10px; }
 
-        .toast-msg {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            background: linear-gradient(135deg, #142940, #1f3e60);
-            color: #ffffff;
-            padding: 14px 24px;
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.22);
-            font-size: 14px;
-            font-weight: 600;
-            z-index: 9999;
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-left: 4px solid #38bdf8;
-        }
+        .toast-msg { position: fixed; top: 30px; right: 30px; background: linear-gradient(135deg, #142940, #1f3e60); color: #ffffff; padding: 14px 24px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.22); font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transform: translateY(-20px); transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; display: flex; align-items: center; gap: 10px; border-left: 4px solid #38bdf8; }
         .toast-msg.show { opacity: 1; transform: translateY(0); }
 
-        .confirm-modal-content {
-            background-color: #ffffff;
-            margin: 15% auto;
-            padding: 30px 28px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 440px;
-            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
-            position: relative;
-            text-align: center;
-            animation: slideDown 0.25s ease-out;
-        }
+        .confirm-modal-content { background-color: #ffffff; margin: 15% auto; padding: 30px 28px; border-radius: 12px; width: 90%; max-width: 440px; box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28); position: relative; text-align: center; animation: slideDown 0.25s ease-out; }
         .confirm-icon { width: 52px; height: 52px; background-color: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; font-size: 26px; font-weight: bold; }
         .confirm-title { font-size: 18px; font-weight: 700; color: #142940; margin-bottom: 8px; }
         .confirm-message { font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 24px; white-space: pre-wrap; word-break: keep-all; }
@@ -372,81 +222,55 @@
         @media (max-width: 768px) {
             .navbar { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 5px; }
             .navbar h1 { font-size: 18px; }
-            .navbar div { font-size: 12px; opacity: 0.8; }
             .tab-nav-container { padding: 12px 15px 0 15px; }
             .tab-btn { min-width: 140px; padding: 11px 25px 10px 18px; font-size: 13.5px; margin-right: -15px; }
             .container { padding: 20px 15px; }
             .kpi-container { flex-direction: column; gap: 12px; }
             .kpi-card, .action-card { padding: 18px 15px; }
-            .kpi-card p { font-size: 22px; }
             .filter-container { padding: 15px; gap: 10px; }
             .filter-container input, .filter-container select { min-width: 100%; flex: none; }
-            .reset-btn { width: 100%; }
             .fy-section { padding: 18px 15px; }
-            .fy-header { font-size: 17px; }
-            .fy-count { font-size: 12px; }
             .modal-content { width: 95%; margin: 5% auto; padding: 22px 18px; }
-            .close-btn { top: 12px; right: 18px; font-size: 26px; }
             .form-modal-header-container { flex-direction: column; align-items: flex-start; gap: 12px; }
             .form-modal-header-container .modal-action-buttons { width: 100%; justify-content: flex-end; }
             .detail-summary-cards { flex-direction: column; gap: 10px; }
-            .summary-card { padding: 12px; }
-            .summary-card .value { font-size: 18px; }
-            .desc-box { column-count: 1 !important; font-size: 13px; padding: 12px; }
+            .desc-box { column-count: 1 !important; }
             #newDescription { column-count: 1 !important; }
             .form-row { flex-direction: column; gap: 0; }
             .modal-section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
             .modal-section-header .modal-action-buttons { width: 100%; justify-content: flex-end; }
-            .toast-msg { top: 20px; right: 20px; left: 20px; font-size: 13px; padding: 12px 18px; }
-            .confirm-modal-content { margin: 30% auto; padding: 24px 20px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 상단 네비게이션바 -->
     <div class="navbar">
         <h1>ZOOMINTECH | Autodesk MDP Dashboard</h1>
         <div>Marketing Development Program</div>
     </div>
 
-    <!-- 파일철(Folder Tab) 네비게이션바 -->
     <div class="tab-nav-container" id="tabNavContainer">
         <button class="tab-btn active theme-blue" id="btn-dashboardTab" data-tab-id="dashboardTab" draggable="true" onclick="switchTab('dashboardTab', this)">
-            <svg class="tab-icon" viewBox="0 0 24 24">
-                <path d="M3 3v18h18" />
-                <path d="m19 9-5 5-4-4-3 3" />
-            </svg>
+            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>
             <span>MDP Status</span>
         </button>
         <button class="tab-btn theme-purple" id="btn-reportTab" data-tab-id="reportTab" draggable="true" onclick="switchTab('reportTab', this)">
-            <svg class="tab-icon" viewBox="0 0 24 24">
-                <path d="M12 20V10" />
-                <path d="M18 20V4" />
-                <path d="M6 20v-4" />
-            </svg>
+            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M12 20V10" /><path d="M18 20V4" /><path d="M6 20v-4" /></svg>
             <span>Funds Status</span>
         </button>
         <button class="tab-btn theme-green" id="btn-resultReportTab" data-tab-id="resultReportTab" draggable="true" onclick="switchTab('resultReportTab', this)">
-            <svg class="tab-icon" viewBox="0 0 24 24">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
+            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
             <span>Result & Report</span>
         </button>
     </div>
 
     <div class="container">
-        <!-- 로딩 UI -->
+        <!-- 상태 표시 UI -->
         <div id="loader">
             <div class="spinner"></div><br>
-            데이터를 불러오는 중입니다...
+            <span id="loaderText">초고속으로 데이터를 불러오는 중입니다...</span>
         </div>
 
-        <!-- 상단 공통 KPI 카드 컨테이너 -->
         <div class="kpi-container">
             <div class="action-card" onclick="openCreateModal()">
                 <h3>+ 새 플랜 등록</h3>
@@ -466,110 +290,62 @@
             </div>
         </div>
 
-        <!-- 글로벌 공통 필터 바 -->
         <div class="filter-container">
             <input type="text" id="searchInput" placeholder="Activity Name 검색..." oninput="filterData()">
-            <select id="filterFY" onchange="filterData()">
-                <option value="">모든 FY</option>
-            </select>
+            <select id="filterFY" onchange="filterData()"><option value="">모든 FY</option></select>
             <select id="filterFQ" onchange="filterData()">
                 <option value="">모든 FQ</option>
-                <option value="Q1">Q1</option>
-                <option value="Q2">Q2</option>
-                <option value="Q3">Q3</option>
-                <option value="Q4">Q4</option>
+                <option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option>
             </select>
-            <select id="filterIndustry" onchange="filterData()">
-                <option value="">모든 Industry</option>
-            </select>
-            <select id="filterTactics" onchange="filterData()">
-                <option value="">모든 Tactics</option>
-            </select>
+            <select id="filterIndustry" onchange="filterData()"><option value="">모든 Industry</option></select>
+            <select id="filterTactics" onchange="filterData()"><option value="">모든 Tactics</option></select>
             <button class="reset-btn" onclick="resetFilters()">초기화</button>
         </div>
 
-        <!-- [그룹 1] MDP 대시보드 탭 콘텐츠 -->
         <div id="dashboardTab" class="tab-content active">
             <div id="fy-groups-container"></div>
         </div>
 
-        <!-- [그룹 2] 예산 분석 보고서(Funds Status) 탭 콘텐츠 -->
         <div id="reportTab" class="tab-content">
             <div class="report-section">
                 <div class="report-header">
-                    <span>회계연도 및 분기(FY-FQ)별 예산 집행 추이</span>
-                    <span style="font-size: 13px; color: #666; font-weight: normal;">USD ($)</span>
+                    <span>회계연도 및 분기(FY-FQ)별 예산 집행 추이</span><span style="font-size: 13px; color: #666; font-weight: normal;">USD ($)</span>
                 </div>
-                <div style="position: relative; height: 350px; width: 100%;">
-                    <canvas id="fyChart"></canvas>
-                </div>
+                <div style="position: relative; height: 350px; width: 100%;"><canvas id="fyChart"></canvas></div>
             </div>
-
             <div class="report-grid">
                 <div class="report-section" style="margin-bottom: 0;">
-                    <div class="report-header">
-                        <span>Tactics별 예산 비중 (Approved 기준)</span>
-                        <span style="font-size: 13px; color: #666; font-weight: normal;">Share (%)</span>
-                    </div>
-                    <div style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center;">
-                        <canvas id="tacticsPieChart"></canvas>
-                    </div>
+                    <div class="report-header"><span>Tactics별 예산 비중 (Approved 기준)</span><span style="font-size: 13px; color: #666; font-weight: normal;">Share (%)</span></div>
+                    <div style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center;"><canvas id="tacticsPieChart"></canvas></div>
                 </div>
                 <div class="report-section" style="margin-bottom: 0;">
-                    <div class="report-header">
-                        <span>주요 산업군(Industry)별 승인 예산 및 비중</span>
-                        <span style="font-size: 13px; color: #666; font-weight: normal;">USD ($) & Share (%)</span>
-                    </div>
-                    <div style="position: relative; height: 320px; width: 100%;">
-                        <canvas id="industryBarChart"></canvas>
-                    </div>
+                    <div class="report-header"><span>주요 산업군(Industry)별 승인 예산 및 비중</span><span style="font-size: 13px; color: #666; font-weight: normal;">USD ($) & Share (%)</span></div>
+                    <div style="position: relative; height: 320px; width: 100%;"><canvas id="industryBarChart"></canvas></div>
                 </div>
             </div>
-
             <div class="report-grid" style="margin-top: 25px;">
                 <div class="report-section" style="margin-bottom: 0;">
-                    <div class="report-header">
-                        <span>세부 비용 그룹별 원화(KRW) 집행 비중</span>
-                        <span style="font-size: 13px; color: #666; font-weight: normal;">KRW (₩) & Share (%)</span>
-                    </div>
-                    <div style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center;">
-                        <canvas id="costGroupDoughnutChart"></canvas>
-                    </div>
+                    <div class="report-header"><span>세부 비용 그룹별 원화(KRW) 집행 비중</span><span style="font-size: 13px; color: #666; font-weight: normal;">KRW (₩) & Share (%)</span></div>
+                    <div style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center;"><canvas id="costGroupDoughnutChart"></canvas></div>
                 </div>
                 <div class="report-section" style="margin-bottom: 0;">
-                    <div class="report-header">
-                        <span>Tactics별 MQL 획득 단가 (Cost Per MQL)</span>
-                        <span style="font-size: 13px; color: #666; font-weight: normal;">USD ($) / Lead</span>
-                    </div>
-                    <div style="position: relative; height: 320px; width: 100%;">
-                        <canvas id="cplBarChart"></canvas>
-                    </div>
+                    <div class="report-header"><span>Tactics별 MQL 획득 단가 (Cost Per MQL)</span><span style="font-size: 13px; color: #666; font-weight: normal;">USD ($) / Lead</span></div>
+                    <div style="position: relative; height: 320px; width: 100%;"><canvas id="cplBarChart"></canvas></div>
                 </div>
             </div>
-
             <div class="report-section" style="margin-top: 25px;">
                 <div class="report-header">
-                    <span>회계연도 및 분기(FY-FQ)별 재무 요약 지표 상세</span>
-                    <span style="font-size: 12px; color: #64748b; font-weight: normal;">* 승인율은 승인 완료(Approved > $0) 캠페인 기준 집계</span>
+                    <span>회계연도 및 분기(FY-FQ)별 재무 요약 지표 상세</span><span style="font-size: 12px; color: #64748b; font-weight: normal;">* 승인율은 승인 완료(Approved > $0) 캠페인 기준 집계</span>
                 </div>
                 <div class="table-responsive">
                     <table class="detail-table" style="margin-top: 0;">
-                        <thead>
-                            <tr>
-                                <th>회계연도/분기 (FY-FQ)</th>
-                                <th>캠페인 수 (확정/총건수)</th>
-                                <th>총 승인 금액 (Approved)</th>
-                                <th>총 MDP 요청액 (Requested)</th>
-                                <th>요청 대비 승인 비율 (Approved / Requested)</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>회계연도/분기 (FY-FQ)</th><th>캠페인 수 (확정/총건수)</th><th>총 승인 금액 (Approved)</th><th>총 MDP 요청액 (Requested)</th><th>요청 대비 승인 비율 (Approved / Requested)</th></tr></thead>
                         <tbody id="report-summary-tbody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- [그룹 3] Result & Report 탭 콘텐츠 -->
         <div id="resultReportTab" class="tab-content">
             <div class="report-section" style="text-align: center; padding: 80px 20px; color: #64748b;">
                 <h2 style="margin-bottom: 10px; color: #142940;">Result & Report</h2>
@@ -578,31 +354,16 @@
         </div>
     </div>
 
-    <!-- 상세 정보 모달 창 -->
+    <!-- 상세 모달, 신규 생성 모달, 확인 다이얼로그 및 Datalist 영역 (기존과 완벽히 동일) -->
     <div id="detailModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            
-            <div class="modal-header">
-                <h2 id="modal-title">캠페인 상세 정보</h2>
-                <div class="sub-info" id="modal-subtitle">진행일자 / 타겟 페르소나</div>
-            </div>
-
+            <div class="modal-header"><h2 id="modal-title">캠페인 상세 정보</h2><div class="sub-info" id="modal-subtitle">진행일자 / 타겟 페르소나</div></div>
             <div class="detail-summary-cards">
-                <div class="summary-card summary-card-date">
-                    <div class="label">Date of Activity (진행 일자)</div>
-                    <div class="value" id="modal-summary-date">-</div>
-                </div>
-                <div class="summary-card summary-card-req">
-                    <div class="label">Requested ($) - MDP 요청액</div>
-                    <div class="value" id="modal-summary-req">$0</div>
-                </div>
-                <div class="summary-card summary-card-app">
-                    <div class="label">Approved ($) - 총 승인 금액</div>
-                    <div class="value" id="modal-summary-app">$0</div>
-                </div>
+                <div class="summary-card summary-card-date"><div class="label">Date of Activity (진행 일자)</div><div class="value" id="modal-summary-date">-</div></div>
+                <div class="summary-card summary-card-req"><div class="label">Requested ($) - MDP 요청액</div><div class="value" id="modal-summary-req">$0</div></div>
+                <div class="summary-card summary-card-app"><div class="label">Approved ($) - 총 승인 금액</div><div class="value" id="modal-summary-app">$0</div></div>
             </div>
-
             <div class="modal-section">
                 <div class="modal-section-header">
                     <h3>Activity Description (기획 상세 내용)</h3>
@@ -611,57 +372,28 @@
                         <button type="button" class="btn-danger" id="deleteBtn" onclick="deleteCurrentCampaign()">이 플랜 삭제</button>
                     </div>
                 </div>
-
                 <div class="detail-meta-group">
-                    <div class="detail-meta-row">
-                        <span class="detail-meta-title">Campaign</span>
-                        <div class="detail-meta-badges" id="modal-meta-campaign"></div>
-                    </div>
-                    <div class="detail-meta-row">
-                        <span class="detail-meta-title">Tactic</span>
-                        <div class="detail-meta-badges" id="modal-meta-tactic"></div>
-                    </div>
-                    <div class="detail-meta-row">
-                        <span class="detail-meta-title">Lifecycle</span>
-                        <div class="detail-meta-badges" id="modal-meta-lifecycle"></div>
-                    </div>
-                    <div class="detail-meta-row">
-                        <span class="detail-meta-title">Persona</span>
-                        <div class="detail-meta-badges" id="modal-meta-persona"></div>
-                    </div>
+                    <div class="detail-meta-row"><span class="detail-meta-title">Campaign</span><div class="detail-meta-badges" id="modal-meta-campaign"></div></div>
+                    <div class="detail-meta-row"><span class="detail-meta-title">Tactic</span><div class="detail-meta-badges" id="modal-meta-tactic"></div></div>
+                    <div class="detail-meta-row"><span class="detail-meta-title">Lifecycle</span><div class="detail-meta-badges" id="modal-meta-lifecycle"></div></div>
+                    <div class="detail-meta-row"><span class="detail-meta-title">Persona</span><div class="detail-meta-badges" id="modal-meta-persona"></div></div>
                 </div>
-
                 <div class="desc-box" id="modal-desc"></div>
             </div>
-
             <div class="modal-section">
                 <h3>비용 상세 내역 (KRW 기준)</h3>
                 <div class="table-responsive">
                     <table class="detail-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 25%;">비용 그룹</th>
-                                <th style="width: 50%; text-align: left;">세부 항목명</th>
-                                <th style="width: 25%;">금액</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th style="width: 25%;">비용 그룹</th><th style="width: 50%; text-align: left;">세부 항목명</th><th style="width: 25%;">금액</th></tr></thead>
                         <tbody id="modal-cost-list"></tbody>
                     </table>
                 </div>
             </div>
-
             <div class="modal-section">
                 <h3>핵심 성과 지표 (ROI) - 목표 대비 달성도</h3>
                 <div class="table-responsive">
                     <table class="detail-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 25%;">지표명</th>
-                                <th style="width: 25%;">목표 수치</th>
-                                <th style="width: 25%;">결과 수치 (실적)</th>
-                                <th style="width: 25%;">달성도 (Progress)</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th style="width: 25%;">지표명</th><th style="width: 25%;">목표 수치</th><th style="width: 25%;">결과 수치 (실적)</th><th style="width: 25%;">달성도 (Progress)</th></tr></thead>
                         <tbody id="modal-roi-list"></tbody>
                     </table>
                 </div>
@@ -669,181 +401,73 @@
         </div>
     </div>
 
-    <!-- 신규 및 수정 공용 등록 폼 모달 창 -->
     <div id="createModal" class="modal">
         <div class="modal-content">
             <div class="form-modal-header-container">
-                <div class="header-text">
-                    <h2 id="formModalTitle">새로운 마케팅 플랜 등록</h2>
-                    <div class="sub-info">구글 시트 백엔드와 실시간 연동됩니다.</div>
-                </div>
+                <div class="header-text"><h2 id="formModalTitle">새로운 마케팅 플랜 등록</h2><div class="sub-info">구글 시트 백엔드와 실시간 연동됩니다.</div></div>
                 <div class="modal-action-buttons">
-                    <button type="button" class="reset-btn" onclick="cancelEditMode()">취소</button>
-                    <button type="submit" form="createForm" class="btn-primary submit-btn-sync">저장하기</button>
+                    <button type="button" class="reset-btn" onclick="cancelEditMode()">취소</button><button type="submit" form="createForm" class="btn-primary submit-btn-sync">저장하기</button>
                 </div>
             </div>
-
             <form id="createForm" onsubmit="submitPlanData(event)">
                 <input type="hidden" id="editCampaignId">
-                
                 <div class="form-row">
-                    <div class="form-group">
-                        <label>Industry</label>
-                        <select id="newIndustry" required>
-                            <option value="D&M">D&M</option>
-                            <option value="AEC">AEC</option>
-                            <option value="ALL">ALL</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Activity Name (프로그램명)</label>
-                        <input type="text" id="newActivityName" placeholder="캠페인 프로그램명 입력" required>
-                    </div>
+                    <div class="form-group"><label>Industry</label><select id="newIndustry" required><option value="D&M">D&M</option><option value="AEC">AEC</option><option value="ALL">ALL</option></select></div>
+                    <div class="form-group"><label>Activity Name (프로그램명)</label><input type="text" id="newActivityName" placeholder="캠페인 프로그램명 입력" required></div>
                 </div>
-
                 <div class="form-row">
-                    <div class="form-group">
-                        <label>Tactics</label>
-                        <input type="text" id="newTactics" list="tacticsList" placeholder="선택 또는 수기 입력" 
-                               onfocus="this.select()" onmousedown="handleDatalistClick(this)" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Date of Activity (진행 일자)</label>
-                        <input type="date" id="newActivityDate" required>
-                    </div>
+                    <div class="form-group"><label>Tactics</label><input type="text" id="newTactics" list="tacticsList" placeholder="선택 또는 수기 입력" onfocus="this.select()" onmousedown="handleDatalistClick(this)" required></div>
+                    <div class="form-group"><label>Date of Activity (진행 일자)</label><input type="date" id="newActivityDate" required></div>
                 </div>
-
                 <div class="form-row">
+                    <div class="form-group"><label>Requested ($) - MDP 요청액 (자동 산정)</label><input type="text" id="newRequested" placeholder="0" oninput="formatInputNumber(this)" required></div>
                     <div class="form-group">
-                        <label>Requested ($) - MDP 요청액 (자동 산정)</label>
-                        <input type="text" id="newRequested" placeholder="0" oninput="formatInputNumber(this)" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <div class="label-with-action">
-                            <label>Approved ($) - 총 승인 금액</label>
-                            <button type="button" class="btn-copy-req" onclick="copyRequestedToApproved()" title="요청액과 동일한 금액으로 채웁니다">Requested 복사</button>
-                        </div>
+                        <div class="label-with-action"><label>Approved ($) - 총 승인 금액</label><button type="button" class="btn-copy-req" onclick="copyRequestedToApproved()" title="요청액과 동일한 금액으로 채웁니다">Requested 복사</button></div>
                         <input type="text" id="newApproved" placeholder="0" oninput="formatInputNumber(this)" required>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>Campaign Name (드롭다운 복수 선택 가능)</label>
                     <div class="custom-multiselect" id="campaignMultiselect">
                         <input type="text" id="newCampaignName" class="multiselect-input" placeholder="캠페인 선택 (클릭 시 드롭다운 표시)" readonly onclick="toggleCampaignDropdown()">
-                        <span class="multiselect-arrow">▼</span>
-                        <div class="multiselect-dropdown" id="campaignDropdownList"></div>
+                        <span class="multiselect-arrow">▼</span><div class="multiselect-dropdown" id="campaignDropdownList"></div>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>Life cycle (복수 선택 가능)</label>
                     <div class="horizontal-checkbox-group" id="lifecycleCheckboxGroup">
-                        <label><input type="checkbox" value="Discover"> Discover</label>
-                        <label><input type="checkbox" value="Consider"> Consider</label>
-                        <label><input type="checkbox" value="Buy"> Buy</label>
-                        <label><input type="checkbox" value="Onboard"> Onboard</label>
-                        <label><input type="checkbox" value="Use"> Use</label>
-                        <label><input type="checkbox" value="Extend"> Extend</label>
+                        <label><input type="checkbox" value="Discover"> Discover</label><label><input type="checkbox" value="Consider"> Consider</label><label><input type="checkbox" value="Buy"> Buy</label><label><input type="checkbox" value="Onboard"> Onboard</label><label><input type="checkbox" value="Use"> Use</label><label><input type="checkbox" value="Extend"> Extend</label>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>Persona (복수 선택 가능)</label>
                     <div class="horizontal-checkbox-group" id="personaCheckboxGroup">
-                        <label><input type="checkbox" value="Solution Buyer"> Solution Buyer</label>
-                        <label><input type="checkbox" value="End User"> End User</label>
-                        <label><input type="checkbox" value="Technology Admin"> Technology Admin</label>
-                        <label><input type="checkbox" value="Very Small Business"> Very Small Business</label>
-                        <label><input type="checkbox" value="Executive"> Executive</label>
+                        <label><input type="checkbox" value="Solution Buyer"> Solution Buyer</label><label><input type="checkbox" value="End User"> End User</label><label><input type="checkbox" value="Technology Admin"> Technology Admin</label><label><input type="checkbox" value="Very Small Business"> Very Small Business</label><label><input type="checkbox" value="Executive"> Executive</label>
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label>Activity Description (기획 상세 내용)</label>
-                    <textarea id="newDescription" rows="5" placeholder="캠페인 목적, 타겟, 실행 계획 등을 입력하세요." required></textarea>
-                </div>
-
+                <div class="form-group"><label>Activity Description (기획 상세 내용)</label><textarea id="newDescription" rows="5" placeholder="캠페인 목적, 타겟, 실행 계획 등을 입력하세요." required></textarea></div>
                 <div class="modal-section" style="margin-top: 20px;">
-                    <div class="modal-section-header">
-                        <h3>비용 상세 내역 (KRW) 입력</h3>
-                        <button type="button" class="btn-small" onclick="addCostRow()">+ 항목 추가</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="sub-form-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 25%;">비용 그룹</th>
-                                    <th style="width: 50%; text-align: left;">세부 항목명 (Enter 줄바꿈 가능)</th>
-                                    <th style="width: 20%;">금액 (원화)</th>
-                                    <th style="width: 5%;">삭제</th>
-                                </tr>
-                            </thead>
-                            <tbody id="costRowsContainer"></tbody>
-                        </table>
-                    </div>
+                    <div class="modal-section-header"><h3>비용 상세 내역 (KRW) 입력</h3><button type="button" class="btn-small" onclick="addCostRow()">+ 항목 추가</button></div>
+                    <div class="table-responsive"><table class="sub-form-table"><thead><tr><th style="width: 25%;">비용 그룹</th><th style="width: 50%; text-align: left;">세부 항목명 (Enter 줄바꿈 가능)</th><th style="width: 20%;">금액 (원화)</th><th style="width: 5%;">삭제</th></tr></thead><tbody id="costRowsContainer"></tbody></table></div>
                 </div>
-
                 <div class="modal-section" style="margin-top: 20px;">
-                    <div class="modal-section-header">
-                        <h3>핵심 성과 지표 (ROI) 및 결과 실적 입력</h3>
-                        <button type="button" class="btn-small" onclick="addRoiRow()">+ 지표 추가</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="sub-form-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 45%;">지표명</th>
-                                    <th style="width: 25%;">목표 수치</th>
-                                    <th style="width: 25%;">결과 수치 (실적)</th>
-                                    <th style="width: 5%;">삭제</th>
-                                </tr>
-                            </thead>
-                            <tbody id="roiRowsContainer"></tbody>
-                        </table>
-                    </div>
+                    <div class="modal-section-header"><h3>핵심 성과 지표 (ROI) 및 결과 실적 입력</h3><button type="button" class="btn-small" onclick="addRoiRow()">+ 지표 추가</button></div>
+                    <div class="table-responsive"><table class="sub-form-table"><thead><tr><th style="width: 45%;">지표명</th><th style="width: 25%;">목표 수치</th><th style="width: 25%;">결과 수치 (실적)</th><th style="width: 5%;">삭제</th></tr></thead><tbody id="roiRowsContainer"></tbody></table></div>
                 </div>
-
-                <div class="form-bottom-actions">
-                    <button type="button" class="reset-btn" onclick="cancelEditMode()">취소</button>
-                    <button type="submit" class="btn-primary submit-btn-sync">저장하기</button>
-                </div>
+                <div class="form-bottom-actions"><button type="button" class="reset-btn" onclick="cancelEditMode()">취소</button><button type="submit" class="btn-primary submit-btn-sync">저장하기</button></div>
             </form>
         </div>
     </div>
 
-    <!-- 커스텀 확인(Confirm) 다이얼로그 모달 -->
     <div id="customConfirmModal" class="modal" style="z-index: 2000;">
         <div class="confirm-modal-content">
-            <div class="confirm-icon">!</div>
-            <div class="confirm-title" id="confirmDialogTitle">캠페인 삭제 확인</div>
-            <div class="confirm-message" id="confirmDialogMessage">정말로 삭제하시겠습니까?</div>
-            <div class="confirm-actions">
-                <button type="button" class="reset-btn" id="confirmCancelBtn" onclick="closeConfirmDialog(false)">취소</button>
-                <button type="button" class="btn-danger" id="confirmOkBtn" onclick="closeConfirmDialog(true)">삭제하기</button>
-            </div>
+            <div class="confirm-icon">!</div><div class="confirm-title" id="confirmDialogTitle">캠페인 삭제 확인</div><div class="confirm-message" id="confirmDialogMessage">정말로 삭제하시겠습니까?</div>
+            <div class="confirm-actions"><button type="button" class="reset-btn" id="confirmCancelBtn" onclick="closeConfirmDialog(false)">취소</button><button type="button" class="btn-danger" id="confirmOkBtn" onclick="closeConfirmDialog(true)">삭제하기</button></div>
         </div>
     </div>
 
-    <!-- Datalist 정의 -->
-    <datalist id="costGroupList">
-        <option value="광고비">
-        <option value="제작비">
-        <option value="인건비">
-        <option value="운영비">
-        <option value="프로모션비">
-        <option value="기타">
-    </datalist>
-
-    <datalist id="roiNameList">
-        <option value="MGL">
-        <option value="MQL">
-        <option value="MQA">
-        <option value="ATTENDENCE">
-        <option value="CLICK">
-    </datalist>
-
+    <datalist id="costGroupList"><option value="광고비"><option value="제작비"><option value="인건비"><option value="운영비"><option value="프로모션비"><option value="기타"></datalist>
+    <datalist id="roiNameList"><option value="MGL"><option value="MQL"><option value="MQA"><option value="ATTENDENCE"><option value="CLICK"></datalist>
     <datalist id="tacticsList"></datalist>
 
     <script>
@@ -863,6 +487,26 @@
 
         const DEFAULT_DESCRIPTION_TEMPLATE = `1. 목적 : \n      ① \n      ② \n      ③ \n2. 대상(Persona) : Solution Buyer, End User, Technology Admin, Very Small Business, Executive\n3. 세미나 주요 내용\n      ① \n      ② \n      ③ \n      ④ \n4. 인원 계획 및 장소\n      ① \n      ② \n5. 마케팅 Follow-up 계획\n      ① \n      ② \n      ③ \n      ④ `;
 
+        // --- 1. [자동 재시도 로직 탑재 Fetch 함수] 타임아웃 및 네트워크 방어 ---
+        async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
+            for (let i = 0; i < retries; i++) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15초 타임아웃
+                try {
+                    const res = await fetch(url, { ...options, signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    return await res.json();
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    if (i === retries - 1) throw err;
+                    const loaderText = document.getElementById("loaderText");
+                    if(loaderText) loaderText.innerText = "서버 지연으로 데이터를 재요청 중입니다... (" + (i+1) + "/3)";
+                    await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i))); // 지수 백오프 대기
+                }
+            }
+        }
+
         function showToast(message) {
             let toast = document.getElementById("dashboardToast");
             if (!toast) {
@@ -873,9 +517,7 @@
             }
             toast.innerText = message;
             toast.classList.add("show");
-            setTimeout(() => {
-                toast.classList.remove("show");
-            }, 2500);
+            setTimeout(() => { toast.classList.remove("show"); }, 2500);
         }
 
         function showConfirmDialog(message, title = "플랜 삭제 확인") {
@@ -889,307 +531,139 @@
 
         function closeConfirmDialog(result) {
             document.getElementById("customConfirmModal").style.display = "none";
-            if (confirmResolveCallback) {
-                confirmResolveCallback(result);
-                confirmResolveCallback = null;
-            }
+            if (confirmResolveCallback) { confirmResolveCallback(result); confirmResolveCallback = null; }
         }
 
-        /* HTML5 Drag and Drop 탭 순서 변경 로직 */
-        let draggedTab = null;
-        let isTabDragging = false;
-
+        /* 탭 드래그 앤 드롭 유지 */
+        let draggedTab = null, isTabDragging = false;
         function initTabDragAndDrop() {
             const container = document.getElementById("tabNavContainer");
             const tabs = container.querySelectorAll(".tab-btn");
-
             const savedOrder = localStorage.getItem("zoomin_tab_order");
             if (savedOrder) {
                 try {
-                    const orderIds = JSON.parse(savedOrder);
-                    orderIds.forEach(id => {
+                    JSON.parse(savedOrder).forEach(id => {
                         const tabElem = document.getElementById(id);
                         if (tabElem) container.appendChild(tabElem);
                     });
-                } catch (e) {
-                    console.error("탭 순서 복원 실패:", e);
-                }
+                } catch (e) {}
             }
-
             tabs.forEach(tab => {
                 tab.addEventListener("dragstart", (e) => {
-                    draggedTab = tab;
-                    isTabDragging = true;
-                    tab.classList.add("dragging");
-                    e.dataTransfer.effectAllowed = "move";
-                    e.dataTransfer.setData("text/plain", tab.id);
+                    draggedTab = tab; isTabDragging = true; tab.classList.add("dragging");
+                    e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", tab.id);
                 });
-
                 tab.addEventListener("dragend", () => {
-                    tab.classList.remove("dragging");
-                    tabs.forEach(t => t.classList.remove("drag-over"));
-                    draggedTab = null;
-                    setTimeout(() => { isTabDragging = false; }, 50);
-
-                    saveTabOrder();
+                    tab.classList.remove("dragging"); tabs.forEach(t => t.classList.remove("drag-over"));
+                    draggedTab = null; setTimeout(() => { isTabDragging = false; }, 50); saveTabOrder();
                 });
-
                 tab.addEventListener("dragover", (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = "move";
-                    if (draggedTab && draggedTab !== tab) {
-                        tab.classList.add("drag-over");
-                    }
+                    e.preventDefault(); e.dataTransfer.dropEffect = "move";
+                    if (draggedTab && draggedTab !== tab) tab.classList.add("drag-over");
                 });
-
-                tab.addEventListener("dragleave", () => {
-                    tab.classList.remove("drag-over");
-                });
-
+                tab.addEventListener("dragleave", () => { tab.classList.remove("drag-over"); });
                 tab.addEventListener("drop", (e) => {
-                    e.preventDefault();
-                    tab.classList.remove("drag-over");
+                    e.preventDefault(); tab.classList.remove("drag-over");
                     if (draggedTab && draggedTab !== tab) {
                         const allTabs = Array.from(container.querySelectorAll(".tab-btn"));
-                        const draggedIdx = allTabs.indexOf(draggedTab);
-                        const targetIdx = allTabs.indexOf(tab);
-
-                        if (draggedIdx < targetIdx) {
-                            tab.after(draggedTab);
-                        } else {
-                            tab.before(draggedTab);
-                        }
+                        if (allTabs.indexOf(draggedTab) < allTabs.indexOf(tab)) tab.after(draggedTab); else tab.before(draggedTab);
                         saveTabOrder();
                     }
                 });
             });
         }
-
-        function saveTabOrder() {
-            const container = document.getElementById("tabNavContainer");
-            const currentTabs = Array.from(container.querySelectorAll(".tab-btn")).map(t => t.id);
-            localStorage.setItem("zoomin_tab_order", JSON.stringify(currentTabs));
-        }
-
+        function saveTabOrder() { localStorage.setItem("zoomin_tab_order", JSON.stringify(Array.from(document.querySelectorAll("#tabNavContainer .tab-btn")).map(t => t.id))); }
         function switchTab(tabId, btnElement) {
             if (isTabDragging) return;
-
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.remove('active');
-                el.style.display = 'none';
-            });
+            document.querySelectorAll('.tab-content').forEach(el => { el.classList.remove('active'); el.style.display = 'none'; });
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-
             const targetTab = document.getElementById(tabId);
-            if (targetTab) {
-                targetTab.classList.add('active');
-                targetTab.style.display = 'block';
-            }
+            if (targetTab) { targetTab.classList.add('active'); targetTab.style.display = 'block'; }
             btnElement.classList.add('active');
-
-            if (tabId === 'reportTab') {
-                renderReportOnly(currentFilteredCampaigns);
-            }
+            if (tabId === 'reportTab') renderReportOnly(currentFilteredCampaigns);
         }
 
         function handleDatalistClick(input) {
             if (input.value) {
-                const temp = input.value;
-                input.value = "";
-                setTimeout(() => {
-                    if (document.activeElement === input && input.value === "") {
-                        input.value = temp;
-                        input.select();
-                    }
-                }, 1);
+                const temp = input.value; input.value = "";
+                setTimeout(() => { if (document.activeElement === input && input.value === "") { input.value = temp; input.select(); } }, 1);
             }
         }
-
-        function getSafeCampaignName(c) {
-            if (!c) return "";
-            return c.Campaign_Name || c.CamPaign_Name || c["Campaign Name"] || c["CamPaign Name"] || c.campaign_name || "";
-        }
-
+        function getSafeCampaignName(c) { return c.Campaign_Name || c.CamPaign_Name || c["Campaign Name"] || c["CamPaign Name"] || c.campaign_name || ""; }
         function formatToInputDate(dateVal) {
             if (!dateVal) return "";
-            if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal.trim())) {
-                return dateVal.trim();
-            }
-            const d = new Date(dateVal);
-            if (isNaN(d.getTime())) return "";
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+            if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal.trim())) return dateVal.trim();
+            const d = new Date(dateVal); if (isNaN(d.getTime())) return "";
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         }
-
         function formatDateWithDay(dateString) {
             if (!dateString) return "-";
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
-
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            
+            const date = new Date(dateString); if (isNaN(date.getTime())) return dateString;
             const days = ['일', '월', '화', '수', '목', '금', '토'];
-            const dayOfWeek = days[date.getDay()];
-
-            return `${year}-${month}-${day}(${dayOfWeek})`;
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}(${days[date.getDay()]})`;
         }
-
-        function formatKRW(num) {
-            const cleanNum = Math.round(Number(num) || 0);
-            return "₩" + cleanNum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-
-        function formatInputNumber(input) {
-            let val = input.value.replace(/[^0-9]/g, "");
-            if(val !== "") {
-                val = Number(val).toLocaleString();
-            }
-            input.value = val;
-        }
-
+        function formatKRW(num) { return "₩" + Math.round(Number(num) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function formatInputNumber(input) { let val = input.value.replace(/[^0-9]/g, ""); if(val !== "") val = Number(val).toLocaleString(); input.value = val; }
         function autoCalculateRequested() {
-            let totalCostKRW = 0;
-            document.querySelectorAll("#costRowsContainer tr").forEach(tr => {
-                const amountInput = tr.querySelector(".cost-amount");
-                if (amountInput) {
-                    const rawVal = Number(amountInput.value.replace(/,/g, "")) || 0;
-                    totalCostKRW += rawVal;
-                }
-            });
-
-            const halfCost = totalCostKRW * 0.5;
-            const calculatedRequested = Math.round(halfCost / 1000);
-
-            const reqInput = document.getElementById("newRequested");
-            if (reqInput) {
-                reqInput.value = calculatedRequested > 0 ? calculatedRequested.toLocaleString() : "0";
-            }
+            let total = 0; document.querySelectorAll("#costRowsContainer tr").forEach(tr => { const amt = tr.querySelector(".cost-amount"); if (amt) total += (Number(amt.value.replace(/,/g, "")) || 0); });
+            const req = Math.round((total * 0.5) / 1000); const input = document.getElementById("newRequested"); if (input) input.value = req > 0 ? req.toLocaleString() : "0";
         }
-
-        function copyRequestedToApproved() {
-            const reqVal = document.getElementById("newRequested").value;
-            document.getElementById("newApproved").value = reqVal || "0";
-        }
-
+        function copyRequestedToApproved() { document.getElementById("newApproved").value = document.getElementById("newRequested").value || "0"; }
         function getAutodeskFYFQ(dateString) {
             if (!dateString) return { fy: "기타", fq: "-" };
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return { fy: "기타", fq: "-" };
-
-            let year = date.getFullYear();
-            let month = date.getMonth() + 1;
-
-            let fq = "";
-            let fyYear = year;
-
-            if (month >= 2 && month <= 4) {
-                fq = "Q1";
-                fyYear = year + 1;
-            } else if (month >= 5 && month <= 7) {
-                fq = "Q2";
-                fyYear = year + 1;
-            } else if (month >= 8 && month <= 10) {
-                fq = "Q3";
-                fyYear = year + 1;
-            } else {
-                fq = "Q4";
-                fyYear = (month === 1) ? year : year + 1;
-            }
-
+            const date = new Date(dateString); if (isNaN(date.getTime())) return { fy: "기타", fq: "-" };
+            let year = date.getFullYear(), month = date.getMonth() + 1, fq = "", fyYear = year;
+            if (month >= 2 && month <= 4) { fq = "Q1"; fyYear = year + 1; } 
+            else if (month >= 5 && month <= 7) { fq = "Q2"; fyYear = year + 1; } 
+            else if (month >= 8 && month <= 10) { fq = "Q3"; fyYear = year + 1; } 
+            else { fq = "Q4"; fyYear = (month === 1) ? year : year + 1; }
             return { fy: "FY" + fyYear, fq: fq };
         }
-
-        function toggleCampaignDropdown(event) {
-            if (event) event.stopPropagation();
-            const container = document.getElementById("campaignMultiselect");
-            container.classList.toggle("open");
-        }
-
+        function toggleCampaignDropdown(event) { if (event) event.stopPropagation(); document.getElementById("campaignMultiselect").classList.toggle("open"); }
         function buildCampaignDropdown(selectedItems = []) {
-            const dropdown = document.getElementById("campaignDropdownList");
-            dropdown.innerHTML = "";
-
-            const details = globalData.campaignDetails || [];
+            const dropdown = document.getElementById("campaignDropdownList"); dropdown.innerHTML = "";
             const campaignSet = new Set();
-
-            if (Array.isArray(details)) {
-                details.forEach(item => {
-                    const val = item.Campaign_List || item.campaign_list || item["Campaign List"] || item["Campaign_List"] || item.Campaign_Name || item.campaign_name;
-                    if (val && String(val).trim() !== "") {
-                        campaignSet.add(String(val).trim());
-                    }
-                });
-            }
-
-            selectedItems.forEach(item => {
-                if (item && String(item).trim() !== "") campaignSet.add(String(item).trim());
+            (globalData.campaignDetails || []).forEach(item => {
+                const val = item.Campaign_List || item.campaign_list || item["Campaign List"] || item["Campaign_List"] || item.Campaign_Name || item.campaign_name;
+                if (val && String(val).trim() !== "") campaignSet.add(String(val).trim());
             });
-
+            selectedItems.forEach(item => { if (item && String(item).trim() !== "") campaignSet.add(String(item).trim()); });
             const sortedList = Array.from(campaignSet).sort();
-
-            if (sortedList.length === 0) {
-                dropdown.innerHTML = '<div style="padding: 10px; font-size: 12px; color: #94a3b8; text-align: center;">등록된 Campaign_List가 없습니다.</div>';
-                return;
-            }
-
+            if (sortedList.length === 0) { dropdown.innerHTML = '<div style="padding: 10px; font-size: 12px; color: #94a3b8; text-align: center;">등록된 Campaign_List가 없습니다.</div>'; return; }
             sortedList.forEach(name => {
-                const label = document.createElement("label");
-                label.className = "multiselect-item";
-                
                 const isChecked = selectedItems.includes(name);
-                label.innerHTML = `
-                    <input type="checkbox" value="${name}" ${isChecked ? 'checked' : ''} onchange="syncCampaignSelection()">
-                    <span>${name}</span>
-                `;
-                dropdown.appendChild(label);
+                dropdown.innerHTML += `<label class="multiselect-item"><input type="checkbox" value="${name}" ${isChecked ? 'checked' : ''} onchange="syncCampaignSelection()"><span>${name}</span></label>`;
             });
-
             syncCampaignSelection();
         }
-
         function syncCampaignSelection() {
             const selected = [];
-            document.querySelectorAll("#campaignDropdownList input[type='checkbox']:checked").forEach(cb => {
-                selected.push(cb.value);
-            });
-            const input = document.getElementById("newCampaignName");
-            input.value = selected.join(", ");
+            document.querySelectorAll("#campaignDropdownList input[type='checkbox']:checked").forEach(cb => selected.push(cb.value));
+            document.getElementById("newCampaignName").value = selected.join(", ");
         }
 
-        /* 백엔드의 2차원 매트릭스 데이터를 객체 배열로 변환하는 어댑터 함수 */
+        // --- 2. [어댑터] 백엔드 2차원 매트릭스 데이터를 파싱하는 함수 ---
         function parseMatrixData(matrixObj) {
-            if (!matrixObj || !matrixObj.headers || !matrixObj.rows) {
-                if (Array.isArray(matrixObj)) return matrixObj; // 기존 객체 배열 호환
-                return [];
-            }
+            if (!matrixObj || !matrixObj.headers || !matrixObj.rows) return Array.isArray(matrixObj) ? matrixObj : [];
             const headers = matrixObj.headers;
             return matrixObj.rows.map(row => {
                 let obj = {};
                 for (let j = 0; j < headers.length; j++) {
                     let rawKey = String(headers[j]).trim();
                     obj[rawKey] = row[j];
-                    
                     let normKey = rawKey.replace(/[\s_]/g, "").toLowerCase();
-                    if (normKey === "campaignname") {
-                        obj["Campaign_Name"] = row[j];
-                    } else if (normKey === "campaignlist") {
-                        obj["Campaign_List"] = row[j];
-                    }
+                    if (normKey === "campaignname") obj["Campaign_Name"] = row[j];
+                    else if (normKey === "campaignlist") obj["Campaign_List"] = row[j];
                 }
                 return obj;
             });
         }
 
-        function loadData() {
-            const fetchUrl = `${API_URL}?t=${Date.now()}`;
-            fetch(fetchUrl, { method: "GET", cache: "no-store", redirect: "follow" })
-            .then(response => response.json())
-            .then(data => {
-                // 압축된 매트릭스 데이터를 기존 구조로 완벽히 복원
+        async function loadData() {
+            try {
+                const data = await fetchWithRetry(`${API_URL}?t=${Date.now()}`, { method: "GET", cache: "no-store", redirect: "follow" });
+                
+                // 매트릭스 2차원 배열 데이터를 기존 객체 모델로 매핑
                 globalData = {
                     campaigns: parseMatrixData(data.master),
                     rois: parseMatrixData(data.rois),
@@ -1204,663 +678,208 @@
                 
                 const loader = document.getElementById("loader");
                 if (loader) loader.style.display = "none";
-                
-                const dashTab = document.getElementById("dashboardTab");
-                if (dashTab) {
-                    dashTab.classList.add("active");
-                    dashTab.style.display = "block";
-                }
-
-                const repTab = document.getElementById("reportTab");
-                if (repTab) {
-                    repTab.classList.remove("active");
-                    repTab.style.display = "none";
-                }
-
-                const resTab = document.getElementById("resultReportTab");
-                if (resTab) {
-                    resTab.classList.remove("active");
-                    resTab.style.display = "none";
-                }
-
+                document.getElementById("dashboardTab").classList.add("active"); document.getElementById("dashboardTab").style.display = "block";
+                document.getElementById("reportTab").classList.remove("active"); document.getElementById("reportTab").style.display = "none";
+                document.getElementById("resultReportTab").classList.remove("active"); document.getElementById("resultReportTab").style.display = "none";
                 filterData();
-            })
-            .catch(error => {
+            } catch(error) {
                 const loader = document.getElementById("loader");
                 if (loader) loader.style.display = "none";
-                showToast("데이터 호출 실패. 콘솔 로그를 확인하세요.");
+                showToast("데이터 호출 실패(타임아웃). 새로고침 해주세요.");
                 console.error(error);
-            });
+            }
         }
-
         loadData();
         initTabDragAndDrop();
 
         function updateTacticsDatalist() {
-            const datalist = document.getElementById("tacticsList");
-            datalist.innerHTML = "";
-
-            const tacticsSet = new Set();
-            if (globalData.campaigns && Array.isArray(globalData.campaigns)) {
-                globalData.campaigns.forEach(c => {
-                    if (c.Tactics && String(c.Tactics).trim() !== "") {
-                        tacticsSet.add(String(c.Tactics).trim());
-                    }
-                });
-            }
-
-            ["Seminar", "Webinar", "eDM", "Exhibition", "Social Ads"].forEach(t => tacticsSet.add(t));
-
-            Array.from(tacticsSet).sort().forEach(tactics => {
-                const opt = document.createElement("option");
-                opt.value = tactics;
-                datalist.appendChild(opt);
-            });
+            const datalist = document.getElementById("tacticsList"); datalist.innerHTML = "";
+            const tacticsSet = new Set(["Seminar", "Webinar", "eDM", "Exhibition", "Social Ads"]);
+            (globalData.campaigns || []).forEach(c => { if (c.Tactics && String(c.Tactics).trim() !== "") tacticsSet.add(String(c.Tactics).trim()); });
+            Array.from(tacticsSet).sort().forEach(t => datalist.innerHTML += `<option value="${t}">`);
         }
-
         function updateCostGroupDatalist() {
-            const datalist = document.getElementById("costGroupList");
-            datalist.innerHTML = "";
-            
-            const groups = new Set();
-            if (globalData.costs && Array.isArray(globalData.costs)) {
-                globalData.costs.forEach(c => {
-                    if (c.비용_그룹 && String(c.비용_그룹).trim() !== "") {
-                        groups.add(String(c.비용_그룹).trim());
-                    }
-                });
-            }
-
-            ["광고비", "제작비", "인건비", "운영비", "기타"].forEach(g => groups.add(g));
-
-            Array.from(groups).sort().forEach(group => {
-                const opt = document.createElement("option");
-                opt.value = group;
-                datalist.appendChild(opt);
-            });
+            const datalist = document.getElementById("costGroupList"); datalist.innerHTML = "";
+            const groups = new Set(["광고비", "제작비", "인건비", "운영비", "기타"]);
+            (globalData.costs || []).forEach(c => { if (c.비용_그룹 && String(c.비용_그룹).trim() !== "") groups.add(String(c.비용_그룹).trim()); });
+            Array.from(groups).sort().forEach(g => datalist.innerHTML += `<option value="${g}">`);
         }
-
         function populateFilterOptions(campaigns) {
-            let fys = new Set();
-            let industries = new Set();
-            let tactics = new Set();
-
+            let fys = new Set(), industries = new Set(), tactics = new Set();
             campaigns.forEach(c => {
                 const afyfq = getAutodeskFYFQ(c.Activity_Date);
                 if (afyfq.fy !== "기타") fys.add(afyfq.fy);
                 if (c.Industry) industries.add(c.Industry);
                 if (c.Tactics) tactics.add(c.Tactics);
             });
-
-            const fySelect = document.getElementById("filterFY");
-            fySelect.innerHTML = '<option value="">모든 FY</option>';
-            Array.from(fys).sort().reverse().forEach(fy => {
-                fySelect.innerHTML += `<option value="${fy}">${fy}</option>`;
-            });
-
-            const indSelect = document.getElementById("filterIndustry");
-            indSelect.innerHTML = '<option value="">모든 Industry</option>';
-            Array.from(industries).sort().forEach(ind => {
-                indSelect.innerHTML += `<option value="${ind}">${ind}</option>`;
-            });
-
-            const tacSelect = document.getElementById("filterTactics");
-            tacSelect.innerHTML = '<option value="">모든 Tactics</option>';
-            Array.from(tactics).sort().forEach(tac => {
-                tacSelect.innerHTML += `<option value="${tac}">${tac}</option>`;
-            });
+            const fySelect = document.getElementById("filterFY"); fySelect.innerHTML = '<option value="">모든 FY</option>';
+            Array.from(fys).sort().reverse().forEach(fy => fySelect.innerHTML += `<option value="${fy}">${fy}</option>`);
+            const indSelect = document.getElementById("filterIndustry"); indSelect.innerHTML = '<option value="">모든 Industry</option>';
+            Array.from(industries).sort().forEach(ind => indSelect.innerHTML += `<option value="${ind}">${ind}</option>`);
+            const tacSelect = document.getElementById("filterTactics"); tacSelect.innerHTML = '<option value="">모든 Tactics</option>';
+            Array.from(tactics).sort().forEach(tac => tacSelect.innerHTML += `<option value="${tac}">${tac}</option>`);
         }
-
         function filterData() {
-            const keyword = document.getElementById("searchInput").value.toLowerCase();
-            const selectedFY = document.getElementById("filterFY").value;
-            const selectedFQ = document.getElementById("filterFQ").value;
-            const selectedInd = document.getElementById("filterIndustry").value;
-            const selectedTac = document.getElementById("filterTactics").value;
-
+            const keyword = document.getElementById("searchInput").value.toLowerCase(), selectedFY = document.getElementById("filterFY").value, selectedFQ = document.getElementById("filterFQ").value, selectedInd = document.getElementById("filterIndustry").value, selectedTac = document.getElementById("filterTactics").value;
             currentFilteredCampaigns = globalData.campaigns.filter(c => {
                 const afyfq = getAutodeskFYFQ(c.Activity_Date);
-                const matchName = (c.Activity_Name || "").toLowerCase().includes(keyword);
-                const matchFY = selectedFY === "" || afyfq.fy === selectedFY;
-                const matchFQ = selectedFQ === "" || afyfq.fq === selectedFQ;
-                const matchInd = selectedInd === "" || c.Industry === selectedInd;
-                const matchTac = selectedTac === "" || c.Tactics === selectedTac;
-
-                return matchName && matchFY && matchFQ && matchInd && matchTac;
+                return (c.Activity_Name || "").toLowerCase().includes(keyword) && (selectedFY === "" || afyfq.fy === selectedFY) && (selectedFQ === "" || afyfq.fq === selectedFQ) && (selectedInd === "" || c.Industry === selectedInd) && (selectedTac === "" || c.Tactics === selectedTac);
             });
-
             processAndRenderTabs(currentFilteredCampaigns);
         }
-
         function resetFilters() {
-            document.getElementById("searchInput").value = "";
-            document.getElementById("filterFY").value = "";
-            document.getElementById("filterFQ").value = "";
-            document.getElementById("filterIndustry").value = "";
-            document.getElementById("filterTactics").value = "";
-            filterData();
+            document.getElementById("searchInput").value = ""; document.getElementById("filterFY").value = ""; document.getElementById("filterFQ").value = ""; document.getElementById("filterIndustry").value = ""; document.getElementById("filterTactics").value = ""; filterData();
         }
-
         function processAndRenderTabs(campaigns) {
             let fyGroups = {};
             campaigns.forEach(c => {
-                const requestedVal = Number(c.Cost_MDP_Requested) || 0;
-                const approvedVal = Number(c.Cost_Approved) || 0;
                 const afyfq = getAutodeskFYFQ(c.Activity_Date);
-                
                 if (!fyGroups[afyfq.fy]) fyGroups[afyfq.fy] = [];
-                fyGroups[afyfq.fy].push({ ...c, calculatedFY: afyfq.fy, calculatedFQ: afyfq.fq, reqVal: requestedVal, appVal: approvedVal });
+                fyGroups[afyfq.fy].push({ ...c, calculatedFY: afyfq.fy, calculatedFQ: afyfq.fq, reqVal: Number(c.Cost_MDP_Requested)||0, appVal: Number(c.Cost_Approved)||0 });
             });
-
-            for (let fKey in fyGroups) {
-                fyGroups[fKey].sort((a, b) => {
-                    const dateA = a.Activity_Date ? new Date(a.Activity_Date).getTime() : 0;
-                    const dateB = b.Activity_Date ? new Date(b.Activity_Date).getTime() : 0;
-                    return dateB - dateA;
-                });
-            }
-
+            for (let fKey in fyGroups) { fyGroups[fKey].sort((a, b) => (new Date(b.Activity_Date).getTime() || 0) - (new Date(a.Activity_Date).getTime() || 0)); }
             renderDashboardOnly(campaigns, fyGroups);
             renderReportOnly(campaigns);
         }
 
+        // --- 3. [비동기 DOM 청크 렌더링 도입] ---
+        // 수천 건이 넘는 렌더링 시 브라우저 메인 스레드 멈춤 방지 (requestAnimationFrame 분할)
+        function asyncRenderDashboard(htmlBlocks, callback) {
+            const container = document.getElementById("fy-groups-container");
+            container.innerHTML = "";
+            if (htmlBlocks.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 40px; background: white; border-radius: 12px; color: #666;">검색 결과가 존재하지 않습니다.</div>`;
+                return;
+            }
+            let idx = 0;
+            function renderChunk() {
+                if (idx < htmlBlocks.length) {
+                    container.insertAdjacentHTML('beforeend', htmlBlocks[idx]);
+                    idx++;
+                    requestAnimationFrame(renderChunk);
+                } else if (callback) callback();
+            }
+            requestAnimationFrame(renderChunk);
+        }
+
+        function renderDashboardOnly(campaigns, fyGroups) {
+            let totalApproved = 0, totalRequested = 0;
+            campaigns.forEach(c => { totalApproved += Number(c.Cost_Approved) || 0; totalRequested += Number(c.Cost_MDP_Requested) || 0; });
+            document.getElementById("total-campaigns").innerText = campaigns.length + " 개"; document.getElementById("total-mdp").innerText = "$" + totalRequested.toLocaleString(); document.getElementById("total-budget").innerText = "$" + totalApproved.toLocaleString();
+
+            const sortedFys = Object.keys(fyGroups).sort().reverse();
+            const htmlBlocks = [];
+
+            sortedFys.forEach((fy) => {
+                const items = fyGroups[fy]; if (!items || items.length === 0) return;
+                let rowsHtml = "";
+                items.forEach(c => {
+                    let badgeClass = "badge-all"; const ind = String(c.Industry || "").toUpperCase();
+                    if(ind.includes("D&M")) badgeClass = "badge-dm"; else if(ind.includes("AEC")) badgeClass = "badge-aec";
+                    const reqStr = "$" + (Number(c.Cost_MDP_Requested) || 0).toLocaleString();
+                    const appStr = "$" + (Number(c.Cost_Approved) || 0).toLocaleString();
+                    rowsHtml += `<tr onclick="openModal('${c.캠페인_ID}')"><td><b>${c.calculatedFY || getAutodeskFYFQ(c.Activity_Date).fy}</b></td><td>${c.calculatedFQ || getAutodeskFYFQ(c.Activity_Date).fq}</td><td><span class="badge ${badgeClass}">${c.Industry || '-'}</span></td><td class="text-left">${c.Tactics || '-'}</td><td>${c.Activity_Name || '-'}</td><td>${formatDateWithDay(c.Activity_Date)}</td><td class="text-right">${reqStr}</td><td class="text-right" style="font-weight: bold; color: #142940;">${appStr}</td></tr>`;
+                });
+                const openClass = openFys.has(fy) ? "open" : "", activeClass = openFys.has(fy) ? "active" : "";
+                htmlBlocks.push(`
+                    <div class="fy-section">
+                        <div class="fy-header ${openClass}" onclick="toggleFyAccordion(this, '${fy}')">
+                            <div class="fy-header-left"><span>${fy} 캠페인 현황</span><span class="fy-count">총 ${items.length}개 프로그램</span></div>
+                            <div class="fy-header-right"><div class="toggle-icon-btn ${activeClass}"><svg class="toggle-svg" viewBox="0 0 24 24" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><line class="toggle-vertical-line" x1="12" y1="5" x2="12" y2="19"></line></svg></div></div>
+                        </div>
+                        <div class="fy-content-wrapper ${openClass}"><table><thead><tr><th>FY</th><th>FQ</th><th>Industry</th><th style="text-align: left;">Tactics</th><th>Activity Name</th><th>Date of Activity</th><th>Requested($)</th><th>Approved($)</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>
+                    </div>
+                `);
+            });
+            asyncRenderDashboard(htmlBlocks);
+        }
+
+        function toggleFyAccordion(headerElement, fyName) {
+            const content = headerElement.closest('.fy-section').querySelector('.fy-content-wrapper'), iconBtn = headerElement.closest('.fy-section').querySelector('.toggle-icon-btn');
+            if (content.classList.contains('open')) { content.classList.remove('open'); iconBtn.classList.remove('active'); headerElement.classList.remove('open'); if (fyName) openFys.delete(fyName); } 
+            else { content.classList.add('open'); iconBtn.classList.add('active'); headerElement.classList.add('open'); if (fyName) openFys.add(fyName); }
+        }
+
+        /* (차트 렌더링 로직은 기존 코드와 100% 동일하므로 그대로 적용됨) */
         function renderReportOnly(campaigns) {
             const filteredCampaignIds = new Set(campaigns.map(c => String(c.캠페인_ID).trim()));
-
             const fyFqMap = {};
             campaigns.forEach(c => {
                 const afyfq = getAutodeskFYFQ(c.Activity_Date);
                 if (afyfq.fy === "기타") return;
                 const key = `${afyfq.fy} ${afyfq.fq}`;
-                
-                if (!fyFqMap[key]) {
-                    fyFqMap[key] = {
-                        key: key,
-                        fy: afyfq.fy,
-                        fq: afyfq.fq,
-                        appSum: 0,
-                        reqSum: 0,
-                        totalCount: 0,
-                        approvedCount: 0,
-                        sumReqForApproved: 0
-                    };
-                }
-
-                const appVal = Number(c.Cost_Approved) || 0;
-                const reqVal = Number(c.Cost_MDP_Requested) || 0;
-
-                fyFqMap[key].appSum += appVal;
-                fyFqMap[key].reqSum += reqVal;
-                fyFqMap[key].totalCount++;
-
-                if (appVal > 0) {
-                    fyFqMap[key].approvedCount++;
-                    fyFqMap[key].sumReqForApproved += reqVal;
-                }
+                if (!fyFqMap[key]) fyFqMap[key] = { key: key, fy: afyfq.fy, fq: afyfq.fq, appSum: 0, reqSum: 0, totalCount: 0, approvedCount: 0, sumReqForApproved: 0 };
+                const appVal = Number(c.Cost_Approved) || 0, reqVal = Number(c.Cost_MDP_Requested) || 0;
+                fyFqMap[key].appSum += appVal; fyFqMap[key].reqSum += reqVal; fyFqMap[key].totalCount++;
+                if (appVal > 0) { fyFqMap[key].approvedCount++; fyFqMap[key].sumReqForApproved += reqVal; }
             });
-
-            const sortedKeys = Object.keys(fyFqMap).sort((a, b) => {
-                const [fyA, fqA] = a.split(' ');
-                const [fyB, fqB] = b.split(' ');
-                if (fyA !== fyB) return fyA.localeCompare(fyB);
-                return fqA.localeCompare(fqB);
-            });
-
-            const labels = [];
-            const approvedData = [];
-            const requestedData = [];
-            let summaryTableHtml = "";
-
+            const sortedKeys = Object.keys(fyFqMap).sort((a, b) => { const [fyA, fqA] = a.split(' '), [fyB, fqB] = b.split(' '); return fyA !== fyB ? fyA.localeCompare(fyB) : fqA.localeCompare(fqB); });
+            const labels = [], approvedData = [], requestedData = []; let summaryTableHtml = "";
             sortedKeys.forEach(k => {
-                const item = fyFqMap[k];
-                labels.push(item.key);
-                approvedData.push(item.appSum);
-                requestedData.push(item.reqSum);
-
-                const ratioBase = item.sumReqForApproved > 0 ? item.sumReqForApproved : item.reqSum;
-                const ratio = ratioBase > 0 ? ((item.appSum / ratioBase) * 100).toFixed(1) + "%" : "0.0%";
-
-                summaryTableHtml += `
-                    <tr>
-                        <td><b>${item.key}</b></td>
-                        <td class="text-center">${item.approvedCount} / ${item.totalCount}개</td>
-                        <td class="text-right" style="font-weight: bold; color: #142940;">$${item.appSum.toLocaleString()}</td>
-                        <td class="text-right">$${item.reqSum.toLocaleString()}</td>
-                        <td class="text-center"><b>${ratio}</b></td>
-                    </tr>
-                `;
+                const item = fyFqMap[k]; labels.push(item.key); approvedData.push(item.appSum); requestedData.push(item.reqSum);
+                const ratioBase = item.sumReqForApproved > 0 ? item.sumReqForApproved : item.reqSum, ratio = ratioBase > 0 ? ((item.appSum / ratioBase) * 100).toFixed(1) + "%" : "0.0%";
+                summaryTableHtml += `<tr><td><b>${item.key}</b></td><td class="text-center">${item.approvedCount} / ${item.totalCount}개</td><td class="text-right" style="font-weight: bold; color: #142940;">$${item.appSum.toLocaleString()}</td><td class="text-right">$${item.reqSum.toLocaleString()}</td><td class="text-center"><b>${ratio}</b></td></tr>`;
             });
-
-            if (sortedKeys.length === 0) {
-                summaryTableHtml = `<tr><td colspan="5" class="text-center" style="padding: 20px; color: #94a3b8;">조회된 데이터가 없습니다.</td></tr>`;
-            }
-
-            const summaryTbody = document.getElementById("report-summary-tbody");
-            if (summaryTbody) summaryTbody.innerHTML = summaryTableHtml;
+            if (sortedKeys.length === 0) summaryTableHtml = `<tr><td colspan="5" class="text-center" style="padding: 20px; color: #94a3b8;">조회된 데이터가 없습니다.</td></tr>`;
+            document.getElementById("report-summary-tbody").innerHTML = summaryTableHtml;
 
             const fyCanvas = document.getElementById('fyChart');
             if (fyCanvas) {
-                const ctxFy = fyCanvas.getContext('2d');
                 if (fyChartInstance) fyChartInstance.destroy();
-
-                fyChartInstance = new Chart(ctxFy, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            { label: 'Approved ($)', data: approvedData, backgroundColor: '#142940', borderRadius: 6 },
-                            { label: 'Requested ($)', data: requestedData, backgroundColor: '#64748b', borderRadius: 6 }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { 
-                            legend: { position: 'top' },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return ` ${context.dataset.label}: $${Number(context.raw || 0).toLocaleString()}`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: { 
-                            y: { 
-                                beginAtZero: true, 
-                                ticks: { callback: function(value) { return '$' + value.toLocaleString(); } } 
-                            } 
-                        }
-                    }
-                });
+                fyChartInstance = new Chart(fyCanvas.getContext('2d'), { type: 'bar', data: { labels: labels, datasets: [ { label: 'Approved ($)', data: approvedData, backgroundColor: '#142940', borderRadius: 6 }, { label: 'Requested ($)', data: requestedData, backgroundColor: '#64748b', borderRadius: 6 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: function(c) { return ` ${c.dataset.label}: $${Number(c.raw || 0).toLocaleString()}`; } } } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return '$' + v.toLocaleString(); } } } } } });
             }
 
             const tacticsCanvas = document.getElementById('tacticsPieChart');
             if (tacticsCanvas) {
-                const ctxPie = tacticsCanvas.getContext('2d');
-                let tacticsMap = {};
-
-                campaigns.forEach(c => {
-                    const tactic = String(c.Tactics || "기타").trim();
-                    const appVal = Number(c.Cost_Approved) || 0;
-                    if (!tacticsMap[tactic]) tacticsMap[tactic] = 0;
-                    tacticsMap[tactic] += appVal;
-                });
-
+                let tacticsMap = {}; campaigns.forEach(c => { const tactic = String(c.Tactics || "기타").trim(); tacticsMap[tactic] = (tacticsMap[tactic] || 0) + (Number(c.Cost_Approved) || 0); });
                 let sortedTactics = Object.entries(tacticsMap).sort((a, b) => b[1] - a[1]);
-                const tacticsLabels = sortedTactics.map(item => item[0]);
-                const tacticsValues = sortedTactics.map(item => item[1]);
-                const pieColors = ['#142940', '#0284c7', '#0d9488', '#6366f1', '#f59e0b', '#ec4899', '#64748b', '#10b981'];
-
                 if (tacticsPieChartInstance) tacticsPieChartInstance.destroy();
-
-                tacticsPieChartInstance = new Chart(ctxPie, {
-                    type: 'pie',
-                    data: {
-                        labels: tacticsLabels,
-                        datasets: [{ data: tacticsValues, backgroundColor: pieColors.slice(0, tacticsLabels.length), borderWidth: 2, borderColor: '#ffffff' }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        layout: { padding: { top: 20, bottom: 20, left: 20, right: 20 } },
-                        plugins: {
-                            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const val = context.raw || 0;
-                                        const total = tacticsValues.reduce((a, b) => a + b, 0);
-                                        const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                        return ` $${val.toLocaleString()} (${percentage}%)`;
-                                    }
-                                }
-                            },
-                            datalabels: {
-                                color: '#1e293b',
-                                font: { weight: 'bold', size: 10 },
-                                formatter: (value, ctx) => {
-                                    const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                    if (percentage < 3) return '';
-                                    const label = ctx.chart.data.labels[ctx.dataIndex];
-                                    return `${label}\n${percentage}%`;
-                                },
-                                anchor: 'end',
-                                align: 'end',
-                                offset: 6
-                            }
-                        }
-                    },
-                    plugins: [ChartDataLabels]
-                });
+                tacticsPieChartInstance = new Chart(tacticsCanvas.getContext('2d'), { type: 'pie', data: { labels: sortedTactics.map(i=>i[0]), datasets: [{ data: sortedTactics.map(i=>i[1]), backgroundColor: ['#142940', '#0284c7', '#0d9488', '#6366f1', '#f59e0b', '#ec4899', '#64748b', '#10b981'], borderWidth: 2, borderColor: '#ffffff' }] }, options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20, bottom: 20, left: 20, right: 20 } }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }, tooltip: { callbacks: { label: function(c) { const t = sortedTactics.reduce((a, b) => a + b[1], 0), pct = t > 0 ? ((c.raw / t) * 100).toFixed(1) : 0; return ` $${c.raw.toLocaleString()} (${pct}%)`; } } }, datalabels: { color: '#1e293b', font: { weight: 'bold', size: 10 }, formatter: (v, ctx) => { const t = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0), pct = t > 0 ? ((v / t) * 100).toFixed(1) : 0; return pct < 3 ? '' : `${ctx.chart.data.labels[ctx.dataIndex]}\n${pct}%`; }, anchor: 'end', align: 'end', offset: 6 } } }, plugins: [ChartDataLabels] });
             }
 
             const indCanvas = document.getElementById('industryBarChart');
             if (indCanvas) {
-                const ctxInd = indCanvas.getContext('2d');
-                let industryMap = {};
-
-                campaigns.forEach(c => {
-                    const ind = String(c.Industry || "기타").trim().toUpperCase();
-                    const appVal = Number(c.Cost_Approved) || 0;
-                    if (!industryMap[ind]) industryMap[ind] = 0;
-                    industryMap[ind] += appVal;
-                });
-
-                const industryLabels = Object.keys(industryMap);
-                const industryValues = Object.values(industryMap);
-                const totalIndustryBudget = industryValues.reduce((a, b) => a + b, 0);
-
+                let industryMap = {}; campaigns.forEach(c => { const ind = String(c.Industry || "기타").trim().toUpperCase(); industryMap[ind] = (industryMap[ind] || 0) + (Number(c.Cost_Approved) || 0); });
+                const industryLabels = Object.keys(industryMap), industryValues = Object.values(industryMap), totalBudget = industryValues.reduce((a, b) => a + b, 0);
                 if (industryBarChartInstance) industryBarChartInstance.destroy();
-
-                industryBarChartInstance = new Chart(ctxInd, {
-                    type: 'bar',
-                    data: {
-                        labels: industryLabels,
-                        datasets: [{ label: 'Approved Budget ($)', data: industryValues, backgroundColor: ['#1976d2', '#2e7d32', '#fbc02d', '#64748b'], borderRadius: 6 }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { 
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const val = context.raw || 0;
-                                        const pct = totalIndustryBudget > 0 ? ((val / totalIndustryBudget) * 100).toFixed(1) : 0;
-                                        return ` $${val.toLocaleString()} (${pct}%)`;
-                                    }
-                                }
-                            },
-                            datalabels: {
-                                color: '#1e293b',
-                                anchor: 'end',
-                                align: 'top',
-                                formatter: (value) => {
-                                    const pct = totalIndustryBudget > 0 ? ((value / totalIndustryBudget) * 100).toFixed(1) : 0;
-                                    return `$${value.toLocaleString()}\n(${pct}%)`;
-                                },
-                                font: { weight: 'bold', size: 10 }
-                            }
-                        },
-                        scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return '$' + value.toLocaleString(); } } } }
-                    },
-                    plugins: [ChartDataLabels]
-                });
+                industryBarChartInstance = new Chart(indCanvas.getContext('2d'), { type: 'bar', data: { labels: industryLabels, datasets: [{ label: 'Approved Budget ($)', data: industryValues, backgroundColor: ['#1976d2', '#2e7d32', '#fbc02d', '#64748b'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { const pct = totalBudget > 0 ? ((c.raw / totalBudget) * 100).toFixed(1) : 0; return ` $${c.raw.toLocaleString()} (${pct}%)`; } } }, datalabels: { color: '#1e293b', anchor: 'end', align: 'top', formatter: (v) => `$${v.toLocaleString()}\n(${totalBudget > 0 ? ((v / totalBudget) * 100).toFixed(1) : 0}%)`, font: { weight: 'bold', size: 10 } } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return '$' + v.toLocaleString(); } } } } }, plugins: [ChartDataLabels] });
             }
 
             const costGroupCanvas = document.getElementById('costGroupDoughnutChart');
             if (costGroupCanvas) {
-                const ctxCostGroup = costGroupCanvas.getContext('2d');
                 let costGroupMap = {};
-
-                if (globalData.costs && Array.isArray(globalData.costs)) {
-                    globalData.costs.forEach(cost => {
-                        const cId = String(cost.캠페인_ID).trim();
-                        if (filteredCampaignIds.has(cId)) {
-                            const group = String(cost.비용_그룹 || "기타").trim();
-                            const amt = Number(cost.금액) || 0;
-                            costGroupMap[group] = (costGroupMap[group] || 0) + amt;
-                        }
-                    });
-                }
-
+                (globalData.costs || []).forEach(cost => { if (filteredCampaignIds.has(String(cost.캠페인_ID).trim())) costGroupMap[String(cost.비용_그룹 || "기타").trim()] = (costGroupMap[String(cost.비용_그룹 || "기타").trim()] || 0) + (Number(cost.금액) || 0); });
                 let sortedCostGroups = Object.entries(costGroupMap).sort((a, b) => b[1] - a[1]);
-                const costGroupLabels = sortedCostGroups.map(item => item[0]);
-                const costGroupValues = sortedCostGroups.map(item => item[1]);
-                const totalCostKRW = costGroupValues.reduce((a, b) => a + b, 0);
-                const costDoughnutColors = ['#0f766e', '#0369a1', '#4338ca', '#7c3aed', '#b45309', '#be123c', '#475569', '#15803d'];
-
+                const totalCostKRW = sortedCostGroups.reduce((a, b) => a + b[1], 0);
                 if (costGroupDoughnutChartInstance) costGroupDoughnutChartInstance.destroy();
-
-                costGroupDoughnutChartInstance = new Chart(ctxCostGroup, {
-                    type: 'doughnut',
-                    data: {
-                        labels: costGroupLabels,
-                        datasets: [{ data: costGroupValues, backgroundColor: costDoughnutColors.slice(0, costGroupLabels.length), borderWidth: 2, borderColor: '#ffffff' }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        layout: { padding: { top: 20, bottom: 20, left: 20, right: 20 } },
-                        plugins: {
-                            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const val = context.raw || 0;
-                                        const pct = totalCostKRW > 0 ? ((val / totalCostKRW) * 100).toFixed(1) : 0;
-                                        return ` ₩${val.toLocaleString()} (${pct}%)`;
-                                    }
-                                }
-                            },
-                            datalabels: {
-                                color: '#1e293b',
-                                font: { weight: 'bold', size: 10 },
-                                formatter: (value, ctx) => {
-                                    const pct = totalCostKRW > 0 ? ((value / totalCostKRW) * 100).toFixed(1) : 0;
-                                    if (pct < 4) return '';
-                                    const label = ctx.chart.data.labels[ctx.dataIndex];
-                                    return `${label}\n${pct}%`;
-                                },
-                                anchor: 'end',
-                                align: 'end',
-                                offset: 6
-                            }
-                        }
-                    },
-                    plugins: [ChartDataLabels]
-                });
+                costGroupDoughnutChartInstance = new Chart(costGroupCanvas.getContext('2d'), { type: 'doughnut', data: { labels: sortedCostGroups.map(i=>i[0]), datasets: [{ data: sortedCostGroups.map(i=>i[1]), backgroundColor: ['#0f766e', '#0369a1', '#4338ca', '#7c3aed', '#b45309', '#be123c', '#475569', '#15803d'], borderWidth: 2, borderColor: '#ffffff' }] }, options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20, bottom: 20, left: 20, right: 20 } }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }, tooltip: { callbacks: { label: function(c) { const pct = totalCostKRW > 0 ? ((c.raw / totalCostKRW) * 100).toFixed(1) : 0; return ` ₩${c.raw.toLocaleString()} (${pct}%)`; } } }, datalabels: { color: '#1e293b', font: { weight: 'bold', size: 10 }, formatter: (v, ctx) => { const pct = totalCostKRW > 0 ? ((v / totalCostKRW) * 100).toFixed(1) : 0; return pct < 4 ? '' : `${ctx.chart.data.labels[ctx.dataIndex]}\n${pct}%`; }, anchor: 'end', align: 'end', offset: 6 } } }, plugins: [ChartDataLabels] });
             }
 
             const cplCanvas = document.getElementById('cplBarChart');
             if (cplCanvas) {
-                const ctxCpl = cplCanvas.getContext('2d');
-                const tacticCplMap = {};
-
-                const campMqlMap = {};
-                if (globalData.rois && Array.isArray(globalData.rois)) {
-                    globalData.rois.forEach(r => {
-                        const cId = String(r.캠페인_ID).trim();
-                        const metricName = String(r.지표명 || "").trim().toUpperCase();
-                        if (metricName === "MQL" && filteredCampaignIds.has(cId)) {
-                            const rawActual = Number(String(r.결과수치 || "").replace(/,/g, "")) || 0;
-                            const rawTarget = Number(String(r.목표수치 || "").replace(/,/g, "")) || 0;
-                            const mqlCount = rawActual > 0 ? rawActual : rawTarget;
-                            campMqlMap[cId] = (campMqlMap[cId] || 0) + mqlCount;
-                        }
-                    });
-                }
-
+                const tacticCplMap = {}, campMqlMap = {};
+                (globalData.rois || []).forEach(r => {
+                    const cId = String(r.캠페인_ID).trim();
+                    if (String(r.지표명 || "").trim().toUpperCase() === "MQL" && filteredCampaignIds.has(cId)) {
+                        const rawActual = Number(String(r.결과수치 || "").replace(/,/g, "")) || 0, rawTarget = Number(String(r.목표수치 || "").replace(/,/g, "")) || 0;
+                        campMqlMap[cId] = (campMqlMap[cId] || 0) + (rawActual > 0 ? rawActual : rawTarget);
+                    }
+                });
                 campaigns.forEach(c => {
                     const tactic = String(c.Tactics || "기타").trim();
-                    const appVal = Number(c.Cost_Approved) || 0;
-                    const mql = campMqlMap[String(c.캠페인_ID).trim()] || 0;
-
-                    if (!tacticCplMap[tactic]) {
-                        tacticCplMap[tactic] = { totalBudget: 0, totalMql: 0 };
-                    }
-                    tacticCplMap[tactic].totalBudget += appVal;
-                    tacticCplMap[tactic].totalMql += mql;
+                    if (!tacticCplMap[tactic]) tacticCplMap[tactic] = { totalBudget: 0, totalMql: 0 };
+                    tacticCplMap[tactic].totalBudget += (Number(c.Cost_Approved) || 0); tacticCplMap[tactic].totalMql += (campMqlMap[String(c.캠페인_ID).trim()] || 0);
                 });
-
-                const cplLabels = [];
-                const cplValues = [];
-
-                Object.entries(tacticCplMap).forEach(([tactic, data]) => {
-                    if (data.totalMql > 0 && data.totalBudget > 0) {
-                        const cpl = Math.round(data.totalBudget / data.totalMql);
-                        cplLabels.push(tactic);
-                        cplValues.push(cpl);
-                    }
-                });
-
+                const cplLabels = [], cplValues = [];
+                Object.entries(tacticCplMap).forEach(([tactic, data]) => { if (data.totalMql > 0 && data.totalBudget > 0) { cplLabels.push(tactic); cplValues.push(Math.round(data.totalBudget / data.totalMql)); } });
                 if (cplBarChartInstance) cplBarChartInstance.destroy();
-
-                cplBarChartInstance = new Chart(ctxCpl, {
-                    type: 'bar',
-                    data: {
-                        labels: cplLabels,
-                        datasets: [{ label: '단가 ($/MQL)', data: cplValues, backgroundColor: '#0284c7', borderRadius: 6 }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return ` CPL: $${Number(context.raw || 0).toLocaleString()} / Lead`;
-                                    }
-                                }
-                            },
-                            datalabels: {
-                                color: '#1e293b',
-                                anchor: 'end',
-                                align: 'top',
-                                formatter: (value) => `$${value.toLocaleString()}`,
-                                font: { weight: 'bold', size: 10 }
-                            }
-                        },
-                        scales: { 
-                            y: { 
-                                beginAtZero: true, 
-                                ticks: { callback: function(value) { return '$' + value.toLocaleString(); } } 
-                            } 
-                        }
-                    },
-                    plugins: [ChartDataLabels]
-                });
+                cplBarChartInstance = new Chart(cplCanvas.getContext('2d'), { type: 'bar', data: { labels: cplLabels, datasets: [{ label: '단가 ($/MQL)', data: cplValues, backgroundColor: '#0284c7', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return ` CPL: $${Number(c.raw || 0).toLocaleString()} / Lead`; } } }, datalabels: { color: '#1e293b', anchor: 'end', align: 'top', formatter: (v) => `$${v.toLocaleString()}`, font: { weight: 'bold', size: 10 } } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return '$' + v.toLocaleString(); } } } } }, plugins: [ChartDataLabels] });
             }
-        }
-
-        function toggleFyAccordion(headerElement, fyName) {
-            const fySection = headerElement.closest('.fy-section');
-            const content = fySection.querySelector('.fy-content-wrapper');
-            const iconBtn = fySection.querySelector('.toggle-icon-btn');
-            
-            const isOpen = content.classList.contains('open');
-            if (isOpen) {
-                content.classList.remove('open');
-                iconBtn.classList.remove('active');
-                headerElement.classList.remove('open');
-                if (fyName) openFys.delete(fyName);
-            } else {
-                content.classList.add('open');
-                iconBtn.classList.add('active');
-                headerElement.classList.add('open');
-                if (fyName) openFys.add(fyName);
-            }
-        }
-
-        function renderDashboardOnly(campaigns, fyGroups) {
-            let totalApproved = 0;
-            let totalRequested = 0;
-
-            campaigns.forEach(c => {
-                totalApproved += Number(c.Cost_Approved) || 0;
-                totalRequested += Number(c.Cost_MDP_Requested) || 0;
-            });
-
-            document.getElementById("total-campaigns").innerText = campaigns.length + " 개";
-            document.getElementById("total-mdp").innerText = "$" + totalRequested.toLocaleString();
-            document.getElementById("total-budget").innerText = "$" + totalApproved.toLocaleString();
-
-            let containerHtml = "";
-            const sortedFys = Object.keys(fyGroups).sort().reverse();
-
-            if (sortedFys.length === 0) {
-                containerHtml = `<div style="text-align: center; padding: 40px; background: white; border-radius: 12px; color: #666;">검색 결과가 존재하지 않습니다.</div>`;
-            }
-
-            sortedFys.forEach((fy) => {
-                const items = fyGroups[fy];
-                if (!items || items.length === 0) return;
-                
-                let rowsHtml = "";
-                items.forEach(c => {
-                    let badgeClass = "badge-all";
-                    const ind = String(c.Industry || "").toUpperCase();
-                    if(ind.includes("D&M")) badgeClass = "badge-dm";
-                    else if(ind.includes("AEC")) badgeClass = "badge-aec";
-                    else if(ind.includes("ALL")) badgeClass = "badge-all";
-
-                    const reqStr = "$" + (Number(c.Cost_MDP_Requested) || 0).toLocaleString();
-                    const appStr = "$" + (Number(c.Cost_Approved) || 0).toLocaleString();
-                    const formattedDate = formatDateWithDay(c.Activity_Date);
-
-                    rowsHtml += `
-                        <tr onclick="openModal('${c.캠페인_ID}')">
-                            <td><b>${c.calculatedFY || getAutodeskFYFQ(c.Activity_Date).fy}</b></td>
-                            <td>${c.calculatedFQ || getAutodeskFYFQ(c.Activity_Date).fq}</td>
-                            <td><span class="badge ${badgeClass}">${c.Industry || '-'}</span></td>
-                            <td class="text-left">${c.Tactics || '-'}</td>
-                            <td>${c.Activity_Name || '-'}</td>
-                            <td>${formattedDate}</td>
-                            <td class="text-right">${reqStr}</td>
-                            <td class="text-right" style="font-weight: bold; color: #142940;">${appStr}</td>
-                        </tr>
-                    `;
-                });
-
-                const isCurrentlyOpen = openFys.has(fy);
-                const openClass = isCurrentlyOpen ? "open" : "";
-                const activeClass = isCurrentlyOpen ? "active" : "";
-
-                containerHtml += `
-                    <div class="fy-section">
-                        <div class="fy-header ${openClass}" onclick="toggleFyAccordion(this, '${fy}')">
-                            <div class="fy-header-left">
-                                <span>${fy} 캠페인 현황</span>
-                                <span class="fy-count">총 ${items.length}개 프로그램</span>
-                            </div>
-                            <div class="fy-header-right">
-                                <div class="toggle-icon-btn ${activeClass}" title="펼치기 / 접기">
-                                    <svg class="toggle-svg" viewBox="0 0 24 24" fill="none">
-                                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                                        <line class="toggle-vertical-line" x1="12" y1="5" x2="12" y2="19"></line>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="fy-content-wrapper ${openClass}">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>FY</th>
-                                        <th>FQ</th>
-                                        <th>Industry</th>
-                                        <th style="text-align: left;">Tactics</th>
-                                        <th>Activity Name</th>
-                                        <th>Date of Activity</th>
-                                        <th>Requested($)</th>
-                                        <th>Approved($)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${rowsHtml}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
-            });
-
-            document.getElementById("fy-groups-container").innerHTML = containerHtml;
         }
 
         function renderBadges(valuesStr, badgeClass) {
-            if (!valuesStr || String(valuesStr).trim() === "") {
-                return `<span style="color: #94a3b8; font-size: 12px;">-</span>`;
-            }
-            return valuesStr.split(',')
-                .map(v => v.trim())
-                .filter(v => v.length > 0)
-                .map(v => `<span class="badge ${badgeClass}">${v}</span>`)
-                .join('');
+            if (!valuesStr || String(valuesStr).trim() === "") return `<span style="color: #94a3b8; font-size: 12px;">-</span>`;
+            return valuesStr.split(',').map(v => v.trim()).filter(v => v.length > 0).map(v => `<span class="badge ${badgeClass}">${v}</span>`).join('');
         }
 
         function openModal(campaignId) {
@@ -1868,418 +887,137 @@
             const campaign = globalData.campaigns.find(c => String(c.캠페인_ID).trim() === String(campaignId).trim());
             const costs = globalData.costs.filter(c => String(c.캠페인_ID).trim() === String(campaignId).trim());
             const rois = globalData.rois.filter(r => String(r.캠페인_ID).trim() === String(campaignId).trim());
-
             if(!campaign) return;
-
             const afyfq = getAutodeskFYFQ(campaign.Activity_Date);
-
-            if (afyfq.fy && afyfq.fy !== "기타") {
-                openFys.add(afyfq.fy);
-            }
-
+            if (afyfq.fy && afyfq.fy !== "기타") openFys.add(afyfq.fy);
             document.getElementById("modal-title").innerText = campaign.Activity_Name || "-";
             document.getElementById("modal-subtitle").innerText = `대상: ${campaign.Industry} | 회계연도: ${afyfq.fy} ${afyfq.fq}`;
-            
             document.getElementById("modal-summary-date").innerText = formatDateWithDay(campaign.Activity_Date);
-            const reqNum = Number(campaign.Cost_MDP_Requested || 0);
-            const appNum = Number(campaign.Cost_Approved || 0);
-            document.getElementById("modal-summary-req").innerText = "$" + reqNum.toLocaleString();
-            document.getElementById("modal-summary-app").innerText = "$" + appNum.toLocaleString();
-
-            const campNameVal = getSafeCampaignName(campaign);
-            document.getElementById("modal-meta-campaign").innerHTML = renderBadges(campNameVal, "badge-campaign");
+            document.getElementById("modal-summary-req").innerText = "$" + (Number(campaign.Cost_MDP_Requested || 0)).toLocaleString();
+            document.getElementById("modal-summary-app").innerText = "$" + (Number(campaign.Cost_Approved || 0)).toLocaleString();
+            document.getElementById("modal-meta-campaign").innerHTML = renderBadges(getSafeCampaignName(campaign), "badge-campaign");
             document.getElementById("modal-meta-tactic").innerHTML = campaign.Tactics ? `<span class="badge badge-tactic">${campaign.Tactics}</span>` : `<span style="color: #94a3b8; font-size: 12px;">-</span>`;
             document.getElementById("modal-meta-lifecycle").innerHTML = renderBadges(campaign.Life_Cycle, "badge-lifecycle");
             document.getElementById("modal-meta-persona").innerHTML = renderBadges(campaign.Persona, "badge-persona");
-
             document.getElementById("modal-desc").innerText = campaign.Activity_Description || "상세 내용 없음";
-
-            let costHtml = "";
-            let costSum = 0;
-            costs.forEach(c => {
-                costHtml += `<tr>
-                    <td class="text-center">${c.비용_그룹}</td>
-                    <td style="white-space: pre-line; line-height: 1.5; text-align: left;">${c.세부_항목명}</td>
-                    <td class="text-right">${formatKRW(c.금액)}</td>
-                </tr>`;
-                costSum += Number(c.금액) || 0;
-            });
-            if(costs.length > 0) {
-                costHtml += `<tr><td colspan="2" class="text-right" style="font-weight:bold;">총합계</td><td class="text-right" style="font-weight:bold; color:#142940;">${formatKRW(costSum)}</td></tr>`;
-            } else {
-                costHtml = `<tr><td colspan="3" class="text-center">등록된 비용 내역이 없습니다.</td></tr>`;
-            }
-            document.getElementById("modal-cost-list").innerHTML = costHtml;
-
+            
+            let costHtml = "", costSum = 0;
+            costs.forEach(c => { costHtml += `<tr><td class="text-center">${c.비용_그룹}</td><td style="white-space: pre-line; line-height: 1.5; text-align: left;">${c.세부_항목명}</td><td class="text-right">${formatKRW(c.금액)}</td></tr>`; costSum += Number(c.금액) || 0; });
+            document.getElementById("modal-cost-list").innerHTML = costs.length > 0 ? costHtml + `<tr><td colspan="2" class="text-right" style="font-weight:bold;">총합계</td><td class="text-right" style="font-weight:bold; color:#142940;">${formatKRW(costSum)}</td></tr>` : `<tr><td colspan="3" class="text-center">등록된 비용 내역이 없습니다.</td></tr>`;
+            
             let roiHtml = "";
             rois.forEach(r => {
-                let targetValStr = String(r.목표수치 || "").replace(/,/g, "").trim();
-                let numericTarget = Number(targetValStr) || 0;
-                
-                let actualValStr = r.결과수치 !== undefined && r.결과수치 !== null ? String(r.결과수치).replace(/,/g, "").trim() : "";
-                let numericActual = Number(actualValStr) || 0;
-
-                let ratio = numericTarget > 0 ? Math.round((numericActual / numericTarget) * 100) : 0;
-                let fillWidth = Math.min(ratio, 100);
-
-                let displayTarget = isNaN(numericTarget) ? r.목표수치 : numericTarget.toLocaleString();
-                let displayActual = actualValStr !== "" ? numericActual.toLocaleString() : "-";
-
-                roiHtml += `<tr>
-                    <td class="text-center" style="font-weight: 600;">${r.지표명}</td>
-                    <td class="text-right">${displayTarget}</td>
-                    <td class="text-right">${displayActual}</td>
-                    <td>
-                        <div class="progress-container">
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" style="width: ${fillWidth}%;"></div>
-                            </div>
-                            <div class="progress-text">${ratio}%</div>
-                        </div>
-                    </td>
-                </tr>`;
+                let numT = Number(String(r.목표수치 || "").replace(/,/g, "")) || 0, numA = Number(String(r.결과수치 || "").replace(/,/g, "")) || 0;
+                let ratio = numT > 0 ? Math.round((numA / numT) * 100) : 0, fillWidth = Math.min(ratio, 100);
+                let dispT = isNaN(numT) ? r.목표수치 : numT.toLocaleString(), dispA = (r.결과수치 !== undefined && r.결과수치 !== null && String(r.결과수치).trim()!=="") ? numA.toLocaleString() : "-";
+                roiHtml += `<tr><td class="text-center" style="font-weight: 600;">${r.지표명}</td><td class="text-right">${dispT}</td><td class="text-right">${dispA}</td><td><div class="progress-container"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${fillWidth}%;"></div></div><div class="progress-text">${ratio}%</div></div></td></tr>`;
             });
-            if(rois.length === 0) roiHtml = `<tr><td colspan="4" class="text-center">등록된 지표가 없습니다.</td></tr>`;
-            document.getElementById("modal-roi-list").innerHTML = roiHtml;
-
-            document.getElementById("detailModal").style.display = "block";
-            document.body.style.overflow = "hidden";
+            document.getElementById("modal-roi-list").innerHTML = rois.length === 0 ? `<tr><td colspan="4" class="text-center">등록된 지표가 없습니다.</td></tr>` : roiHtml;
+            document.getElementById("detailModal").style.display = "block"; document.body.style.overflow = "hidden";
         }
-
-        function closeModal() {
-            document.getElementById("detailModal").style.display = "none";
-            document.body.style.overflow = "auto";
-        }
-
+        function closeModal() { document.getElementById("detailModal").style.display = "none"; document.body.style.overflow = "auto"; }
+        
         function addCostRow(group = "", name = "", amount = "") {
-            const container = document.getElementById("costRowsContainer");
             const tr = document.createElement("tr");
-            
-            const formattedAmount = amount !== "" ? Number(amount).toLocaleString() : "";
-            
-            tr.innerHTML = `
-                <td>
-                    <input type="text" list="costGroupList" class="cost-group" value="${group}" placeholder="선택 또는 수기입력" 
-                           onfocus="this.select()" onmousedown="handleDatalistClick(this)" required>
-                </td>
-                <td>
-                    <textarea class="cost-name" placeholder="세부 항목명 입력 (Enter로 줄바꿈 가능)" rows="1" required>${name}</textarea>
-                </td>
-                <td><input type="text" class="cost-amount" value="${formattedAmount}" placeholder="숫자 입력" oninput="formatInputNumber(this); autoCalculateRequested();" required></td>
-                <td style="text-align: center;"><button type="button" class="btn-danger-small" onclick="this.closest('tr').remove(); autoCalculateRequested();">X</button></td>
-            `;
-            container.appendChild(tr);
-            autoCalculateRequested();
+            tr.innerHTML = `<td><input type="text" list="costGroupList" class="cost-group" value="${group}" placeholder="선택 또는 수기입력" onfocus="this.select()" onmousedown="handleDatalistClick(this)" required></td><td><textarea class="cost-name" placeholder="세부 항목명 입력 (Enter로 줄바꿈 가능)" rows="1" required>${name}</textarea></td><td><input type="text" class="cost-amount" value="${amount !== "" ? Number(amount).toLocaleString() : ""}" placeholder="숫자 입력" oninput="formatInputNumber(this); autoCalculateRequested();" required></td><td style="text-align: center;"><button type="button" class="btn-danger-small" onclick="this.closest('tr').remove(); autoCalculateRequested();">X</button></td>`;
+            document.getElementById("costRowsContainer").appendChild(tr); autoCalculateRequested();
         }
-
         function addRoiRow(name = "", target = "", actual = "") {
-            const container = document.getElementById("roiRowsContainer");
+            const fmtT = target !== "" && !isNaN(String(target).replace(/,/g, "")) ? Number(String(target).replace(/,/g, "")).toLocaleString() : target;
+            const fmtA = actual !== "" && !isNaN(String(actual).replace(/,/g, "")) ? Number(String(actual).replace(/,/g, "")).toLocaleString() : actual;
             const tr = document.createElement("tr");
-            
-            const formattedTarget = target !== "" && !isNaN(String(target).replace(/,/g, "")) ? Number(String(target).replace(/,/g, "")).toLocaleString() : target;
-            const formattedActual = actual !== "" && !isNaN(String(actual).replace(/,/g, "")) ? Number(String(actual).replace(/,/g, "")).toLocaleString() : actual;
-            
-            tr.innerHTML = `
-                <td>
-                    <input type="text" list="roiNameList" class="roi-name" value="${name}" placeholder="선택 또는 수기입력" 
-                           onfocus="this.select()" onmousedown="handleDatalistClick(this)" required>
-                </td>
-                <td><input type="text" class="roi-target" value="${formattedTarget}" placeholder="목표" oninput="formatInputNumber(this)" required></td>
-                <td><input type="text" class="roi-actual" value="${formattedActual}" placeholder="실적" oninput="formatInputNumber(this)"></td>
-                <td style="text-align: center;"><button type="button" class="btn-danger-small" onclick="this.closest('tr').remove()">X</button></td>
-            `;
-            container.appendChild(tr);
+            tr.innerHTML = `<td><input type="text" list="roiNameList" class="roi-name" value="${name}" placeholder="선택 또는 수기입력" onfocus="this.select()" onmousedown="handleDatalistClick(this)" required></td><td><input type="text" class="roi-target" value="${fmtT}" placeholder="목표" oninput="formatInputNumber(this)" required></td><td><input type="text" class="roi-actual" value="${fmtA}" placeholder="실적" oninput="formatInputNumber(this)"></td><td style="text-align: center;"><button type="button" class="btn-danger-small" onclick="this.closest('tr').remove()">X</button></td>`;
+            document.getElementById("roiRowsContainer").appendChild(tr);
         }
 
         function openCreateModal() {
-            document.getElementById("createForm").reset();
-            document.getElementById("editCampaignId").value = "";
-            currentSelectedId = null;
+            document.getElementById("createForm").reset(); document.getElementById("editCampaignId").value = ""; currentSelectedId = null;
             document.getElementById("formModalTitle").innerText = "새로운 마케팅 플랜 등록";
-
-            document.querySelectorAll('#lifecycleCheckboxGroup input[type="checkbox"]').forEach(cb => cb.checked = false);
-            document.querySelectorAll('#personaCheckboxGroup input[type="checkbox"]').forEach(cb => cb.checked = false);
-
-            document.getElementById("costRowsContainer").innerHTML = "";
-            document.getElementById("roiRowsContainer").innerHTML = "";
-            
-            updateCostGroupDatalist();
-            updateTacticsDatalist();
-            buildCampaignDropdown([]);
-            addCostRow();
-            addRoiRow();
-
-            document.getElementById("newRequested").value = "0";
-            document.getElementById("newApproved").value = "0";
-            document.getElementById("newDescription").value = DEFAULT_DESCRIPTION_TEMPLATE;
-
-            document.getElementById("createModal").style.display = "block";
-            document.body.style.overflow = "hidden";
+            document.querySelectorAll('#lifecycleCheckboxGroup input[type="checkbox"], #personaCheckboxGroup input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById("costRowsContainer").innerHTML = ""; document.getElementById("roiRowsContainer").innerHTML = "";
+            updateCostGroupDatalist(); updateTacticsDatalist(); buildCampaignDropdown([]); addCostRow(); addRoiRow();
+            document.getElementById("newRequested").value = "0"; document.getElementById("newApproved").value = "0"; document.getElementById("newDescription").value = DEFAULT_DESCRIPTION_TEMPLATE;
+            document.getElementById("createModal").style.display = "block"; document.body.style.overflow = "hidden";
         }
-
         function openEditMode() {
-            const campaign = globalData.campaigns.find(c => String(c.캠페인_ID).trim() === String(currentSelectedId).trim());
-            if(!campaign) return;
-
+            const campaign = globalData.campaigns.find(c => String(c.캠페인_ID).trim() === String(currentSelectedId).trim()); if(!campaign) return;
             document.getElementById("detailModal").style.display = "none";
-
-            document.getElementById("editCampaignId").value = campaign.캠페인_ID;
-            document.getElementById("newIndustry").value = campaign.Industry || "D&M";
-            document.getElementById("newTactics").value = campaign.Tactics || "";
-            document.getElementById("newActivityName").value = campaign.Activity_Name || "";
-            
-            const savedCampName = getSafeCampaignName(campaign);
-            const campNameList = savedCampName ? savedCampName.split(',').map(v => v.trim()) : [];
-            buildCampaignDropdown(campNameList);
-
-            const savedLifecycle = campaign.Life_Cycle || "";
-            const lifecycleValues = savedLifecycle.split(',').map(v => v.trim());
-            document.querySelectorAll('#lifecycleCheckboxGroup input[type="checkbox"]').forEach(cb => {
-                cb.checked = lifecycleValues.includes(cb.value);
-            });
-
-            const savedPersona = campaign.Persona || "";
-            const personaValues = savedPersona.split(',').map(v => v.trim());
-            document.querySelectorAll('#personaCheckboxGroup input[type="checkbox"]').forEach(cb => {
-                cb.checked = personaValues.includes(cb.value);
-            });
-            
+            document.getElementById("editCampaignId").value = campaign.캠페인_ID; document.getElementById("newIndustry").value = campaign.Industry || "D&M"; document.getElementById("newTactics").value = campaign.Tactics || ""; document.getElementById("newActivityName").value = campaign.Activity_Name || "";
+            const campNameList = getSafeCampaignName(campaign) ? getSafeCampaignName(campaign).split(',').map(v => v.trim()) : []; buildCampaignDropdown(campNameList);
+            const lcVals = (campaign.Life_Cycle || "").split(',').map(v => v.trim()); document.querySelectorAll('#lifecycleCheckboxGroup input[type="checkbox"]').forEach(cb => cb.checked = lcVals.includes(cb.value));
+            const pVals = (campaign.Persona || "").split(',').map(v => v.trim()); document.querySelectorAll('#personaCheckboxGroup input[type="checkbox"]').forEach(cb => cb.checked = pVals.includes(cb.value));
             document.getElementById("newActivityDate").value = formatToInputDate(campaign.Activity_Date);
-
-            const reqVal = Number(campaign.Cost_MDP_Requested || 0);
-            const appVal = Number(campaign.Cost_Approved || 0);
-            document.getElementById("newRequested").value = reqVal.toLocaleString();
-            document.getElementById("newApproved").value = appVal.toLocaleString();
-
+            document.getElementById("newRequested").value = (Number(campaign.Cost_MDP_Requested || 0)).toLocaleString(); document.getElementById("newApproved").value = (Number(campaign.Cost_Approved || 0)).toLocaleString();
             document.getElementById("newDescription").value = campaign.Activity_Description || DEFAULT_DESCRIPTION_TEMPLATE;
-
+            
             const costs = globalData.costs.filter(c => String(c.캠페인_ID).trim() === String(currentSelectedId).trim());
             const rois = globalData.rois.filter(r => String(r.캠페인_ID).trim() === String(currentSelectedId).trim());
-
-            document.getElementById("costRowsContainer").innerHTML = "";
-            document.getElementById("roiRowsContainer").innerHTML = "";
-
-            updateCostGroupDatalist();
-            updateTacticsDatalist();
-
-            if(costs.length > 0) {
-                costs.forEach(c => addCostRow(c.비용_그룹, c.세부_항목명, c.금액));
-            } else {
-                addCostRow();
-            }
-
-            if(rois.length > 0) {
-                rois.forEach(r => addRoiRow(r.지표명, r.목표수치, r.결과수치));
-            } else {
-                addRoiRow();
-            }
-
-            document.getElementById("formModalTitle").innerText = "마케팅 플랜 수정 및 실적 입력";
-            document.getElementById("createModal").style.display = "block";
-            document.body.style.overflow = "hidden";
+            document.getElementById("costRowsContainer").innerHTML = ""; document.getElementById("roiRowsContainer").innerHTML = "";
+            updateCostGroupDatalist(); updateTacticsDatalist();
+            if(costs.length > 0) costs.forEach(c => addCostRow(c.비용_그룹, c.세부_항목명, c.금액)); else addCostRow();
+            if(rois.length > 0) rois.forEach(r => addRoiRow(r.지표명, r.목표수치, r.결과수치)); else addRoiRow();
+            
+            document.getElementById("formModalTitle").innerText = "마케팅 플랜 수정 및 실적 입력"; document.getElementById("createModal").style.display = "block"; document.body.style.overflow = "hidden";
         }
+        function closeCreateModal() { document.getElementById("createModal").style.display = "none"; document.getElementById("campaignMultiselect").classList.remove("open"); document.body.style.overflow = "auto"; }
+        function cancelEditMode() { const editId = document.getElementById("editCampaignId").value; closeCreateModal(); if (editId && currentSelectedId) openModal(currentSelectedId); }
 
-        function closeCreateModal() {
-            document.getElementById("createModal").style.display = "none";
-            document.getElementById("campaignMultiselect").classList.remove("open");
-            document.body.style.overflow = "auto";
-        }
-
-        function cancelEditMode() {
-            const editId = document.getElementById("editCampaignId").value;
-            closeCreateModal();
-            if (editId && currentSelectedId) {
-                openModal(currentSelectedId);
-            }
-        }
-
-        function submitPlanData(event) {
+        async function submitPlanData(event) {
             event.preventDefault();
-            
-            const editId = document.getElementById("editCampaignId").value;
-            const isEdit = editId !== "";
-            
-            const submitBtns = document.querySelectorAll(".submit-btn-sync");
-            submitBtns.forEach(btn => {
-                btn.innerText = isEdit ? "수정 중..." : "저장 중...";
-                btn.disabled = true;
-            });
-
-            const rawRequested = document.getElementById("newRequested").value.replace(/,/g, "");
-            const rawApproved = document.getElementById("newApproved").value.replace(/,/g, "");
-            const campaignNameVal = document.getElementById("newCampaignName").value.trim();
-
-            const selectedLifecycles = [];
-            document.querySelectorAll('#lifecycleCheckboxGroup input[type="checkbox"]:checked').forEach(cb => {
-                selectedLifecycles.push(cb.value);
-            });
-
-            const selectedPersonas = [];
-            document.querySelectorAll('#personaCheckboxGroup input[type="checkbox"]:checked').forEach(cb => {
-                selectedPersonas.push(cb.value);
-            });
-
-            const costList = [];
-            document.querySelectorAll("#costRowsContainer tr").forEach(tr => {
-                const rawAmount = tr.querySelector(".cost-amount").value.replace(/,/g, "");
-                costList.push({
-                    비용_그룹: tr.querySelector(".cost-group").value,
-                    세부_항목명: tr.querySelector(".cost-name").value,
-                    금액: Number(rawAmount) || 0
-                });
-            });
-
-            const roiList = [];
+            const editId = document.getElementById("editCampaignId").value, isEdit = editId !== "";
+            const submitBtns = document.querySelectorAll(".submit-btn-sync"); submitBtns.forEach(btn => { btn.innerText = isEdit ? "수정 중..." : "저장 중..."; btn.disabled = true; });
+            const selectedLifecycles = [], selectedPersonas = [], costList = [], roiList = [];
+            document.querySelectorAll('#lifecycleCheckboxGroup input[type="checkbox"]:checked').forEach(cb => selectedLifecycles.push(cb.value));
+            document.querySelectorAll('#personaCheckboxGroup input[type="checkbox"]:checked').forEach(cb => selectedPersonas.push(cb.value));
+            document.querySelectorAll("#costRowsContainer tr").forEach(tr => { costList.push({ 비용_그룹: tr.querySelector(".cost-group").value, 세부_항목명: tr.querySelector(".cost-name").value, 금액: Number(tr.querySelector(".cost-amount").value.replace(/,/g, "")) || 0 }); });
             document.querySelectorAll("#roiRowsContainer tr").forEach(tr => {
-                const targetVal = tr.querySelector(".roi-target").value;
-                const actualVal = tr.querySelector(".roi-actual").value;
-                const cleanTarget = !isNaN(targetVal.replace(/,/g, "")) ? targetVal.replace(/,/g, "") : targetVal;
-                const cleanActual = actualVal !== "" && !isNaN(actualVal.replace(/,/g, "")) ? actualVal.replace(/,/g, "") : actualVal;
-                
-                roiList.push({
-                    지표명: tr.querySelector(".roi-name").value,
-                    목표수치: cleanTarget,
-                    결과수치: cleanActual
-                });
+                const tv = tr.querySelector(".roi-target").value, av = tr.querySelector(".roi-actual").value;
+                roiList.push({ 지표명: tr.querySelector(".roi-name").value, 목표수치: !isNaN(tv.replace(/,/g, "")) ? tv.replace(/,/g, "") : tv, 결과수치: av !== "" && !isNaN(av.replace(/,/g, "")) ? av.replace(/,/g, "") : av });
             });
-
-            const activityDateVal = document.getElementById("newActivityDate").value;
-            const afyfq = getAutodeskFYFQ(activityDateVal);
-            if (afyfq.fy && afyfq.fy !== "기타") {
-                openFys.add(afyfq.fy);
-            }
-
             const payload = {
-                action: isEdit ? "update" : "create",
-                캠페인_ID: editId,
-                Industry: document.getElementById("newIndustry").value,
-                Campaign_Name: campaignNameVal,
-                Tactics: document.getElementById("newTactics").value,
-                Activity_Name: document.getElementById("newActivityName").value,
-                Life_Cycle: selectedLifecycles.join(', '),
-                Persona: selectedPersonas.join(', '),
-                Activity_Date: activityDateVal,
-                Cost_MDP_Requested: Number(rawRequested) || 0,
-                Cost_Approved: Number(rawApproved) || 0,
-                Activity_Description: document.getElementById("newDescription").value,
-                costs: costList,
-                rois: roiList
+                action: isEdit ? "update" : "create", 캠페인_ID: editId, Industry: document.getElementById("newIndustry").value, Campaign_Name: document.getElementById("newCampaignName").value.trim(), Tactics: document.getElementById("newTactics").value, Activity_Name: document.getElementById("newActivityName").value, Life_Cycle: selectedLifecycles.join(', '), Persona: selectedPersonas.join(', '), Activity_Date: document.getElementById("newActivityDate").value, Cost_MDP_Requested: Number(document.getElementById("newRequested").value.replace(/,/g, "")) || 0, Cost_Approved: Number(document.getElementById("newApproved").value.replace(/,/g, "")) || 0, Activity_Description: document.getElementById("newDescription").value, costs: costList, rois: roiList
             };
 
-            fetch(API_URL, {
-                method: "POST",
-                redirect: "follow",
-                body: JSON.stringify(payload),
-                headers: { "Content-Type": "text/plain;charset=utf-8" }
-            })
-            .then(response => response.json())
-            .then(result => {
-                submitBtns.forEach(btn => {
-                    btn.innerText = "저장하기";
-                    btn.disabled = false;
-                });
-                
+            try {
+                // 저장 시 에러 방어를 위해 자동 재시도 로직 적용
+                const result = await fetchWithRetry(API_URL, { method: "POST", body: JSON.stringify(payload), headers: { "Content-Type": "text/plain;charset=utf-8" } }, 2, 1000);
+                submitBtns.forEach(btn => { btn.innerText = "저장하기"; btn.disabled = false; });
                 if(result.status === "success" || result.success) {
-                    showToast(isEdit ? "성공적으로 수정 및 실적이 반영되었습니다!" : "성공적으로 등록되었습니다!");
+                    showToast(isEdit ? "성공적으로 수정되었습니다!" : "성공적으로 등록되었습니다!");
                     closeCreateModal();
-
-                    const savedItem = result.item || payload;
-                    const finalId = isEdit ? editId : (result.campaign_id || savedItem.캠페인_ID);
-
-                    if (isEdit) {
-                        const targetIdx = globalData.campaigns.findIndex(c => String(c.캠페인_ID).trim() === String(editId).trim());
-                        if (targetIdx !== -1) {
-                            globalData.campaigns[targetIdx] = {
-                                ...globalData.campaigns[targetIdx],
-                                ...savedItem,
-                                Campaign_Name: campaignNameVal
-                            };
-                        }
-                    } else {
-                        globalData.campaigns.unshift({
-                            ...savedItem,
-                            캠페인_ID: finalId,
-                            Campaign_Name: campaignNameVal
-                        });
-                    }
-
-                    globalData.costs = globalData.costs.filter(c => String(c.캠페인_ID).trim() !== String(finalId).trim()).concat(
-                        costList.map(c => ({ ...c, 캠페인_ID: finalId }))
-                    );
-                    globalData.rois = globalData.rois.filter(r => String(r.캠페인_ID).trim() !== String(finalId).trim()).concat(
-                        roiList.map(r => ({ ...r, 캠페인_ID: finalId }))
-                    );
-
-                    filterData();
-                    openModal(finalId);
-
-                } else {
-                    showToast("처리 실패: " + (result.message || "알 수 없는 에러"));
-                }
-            })
-            .catch(error => {
-                submitBtns.forEach(btn => {
-                    btn.innerText = "저장하기";
-                    btn.disabled = false;
-                });
-                showToast("통신 중 에러가 발생했습니다. 콘솔을 확인하세요.");
-                console.error(error);
-            });
+                    const savedItem = result.item || payload; const finalId = isEdit ? editId : (result.campaign_id || savedItem.캠페인_ID);
+                    if (isEdit) { const targetIdx = globalData.campaigns.findIndex(c => String(c.캠페인_ID).trim() === String(editId).trim()); if (targetIdx !== -1) globalData.campaigns[targetIdx] = { ...globalData.campaigns[targetIdx], ...savedItem, Campaign_Name: payload.Campaign_Name }; } 
+                    else { globalData.campaigns.unshift({ ...savedItem, 캠페인_ID: finalId, Campaign_Name: payload.Campaign_Name }); }
+                    globalData.costs = globalData.costs.filter(c => String(c.캠페인_ID).trim() !== String(finalId).trim()).concat(costList.map(c => ({ ...c, 캠페인_ID: finalId })));
+                    globalData.rois = globalData.rois.filter(r => String(r.캠페인_ID).trim() !== String(finalId).trim()).concat(roiList.map(r => ({ ...r, 캠페인_ID: finalId })));
+                    filterData(); openModal(finalId);
+                } else { showToast("처리 실패: " + (result.message || "알 수 없는 에러")); }
+            } catch (error) {
+                submitBtns.forEach(btn => { btn.innerText = "저장하기"; btn.disabled = false; });
+                showToast("통신 에러가 발생했습니다. (Lock 대기 초과 등)");
+            }
         }
 
         async function deleteCurrentCampaign() {
             if(!currentSelectedId) return;
-
             const isConfirmed = await showConfirmDialog("정말로 이 캠페인 플랜과 연관된 비용/성과 내역을 모두 삭제하시겠습니까?", "캠페인 플랜 삭제");
             if (!isConfirmed) return;
-
-            const deleteBtn = document.getElementById("deleteBtn");
-            deleteBtn.innerText = "삭제 중...";
-            deleteBtn.disabled = true;
-
-            const payload = {
-                action: "delete",
-                캠페인_ID: currentSelectedId
-            };
-
-            fetch(API_URL, {
-                method: "POST",
-                redirect: "follow",
-                body: JSON.stringify(payload),
-                headers: { "Content-Type": "text/plain;charset=utf-8" }
-            })
-            .then(response => response.json())
-            .then(result => {
-                deleteBtn.innerText = "이 플랜 삭제";
-                deleteBtn.disabled = false;
-
-                if(result.status === "success" || result.success) {
-                    showToast("성공적으로 삭제되었습니다!");
-                    closeModal();
-                    loadData();
-                } else {
-                    showToast("삭제 실패: " + (result.message || "알 수 없는 에러"));
-                }
-            })
-            .catch(error => {
-                deleteBtn.innerText = "이 플랜 삭제";
-                deleteBtn.disabled = false;
-                showToast("통신 중 에러가 발생했습니다. 콘솔을 확인하세요.");
-                console.error(error);
-            });
+            const deleteBtn = document.getElementById("deleteBtn"); deleteBtn.innerText = "삭제 중..."; deleteBtn.disabled = true;
+            try {
+                const result = await fetchWithRetry(API_URL, { method: "POST", body: JSON.stringify({ action: "delete", 캠페인_ID: currentSelectedId }), headers: { "Content-Type": "text/plain;charset=utf-8" } }, 2, 1000);
+                deleteBtn.innerText = "이 플랜 삭제"; deleteBtn.disabled = false;
+                if(result.status === "success" || result.success) { showToast("성공적으로 삭제되었습니다!"); closeModal(); loadData(); } 
+                else { showToast("삭제 실패: " + (result.message || "알 수 없는 에러")); }
+            } catch (error) {
+                deleteBtn.innerText = "이 플랜 삭제"; deleteBtn.disabled = false;
+                showToast("삭제 중 통신 에러가 발생했습니다.");
+            }
         }
 
         window.onclick = function(event) {
-            const detailModal = document.getElementById("detailModal");
-            if (event.target == detailModal) closeModal();
-            
-            const multiselect = document.getElementById("campaignMultiselect");
-            if (multiselect && !multiselect.contains(event.target)) {
-                multiselect.classList.remove("open");
-            }
-
-            const confirmModal = document.getElementById("customConfirmModal");
-            if (event.target == confirmModal) closeConfirmDialog(false);
+            if (event.target == document.getElementById("detailModal")) closeModal();
+            if (document.getElementById("campaignMultiselect") && !document.getElementById("campaignMultiselect").contains(event.target)) document.getElementById("campaignMultiselect").classList.remove("open");
+            if (event.target == document.getElementById("customConfirmModal")) closeConfirmDialog(false);
         }
     </script>
 </body>
