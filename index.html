@@ -13,7 +13,7 @@
     <!-- Firebase SDK (Modular v12 CDN) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
         // 접근 허용 계정 목록 (화면 표시용 1차 확인)
@@ -40,6 +40,7 @@
         window.FB_DOC = doc;
         window.FB_SET_DOC = setDoc;
         window.FB_DELETE_DOC = deleteDoc;
+        window.FB_RUN_TRANSACTION = runTransaction;
         window.FB_READY = true;
 
         const auth = getAuth(app);
@@ -672,6 +673,39 @@
             }
         }, 10000);
 
+        // 같은 FY/분기에서 사용 중인 가장 큰 순번 + 1 (개수 기반이 아니므로 삭제 후에도 기존 번호와 겹치지 않음)
+        function getNextCampaignSeq(fyNum, fq) {
+            const prefix = `MDP${fyNum}${fq}-`;
+            let maxSeq = 0;
+            globalData.campaigns.forEach(c => {
+                const id = c.캠페인_ID || "";
+                if (!id.startsWith(prefix)) return;
+                const n = parseInt(id.slice(prefix.length), 10);
+                if (!isNaN(n) && n > maxSeq) maxSeq = n;
+            });
+            return maxSeq + 1;
+        }
+
+        // 트랜잭션으로 "해당 ID 문서가 없을 때만" 생성. 이미 있으면 다음 번호로 재시도
+        async function createCampaignWithUniqueId(db, fyNum, fq, payload) {
+            let seq = getNextCampaignSeq(fyNum, fq);
+            for (let attempt = 0; attempt < 20; attempt++, seq++) {
+                const id = `MDP${fyNum}${fq}-${String(seq).padStart(3, '0')}`;
+                const ref = window.FB_DOC(db, "Campaign_Master", id);
+                const created = await window.FB_RUN_TRANSACTION(db, async (tx) => {
+                    const snap = await tx.get(ref);
+                    if (snap.exists()) return false;
+                    tx.set(ref, { ...payload, 캠페인_ID: id });
+                    return true;
+                });
+                if (created) {
+                    payload.캠페인_ID = id;
+                    return id;
+                }
+            }
+            throw new Error("사용 가능한 캠페인 ID를 찾지 못했습니다.");
+        }
+
         async function submitPlanData(event) {
             event.preventDefault();
             const editId = document.getElementById("editCampaignId").value;
@@ -683,15 +717,8 @@
             const targetFyNum = af.fy.replace("FY", "");
             const targetFq = af.fq;
             
+            // 신규 등록 시 ID는 저장 단계에서 Firestore 트랜잭션으로 확정 (기존 문서 덮어쓰기 방지)
             let campaignId = editId;
-            if (!isEdit) {
-                const sameQuarterCamps = globalData.campaigns.filter(c => {
-                    const cAf = getAutodeskFYFQ(c.Activity_Date);
-                    return cAf.fy === af.fy && cAf.fq === af.fq;
-                });
-                const seqNum = String(sameQuarterCamps.length + 1).padStart(3, '0');
-                campaignId = `MDP${targetFyNum}${targetFq}-${seqNum}`;
-            }
 
             const submitBtns = document.querySelectorAll(".submit-btn-sync");
             submitBtns.forEach(b => { b.innerText = isEdit ? "수정 중..." : "저장 중..."; b.disabled = true; });
@@ -701,16 +728,14 @@
             document.querySelectorAll('#personaCheckboxGroup input:checked').forEach(cb => selectedPersonas.push(cb.value));
             
             document.querySelectorAll("#costRowsContainer tr").forEach(tr => {
-                costList.push({ 
-                    캠페인_ID: campaignId, 
+                costList.push({
                     비용_그룹: tr.querySelector(".cost-group").value, 
                     세부_항목명: tr.querySelector(".cost-name").value, 
                     금액: Number(tr.querySelector(".cost-amount").value.replace(/,/g, "")) || 0 
                 });
             });
             document.querySelectorAll("#roiRowsContainer tr").forEach(tr => {
-                roiList.push({ 
-                    캠페인_ID: campaignId, 
+                roiList.push({
                     지표명: tr.querySelector(".roi-name").value, 
                     목표수치: tr.querySelector(".roi-target").value, 
                     결과수치: tr.querySelector(".roi-actual").value 
@@ -733,10 +758,13 @@
 
             try {
                 const db = window.FB_DB;
-                if (isEdit && editId !== campaignId) {
-                    await window.FB_DELETE_DOC(window.FB_DOC(db, "Campaign_Master", editId));
+                if (isEdit) {
+                    await window.FB_SET_DOC(window.FB_DOC(db, "Campaign_Master", campaignId), campaignPayload);
+                } else {
+                    campaignId = await createCampaignWithUniqueId(db, targetFyNum, targetFq, campaignPayload);
                 }
-                await window.FB_SET_DOC(window.FB_DOC(db, "Campaign_Master", campaignId), campaignPayload);
+                costList.forEach(c => c.캠페인_ID = campaignId);
+                roiList.forEach(r => r.캠페인_ID = campaignId);
 
                 const existingCosts = globalData.costs.filter(c => c.캠페인_ID === (isEdit ? editId : campaignId));
                 for (let ec of existingCosts) {
