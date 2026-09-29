@@ -10,10 +10,17 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     
-    <!-- Firebase SDK (Modular v10 CDN) -->
+    <!-- Firebase SDK (Modular v12 CDN) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+        // 접근 허용 계정 목록 (화면 표시용 1차 확인)
+        // ※ 실제 보안은 Firestore 보안 규칙(firestore.rules)이 담당하므로 두 곳의 목록을 항상 동일하게 유지할 것
+        const ALLOWED_EMAILS = [
+            "kevin5616@gmail.com"
+        ];
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuzVQdSJ90mygRkngN9PcvBeJhr9xKzJA",
@@ -33,10 +40,70 @@
         window.FB_DOC = doc;
         window.FB_SET_DOC = setDoc;
         window.FB_DELETE_DOC = deleteDoc;
+        window.FB_READY = true;
 
-        if (typeof window.loadDataFromFirebase === 'function') {
-            window.loadDataFromFirebase();
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+
+        const loginOverlay = document.getElementById("loginOverlay");
+        const loginBtn = document.getElementById("googleLoginBtn");
+        const loginMsg = document.getElementById("loginMessage");
+        let dataLoaded = false;
+
+        function setLoginMessage(msg, isError) {
+            loginMsg.innerText = msg;
+            loginMsg.classList.toggle("error", !!isError);
         }
+
+        loginBtn.addEventListener("click", async () => {
+            loginBtn.disabled = true;
+            setLoginMessage("Google 로그인 창을 여는 중입니다...");
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (e) {
+                console.error("Login Error:", e);
+                const messages = {
+                    "auth/popup-blocked": "팝업이 차단되었습니다. 브라우저 팝업 차단을 해제한 뒤 다시 시도해 주세요.",
+                    "auth/popup-closed-by-user": "로그인 창이 닫혔습니다. 다시 시도해 주세요.",
+                    "auth/unauthorized-domain": "이 주소에서는 로그인할 수 없습니다. Firebase Hosting 주소 또는 localhost로 접속해 주세요.",
+                    "auth/operation-not-supported-in-this-environment": "파일을 직접 열면(file://) 로그인할 수 없습니다. Firebase Hosting 주소로 접속해 주세요."
+                };
+                setLoginMessage(messages[e.code] || "로그인 중 오류가 발생했습니다. (" + (e.code || e.message) + ")", true);
+            } finally {
+                loginBtn.disabled = false;
+            }
+        });
+
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            await signOut(auth);
+            location.reload();
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                loginOverlay.style.display = "flex";
+                document.getElementById("userInfo").style.display = "none";
+                setLoginMessage("허가된 Google 계정으로 로그인해 주세요.");
+                return;
+            }
+
+            const email = (user.email || "").toLowerCase();
+            if (!ALLOWED_EMAILS.includes(email)) {
+                await signOut(auth);
+                setLoginMessage(`${email} 계정은 접근 권한이 없습니다. 관리자에게 문의해 주세요.`, true);
+                return;
+            }
+
+            loginOverlay.style.display = "none";
+            document.getElementById("userEmail").innerText = email;
+            document.getElementById("userInfo").style.display = "flex";
+
+            if (!dataLoaded && typeof window.loadDataFromFirebase === 'function') {
+                dataLoaded = true;
+                window.loadDataFromFirebase();
+            }
+        });
     </script>
 
     <style>
@@ -252,17 +319,53 @@
         .toast-msg.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
         .confirm-modal-content { background-color: #fff; margin: 15% auto; padding: 30px 28px; border-radius: 12px; width: 90%; max-width: 440px; text-align: center; box-shadow: 0 16px 36px rgba(0,0,0,0.28); }
+        .login-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #142940 0%, #000000 100%); padding: 16px; box-sizing: border-box; }
+        .login-card { background: #fff; border-radius: 16px; padding: 40px 36px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.35); box-sizing: border-box; }
+        .login-card img { height: 40px; margin-bottom: 14px; }
+        .login-card h2 { margin: 0 0 6px 0; color: #142940; font-size: 20px; }
+        .login-card .login-sub { margin: 0 0 28px 0; color: #64748b; font-size: 13px; }
+        .google-login-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 16px; background: #fff; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14.5px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background-color 0.2s; }
+        .google-login-btn:hover { background: #f1f5f9; }
+        .google-login-btn:disabled { opacity: 0.6; cursor: wait; }
+        .login-message { margin-top: 18px; font-size: 13px; color: #64748b; min-height: 18px; line-height: 1.5; }
+        .login-message.error { color: #dc2626; font-weight: 600; }
+
+        .navbar-right { display: flex; align-items: center; gap: 18px; }
+        .user-info { display: none; align-items: center; gap: 10px; font-size: 13px; opacity: 0.9; }
+        .logout-btn { padding: 6px 12px; background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .logout-btn:hover { background: rgba(255,255,255,0.22); }
+
         .confirm-icon { width: 52px; height: 52px; background-color: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; font-size: 26px; font-weight: bold; }
     </style>
 </head>
 <body>
+
+    <!-- 로그인 화면 (인증 전까지 대시보드를 가림) -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card">
+            <img src="logo-Magnifier.png" alt="Zoomin Tech Logo">
+            <h2>Autodesk MDP Dashboard</h2>
+            <p class="login-sub">ZOOMINTECH 내부 전용 · 허가된 계정만 접근 가능</p>
+            <button type="button" id="googleLoginBtn" class="google-login-btn">
+                <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+                <span>Google 계정으로 로그인</span>
+            </button>
+            <div id="loginMessage" class="login-message">로그인 모듈을 불러오는 중입니다...</div>
+        </div>
+    </div>
 
     <div class="navbar">
         <div class="navbar-brand">
             <img src="logo-Magnifier.png" alt="Zoomin Tech Logo" class="navbar-logo">
             <h1>ZOOMINTECH | Autodesk MDP Dashboard</h1>
         </div>
-        <div>Marketing Development Program (Firebase Edition)</div>
+        <div class="navbar-right">
+            <div>Marketing Development Program (Firebase Edition)</div>
+            <div class="user-info" id="userInfo">
+                <span id="userEmail"></span>
+                <button type="button" class="logout-btn" id="logoutBtn">로그아웃</button>
+            </div>
+        </div>
     </div>
 
     <div class="tab-nav-container" id="tabNavContainer">
@@ -555,10 +658,19 @@
             } catch (e) {
                 console.error("Firebase Load Error:", e);
                 if(loader) loader.style.display = "none";
-                showToast("데이터를 불러오는 중 오류가 발생했습니다.");
+                showToast(e.code === "permission-denied" ? "데이터 접근 권한이 없습니다. 관리자에게 문의해 주세요." : "데이터를 불러오는 중 오류가 발생했습니다.");
             }
         }
         window.loadDataFromFirebase = loadDataFromFirebase;
+
+        // Firebase SDK(CDN) 로드 실패 시 로그인 화면에 안내
+        setTimeout(() => {
+            if (!window.FB_READY) {
+                const msg = document.getElementById("loginMessage");
+                msg.innerText = "Firebase 모듈을 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 새로고침해 주세요.";
+                msg.classList.add("error");
+            }
+        }, 10000);
 
         async function submitPlanData(event) {
             event.preventDefault();
