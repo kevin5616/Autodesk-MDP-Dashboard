@@ -199,7 +199,7 @@
         .toggle-icon-btn.active .toggle-vertical-line { transform: rotate(90deg); opacity: 0; }
 
         .fy-content-wrapper { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; }
-        .fy-content-wrapper.open { max-height: 3000px; opacity: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .fy-content-wrapper.open { max-height: none; opacity: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; min-width: 780px; }
         th, td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
@@ -815,6 +815,7 @@
                 showToast(isEdit ? "성공적으로 수정되었습니다!" : "성공적으로 등록되었습니다!");
                 
                 closeCreateModal();
+                populateFilterOptions(globalData.campaigns);
                 filterData();
                 buildCampaignDropdown([]);
                 renderFundsStatusCharts();
@@ -971,12 +972,16 @@
                 if(c.Industry) inds.add(c.Industry);
                 if(c.Tactics) tacs.add(c.Tactics);
             });
-            const fSel = document.getElementById("filterFY"); fSel.innerHTML = '<option value="">모든 FY</option>';
-            Array.from(fys).sort().reverse().forEach(fy => fSel.innerHTML += `<option value="${esc(fy)}">${esc(fy)}</option>`);
-            const iSel = document.getElementById("filterIndustry"); iSel.innerHTML = '<option value="">모든 Industry</option>';
-            Array.from(inds).sort().forEach(i => iSel.innerHTML += `<option value="${esc(i)}">${esc(i)}</option>`);
-            const tSel = document.getElementById("filterTactics"); tSel.innerHTML = '<option value="">모든 Tactics</option>';
-            Array.from(tacs).sort().forEach(t => tSel.innerHTML += `<option value="${esc(t)}">${esc(t)}</option>`);
+            // 목록을 다시 만들되, 사용자가 이미 선택해 둔 필터 값은 유지 (값이 사라졌으면 "전체"로)
+            const fillSelect = (id, allLabel, values) => {
+                const sel = document.getElementById(id);
+                const prev = sel.value;
+                sel.innerHTML = `<option value="">${allLabel}</option>` + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+                sel.value = values.includes(prev) ? prev : "";
+            };
+            fillSelect("filterFY", "모든 FY", Array.from(fys).sort().reverse());
+            fillSelect("filterIndustry", "모든 Industry", Array.from(inds).sort());
+            fillSelect("filterTactics", "모든 Tactics", Array.from(tacs).sort());
         }
 
         function filterData() {
@@ -1006,15 +1011,26 @@
             const content = headerElement.closest('.fy-section').querySelector('.fy-content-wrapper');
             const iconBtn = headerElement.closest('.fy-section').querySelector('.toggle-icon-btn');
             
-            if (content.classList.contains('open')) { 
-                content.classList.remove('open'); 
-                iconBtn.classList.remove('active'); 
-                headerElement.classList.remove('open'); 
+            // 열린 상태는 높이 제한 없음(max-height: none). 애니메이션 동안만 실제 높이(px)를 잠시 지정
+            clearTimeout(content._accordionTimer);
+            if (content.classList.contains('open')) {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                content.offsetHeight; // 현재 높이를 확정시킨 뒤 0으로 줄여야 애니메이션이 동작
+                content.classList.remove('open');
+                content.style.maxHeight = '0px';
+                content._accordionTimer = setTimeout(() => { content.style.maxHeight = ''; }, 450);
+                iconBtn.classList.remove('active');
+                headerElement.classList.remove('open');
                 if (fyName) openFys.delete(fyName);
-            } else { 
-                content.classList.add('open'); 
-                iconBtn.classList.add('active'); 
-                headerElement.classList.add('open'); 
+            } else {
+                content.classList.add('open');
+                const targetHeight = content.scrollHeight;
+                content.style.maxHeight = '0px';
+                content.offsetHeight;
+                content.style.maxHeight = targetHeight + 'px';
+                content._accordionTimer = setTimeout(() => { content.style.maxHeight = ''; }, 450);
+                iconBtn.classList.add('active');
+                headerElement.classList.add('open');
                 if (fyName) openFys.add(fyName);
             }
         }
@@ -1295,6 +1311,7 @@
             addCostRow(); addRoiRow();
             document.getElementById("newDescription").value = DEFAULT_DESCRIPTION_TEMPLATE;
             buildCampaignDropdown([]);
+            formInitialSnapshot = getFormSnapshot();
             document.getElementById("createModal").style.display = "block";
         }
 
@@ -1350,25 +1367,22 @@
                 addRoiRow();
             }
 
+            formInitialSnapshot = getFormSnapshot();
             document.getElementById("createModal").style.display = "block";
         }
 
         function closeCreateModal() { document.getElementById("createModal").style.display = "none"; }
         
-        function hasFormContentChanged() {
-            const editId = document.getElementById("editCampaignId").value;
-            if (editId !== "") return true;
+        // 폼 전체(입력칸, 체크박스, 비용/ROI 행 포함)의 현재 상태를 문자열 하나로 기록
+        let formInitialSnapshot = "";
+        function getFormSnapshot() {
+            return JSON.stringify(Array.from(document.querySelectorAll("#createForm input, #createForm select, #createForm textarea"))
+                .map(el => el.type === "checkbox" ? el.checked : el.value));
+        }
 
-            const actName = document.getElementById("newActivityName").value.trim();
-            const tactics = document.getElementById("newTactics").value.trim();
-            const actDate = document.getElementById("newActivityDate").value.trim();
-            const req = document.getElementById("newRequested").value.trim();
-            const app = document.getElementById("newApproved").value.trim();
-            const desc = document.getElementById("newDescription").value.trim();
-            
-            const isDescDefault = (desc === DEFAULT_DESCRIPTION_TEMPLATE || desc === "");
-            if(actName || tactics || actDate || req || app || !isDescDefault) return true;
-            return false;
+        // 창을 연 시점과 비교해 실제로 바뀐 내용이 있을 때만 true (등록/수정 모드 공통)
+        function hasFormContentChanged() {
+            return getFormSnapshot() !== formInitialSnapshot;
         }
 
         async function confirmCancelEditMode() {
@@ -1405,6 +1419,11 @@
 
         window.addEventListener('keydown', async function(e) {
             if(e.key === 'Escape') {
+                // 확인창이 떠 있으면 ESC는 "취소"로 처리 (확인창이 겹쳐 뜨는 문제 방지)
+                if(document.getElementById("customConfirmModal").style.display === 'block') {
+                    closeConfirmDialog(false);
+                    return;
+                }
                 const createModal = document.getElementById("createModal");
                 const detailModal = document.getElementById("detailModal");
 
