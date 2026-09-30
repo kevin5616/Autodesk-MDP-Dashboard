@@ -194,18 +194,51 @@
         .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(20, 41, 64, 0.2); border-radius: 50%; border-top-color: #142940; animation: spin 1s ease-in-out infinite; vertical-align: middle; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .kpi-container { display: flex; gap: 20px; margin-bottom: 25px; align-items: stretch; }
-        .kpi-card { padding: 25px; border-radius: 10px; flex: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: center; text-align: center; }
-        .kpi-card h3 { margin: 0 0 10px 0; font-size: 14px; color: #555; }
-        .kpi-card p { margin: 0; font-size: 28px; font-weight: bold; color: #142940; }
-        .kpi-card-blue { background-color: #e3f2fd; border-left: 5px solid #90caf9; }
-        .kpi-card-orange { background-color: #fff3e0; border-left: 5px solid #ffcc80; }
-        .kpi-card-green { background-color: #e8f5e9; border-left: 5px solid #a5d6a7; }
-
-        .action-card { background: linear-gradient(135deg, #142940, #1f3e60); padding: 25px; border-radius: 10px; flex: 1; box-shadow: 0 4px 12px rgba(20,41,64,0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; text-align: center; color: white; }
-        .action-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(20,41,64,0.3); }
-        .action-card h3 { margin: 0 0 5px 0; font-size: 16px; font-weight: bold; }
-        .action-card p { margin: 0; font-size: 13px; opacity: 0.9; }
+        /* ===== MDP Status 상단 (현재 분기 + 할 일 카드 + 다가오는 활동) ===== */
+        .status-header { margin-bottom: 25px; }
+        body:not([data-tab="dashboardTab"]) .status-header,
+        body:not([data-tab="dashboardTab"]) .quick-filter-chip { display: none !important; }
+        .status-cards { display: grid; grid-template-columns: minmax(240px, 1.2fr) repeat(3, minmax(170px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .quarter-card { background: linear-gradient(135deg, #142940, #1f3e60); color: #fff; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; box-shadow: 0 4px 12px rgba(20,41,64,0.2); }
+        .quarter-today { font-size: 12.5px; opacity: 0.8; }
+        .quarter-name { font-size: 26px; font-weight: bold; margin-top: 2px; letter-spacing: -0.5px; }
+        .quarter-range { font-size: 12.5px; opacity: 0.85; margin-top: 2px; }
+        .quarter-track { height: 6px; background: rgba(255,255,255,0.18); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+        .quarter-fill { height: 100%; background: #7dd3fc; border-radius: 3px; }
+        .quarter-create-btn { padding: 9px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12); color: #fff; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background-color 0.2s; }
+        .quarter-create-btn:hover { background: rgba(255,255,255,0.22); }
+        .todo-card { border-radius: 10px; padding: 18px 20px; cursor: pointer; border: 2px solid transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.15s, border-color 0.15s; display: flex; flex-direction: column; justify-content: center; outline: none; }
+        .todo-card:hover, .todo-card:focus-visible { transform: translateY(-2px); }
+        .todo-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+        .todo-label svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .todo-value { font-size: 28px; font-weight: bold; margin-top: 8px; }
+        .todo-sub { font-size: 12px; margin-top: 4px; opacity: 0.85; }
+        .todo-upcoming { background: #e0f2fe; color: #0369a1; }  .todo-upcoming.active { border-color: #38bdf8; }
+        .todo-result   { background: #dcfce7; color: #15803d; }  .todo-result.active   { border-color: #4ade80; }
+        .todo-approval { background: #fef3c7; color: #b45309; }  .todo-approval.active { border-color: #fbbf24; }
+        .upcoming-panel { background: #fff; border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .upcoming-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 15px; font-weight: bold; color: #142940; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; margin-bottom: 4px; }
+        .upcoming-hint { font-size: 12px; font-weight: normal; color: #64748b; }
+        .upcoming-row { display: grid; grid-template-columns: 64px 120px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 4px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 13.5px; }
+        .upcoming-row:last-child { border-bottom: none; }
+        .upcoming-row:hover { background: #f8fafc; }
+        .upcoming-row .date { color: #64748b; font-size: 12.5px; white-space: nowrap; }
+        .upcoming-row .title { font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .upcoming-row .meta { font-size: 12px; color: #64748b; white-space: nowrap; }
+        .dday { display: inline-block; text-align: center; padding: 3px 0; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .dday.urgent { background: #fee2e2; color: #b91c1c; }
+        .dday.soon   { background: #fef3c7; color: #b45309; }
+        .dday.later  { background: #f1f5f9; color: #475569; }
+        .upcoming-empty { font-size: 13px; color: #94a3b8; padding: 12px 4px; }
+        .quick-filter-chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 16px; background: #e0f2fe; color: #0369a1; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+        .quick-filter-chip button { border: none; background: transparent; color: inherit; font-size: 15px; line-height: 1; cursor: pointer; padding: 0; }
+        @media (max-width: 1020px) {
+            .status-cards { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+            .quarter-card { grid-column: 1 / -1; }
+            .upcoming-row { grid-template-columns: 58px minmax(0, 1fr); }
+            .upcoming-row .date { grid-column: 2; grid-row: 2; }
+            .upcoming-row .meta { display: none; }
+        }
 
         .filter-container { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
         .filter-container input, .filter-container select { padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; flex: 1; min-width: 140px; outline: none; font-family: inherit; }
@@ -368,7 +401,6 @@
         .migration-banner .btn-primary { flex-shrink: 0; }
 
         /* ===== Funds Status 탭 ===== */
-        body[data-tab="reportTab"] .kpi-container,
         body[data-tab="reportTab"] #searchInput { display: none; }
         .funds-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
         .funds-criteria { font-size: 13px; color: #475569; }
@@ -416,7 +448,7 @@
         @media print {
             @page { size: A4 portrait; margin: 12mm; }
             body { background: #fff; }
-            .navbar, .tab-nav-container, .filter-container, .kpi-container, #loader, #migrationBanner,
+            .navbar, .tab-nav-container, .filter-container, .status-header, #loader, #migrationBanner,
             .funds-toolbar-buttons, .funds-basis-toggle, .modal, .toast-msg, .login-overlay { display: none !important; }
             .container { padding: 0; max-width: none; }
             .funds-print-header { display: block; margin-bottom: 14px; border-bottom: 2px solid #142940; padding-bottom: 8px; }
@@ -532,14 +564,51 @@
             <button type="button" id="migrationBtn" class="btn-primary" onclick="runDataMigration()">데이터 구조 변환</button>
         </div>
 
-        <div class="kpi-container">
-            <div class="action-card" onclick="openCreateModal()">
-                <h3>+ 새 플랜 등록</h3>
-                <p>클릭하여 새로운 마케팅 캠페인 추가</p>
+        <!-- MDP Status 상단: 현재 회계 분기 + 할 일 카드 + 다가오는 활동 (MDP Status 탭에서만 표시) -->
+        <div class="status-header">
+            <div class="status-cards">
+                <div class="quarter-card">
+                    <div>
+                        <div class="quarter-today" id="quarterToday"></div>
+                        <div class="quarter-name" id="quarterName"></div>
+                        <div class="quarter-range" id="quarterRange"></div>
+                        <div class="quarter-track"><div class="quarter-fill" id="quarterFill"></div></div>
+                    </div>
+                    <button type="button" class="quarter-create-btn" onclick="openCreateModal()">+ 새 플랜 등록</button>
+                </div>
+                <div class="todo-card todo-upcoming" data-quick="upcoming" role="button" tabindex="0">
+                    <div class="todo-label">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        다가오는 활동
+                    </div>
+                    <div class="todo-value" id="todoUpcomingCount">0건</div>
+                    <div class="todo-sub" id="todoUpcomingSub">이번 분기 남은 활동</div>
+                </div>
+                <div class="todo-card todo-result" data-quick="result" role="button" tabindex="0">
+                    <div class="todo-label">
+                        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path><rect x="9" y="3" width="6" height="4" rx="1"></rect><polyline points="9 14 11 16 15 12"></polyline></svg>
+                        결과 입력 필요
+                    </div>
+                    <div class="todo-value" id="todoResultCount">0건</div>
+                    <div class="todo-sub">활동 종료 · ROI 실적 빈 칸 있음</div>
+                </div>
+                <div class="todo-card todo-approval" data-quick="approval" role="button" tabindex="0">
+                    <div class="todo-label">
+                        <svg viewBox="0 0 24 24"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2v4a6 6 0 0 0 12 0V2"></path><path d="M6 22v-4a6 6 0 0 1 12 0v4"></path></svg>
+                        승인 금액 입력 대기
+                    </div>
+                    <div class="todo-value" id="todoApprovalCount">0건</div>
+                    <div class="todo-sub">이번 분기 · Approved 0</div>
+                </div>
             </div>
-            <div class="kpi-card kpi-card-blue"><h3>총 기획된 캠페인 수</h3><p id="total-campaigns">0 개</p></div>
-            <div class="kpi-card kpi-card-orange"><h3>총 MDP 요청액 (Requested)</h3><p id="total-mdp">$0</p></div>
-            <div class="kpi-card kpi-card-green"><h3>총 승인 금액 (Approved)</h3><p id="total-budget">$0</p></div>
+
+            <div class="upcoming-panel">
+                <div class="upcoming-head">
+                    <span>다가오는 활동</span>
+                    <span class="upcoming-hint">카드를 누르면 아래 목록이 해당 건만 표시됩니다</span>
+                </div>
+                <div id="upcomingList"></div>
+            </div>
         </div>
 
         <div class="filter-container">
@@ -550,6 +619,7 @@
             </select>
             <select id="filterIndustry" onchange="filterData()"><option value="">모든 Industry</option></select>
             <select id="filterTactics" onchange="filterData()"><option value="">모든 Tactics</option></select>
+            <span class="quick-filter-chip" id="quickFilterChip" style="display:none;"></span>
             <button class="reset-btn" onclick="resetFilters()">초기화</button>
         </div>
 
@@ -842,6 +912,7 @@
         let currentSelectedId = null;
         let confirmResolveCallback = null;
         let openFys = new Set();
+        let quickFilter = null;                                // MDP Status 할 일 카드 필터: upcoming | result | approval
         let fundsQuarterChartInstance = null;
         let fundsBasis = "approved";                           // Fund 배분 기준: approved | requested
         let fundsTableSort = { col: "id", dir: "asc" };
@@ -1491,17 +1562,124 @@
             fillSelect("filterTactics", "모든 Tactics", Array.from(tacs).sort());
         }
 
+        // ===== MDP Status 상단: 현재 분기 + 할 일 카드 =====
+        const DAY_MS = 24 * 60 * 60 * 1000;
+        const QUICK_FILTER_LABELS = { upcoming: "다가오는 활동", result: "결과 입력 필요", approval: "승인 금액 입력 대기" };
+
+        function toLocalDateKey(d) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        }
+
+        // "2026-10-22" 또는 "2026-10-22(목)" → 그 날 0시(로컬) Date. 형식이 다르면 null
+        function parseActivityDate(str) {
+            const m = String(str || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+            return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+        }
+
+        // 오늘 기준 Autodesk 회계 분기 (Q1 2~4월, Q2 5~7월, Q3 8~10월, Q4 11~1월)
+        function getCurrentQuarterInfo() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const offset = (today.getMonth() - 1 + 12) % 3;
+            const start = new Date(today.getFullYear(), today.getMonth() - offset, 1);
+            const end = new Date(start.getFullYear(), start.getMonth() + 3, 0);
+            const af = getAutodeskFYFQ(toLocalDateKey(today));
+            return { today, start, end, fy: af.fy, fq: af.fq };
+        }
+
+        function isUpcomingActivity(c, q) {
+            const d = parseActivityDate(c.Activity_Date);
+            return !!d && d >= q.today && d <= q.end;
+        }
+        // 활동일이 지났고, 이름이 있는 ROI 지표 중 결과 수치가 하나라도 비어 있으면 대상 (지표가 없는 MDP는 제외)
+        function needsResultInput(c, q) {
+            const d = parseActivityDate(c.Activity_Date);
+            if (!d || d >= q.today) return false;
+            const metrics = (getCampaignRois(c) || []).filter(r => String(r.지표명 ?? "").trim() !== "");
+            return metrics.some(r => String(r.결과수치 ?? "").trim() === "");
+        }
+        function isAwaitingApproval(c, q) {
+            const af = getAutodeskFYFQ(c.Activity_Date);
+            return af.fy === q.fy && af.fq === q.fq && !(Number(c.Cost_Approved) > 0);
+        }
+
+        function matchesQuickFilter(c, q) {
+            if (quickFilter === "upcoming") return isUpcomingActivity(c, q);
+            if (quickFilter === "result") return needsResultInput(c, q);
+            if (quickFilter === "approval") return isAwaitingApproval(c, q);
+            return true;
+        }
+
+        function renderStatusHeader(q) {
+            const camps = getActiveCampaigns();   // 할 일 숫자는 상단 필터와 관계없이 전체 기준
+            const totalDays = Math.round((q.end - q.start) / DAY_MS) + 1;
+            const elapsed = Math.round((q.today - q.start) / DAY_MS) + 1;
+            const left = Math.round((q.end - q.today) / DAY_MS);
+
+            document.getElementById("quarterToday").innerText = "오늘 · " + formatDateWithDay(toLocalDateKey(q.today));
+            document.getElementById("quarterName").innerText = `${q.fy} ${q.fq}`;
+            document.getElementById("quarterRange").innerText =
+                `${q.start.getMonth() + 1}월 ${q.start.getDate()}일 ~ ${q.end.getMonth() + 1}월 ${q.end.getDate()}일 · 분기 종료 ${left === 0 ? "D-Day" : "D-" + left}`;
+            document.getElementById("quarterFill").style.width = Math.min(100, elapsed / totalDays * 100).toFixed(1) + "%";
+
+            const upcoming = camps.filter(c => isUpcomingActivity(c, q))
+                .map(c => ({ c, d: parseActivityDate(c.Activity_Date) }))
+                .sort((a, b) => a.d - b.d);
+            document.getElementById("todoUpcomingCount").innerText = upcoming.length + "건";
+            document.getElementById("todoUpcomingSub").innerText = upcoming.length
+                ? `이번 분기 남은 활동 · 가장 빠른 ${Math.round((upcoming[0].d - q.today) / DAY_MS) === 0 ? "D-Day" : "D-" + Math.round((upcoming[0].d - q.today) / DAY_MS)}`
+                : "이번 분기 남은 활동";
+            document.getElementById("todoResultCount").innerText = camps.filter(c => needsResultInput(c, q)).length + "건";
+            document.getElementById("todoApprovalCount").innerText = camps.filter(c => isAwaitingApproval(c, q)).length + "건";
+            document.querySelectorAll(".todo-card").forEach(el => el.classList.toggle("active", el.dataset.quick === quickFilter));
+
+            const MAX_ROWS = 5;
+            const list = document.getElementById("upcomingList");
+            if (upcoming.length === 0) {
+                list.innerHTML = `<div class="upcoming-empty">이번 분기에 남은 활동이 없습니다.</div>`;
+            } else {
+                list.innerHTML = upcoming.slice(0, MAX_ROWS).map(({ c, d }) => {
+                    const n = Math.round((d - q.today) / DAY_MS);
+                    const cls = n <= 7 ? "urgent" : n <= 14 ? "soon" : "later";
+                    return `<div class="upcoming-row" data-campaign-id="${esc(c.캠페인_ID)}">
+                        <span class="dday ${cls}">${n === 0 ? "D-Day" : "D-" + n}</span>
+                        <span class="date">${esc(formatDateWithDay(toLocalDateKey(d)))}</span>
+                        <span class="title">${esc(c.Activity_Name || "-")}</span>
+                        <span class="meta">${esc(c.Industry || "-")} · ${esc(c.Tactics || "-")}</span>
+                    </div>`;
+                }).join("") + (upcoming.length > MAX_ROWS
+                    ? `<div class="upcoming-empty">외 ${upcoming.length - MAX_ROWS}건 · "다가오는 활동" 카드를 누르면 전체를 볼 수 있습니다.</div>` : "");
+            }
+
+            const chip = document.getElementById("quickFilterChip");
+            if (quickFilter) {
+                chip.innerHTML = `빠른 필터: ${esc(QUICK_FILTER_LABELS[quickFilter])} <button type="button" aria-label="빠른 필터 해제" onclick="setQuickFilter(null)">&times;</button>`;
+                chip.style.display = "inline-flex";
+            } else {
+                chip.style.display = "none";
+            }
+        }
+
+        // 같은 카드를 다시 누르면 해제
+        function setQuickFilter(type) {
+            quickFilter = (type && quickFilter !== type) ? type : null;
+            filterData();
+        }
+
         function filterData() {
             const kw = document.getElementById("searchInput").value.toLowerCase();
             const fy = document.getElementById("filterFY").value;
             const fq = document.getElementById("filterFQ").value;
             const ind = document.getElementById("filterIndustry").value;
             const tac = document.getElementById("filterTactics").value;
+            const q = getCurrentQuarterInfo();
 
             currentFilteredCampaigns = getActiveCampaigns().filter(c => {
                 const af = getAutodeskFYFQ(c.Activity_Date);
-                return (c.Activity_Name || "").toLowerCase().includes(kw) && (!fy || af.fy === fy) && (!fq || af.fq === fq) && (!ind || c.Industry === ind) && (!tac || c.Tactics === tac);
+                return (c.Activity_Name || "").toLowerCase().includes(kw) && (!fy || af.fy === fy) && (!fq || af.fq === fq) && (!ind || c.Industry === ind) && (!tac || c.Tactics === tac)
+                    && matchesQuickFilter(c, q);
             });
+            renderStatusHeader(q);
             renderDashboard(currentFilteredCampaigns);
             // 필터 변경 시 Funds Status 탭이 열려 있으면 함께 갱신 (닫혀 있으면 탭을 열 때 그림)
             if (document.body.dataset.tab === "reportTab") renderFundsStatusCharts();
@@ -1513,6 +1691,7 @@
             document.getElementById("filterFQ").value = "";
             document.getElementById("filterIndustry").value = "";
             document.getElementById("filterTactics").value = "";
+            quickFilter = null;
             filterData();
         }
 
@@ -1558,12 +1737,6 @@
         }
 
         function renderDashboard(camps) {
-            let appTot = 0, reqTot = 0;
-            camps.forEach(c => { appTot += Number(c.Cost_Approved)||0; reqTot += Number(c.Cost_MDP_Requested)||0; });
-            document.getElementById("total-campaigns").innerText = camps.length + " 개";
-            document.getElementById("total-mdp").innerText = "$" + reqTot.toLocaleString();
-            document.getElementById("total-budget").innerText = "$" + appTot.toLocaleString();
-
             let groups = {};
             camps.forEach(c => {
                 const af = getAutodeskFYFQ(c.Activity_Date);
@@ -1629,7 +1802,7 @@
                     rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge badge-dm">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b></td><td>${esc(formattedDate)}</td><td class="text-right">$${(Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">$${(Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
                 });
                 
-                const isOpen = openFys.has(fy);
+                const isOpen = openFys.has(fy) || !!quickFilter;   // 빠른 필터 사용 중에는 결과가 바로 보이도록 펼침
                 const openClass = isOpen ? 'open' : '';
                 const activeClass = isOpen ? 'active' : '';
 
@@ -2145,6 +2318,18 @@
         // 캠페인 행 클릭 → 상세 모달 (ID를 onclick 코드에 직접 넣지 않고 data 속성으로 전달)
         document.getElementById("fy-groups-container").addEventListener("click", function(e) {
             const row = e.target.closest("tr[data-campaign-id]");
+            if (row) openModal(row.dataset.campaignId);
+        });
+
+        // MDP Status 할 일 카드: 누르면 아래 목록을 해당 건만 필터 (다시 누르면 해제). 키보드 Enter/Space도 지원
+        document.querySelectorAll(".todo-card").forEach(card => {
+            card.addEventListener("click", () => setQuickFilter(card.dataset.quick));
+            card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setQuickFilter(card.dataset.quick); } });
+        });
+
+        // 다가오는 활동 행 클릭 → 상세 창
+        document.getElementById("upcomingList").addEventListener("click", function(e) {
+            const row = e.target.closest(".upcoming-row[data-campaign-id]");
             if (row) openModal(row.dataset.campaignId);
         });
 
