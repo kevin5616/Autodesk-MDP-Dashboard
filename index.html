@@ -13,7 +13,7 @@
     <!-- Firebase SDK (Modular v12 CDN) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, runTransaction, writeBatch } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, runTransaction, writeBatch, deleteField } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
         // 접근 허용 계정 목록 (화면 표시용 1차 확인)
@@ -42,6 +42,7 @@
         window.FB_DELETE_DOC = deleteDoc;
         window.FB_RUN_TRANSACTION = runTransaction;
         window.FB_WRITE_BATCH = writeBatch;
+        window.FB_DELETE_FIELD = deleteField;
         window.FB_READY = true;
 
         const auth = getAuth(app);
@@ -335,6 +336,12 @@
         .migration-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; font-size: 13.5px; line-height: 1.6; }
         .migration-banner .btn-primary { flex-shrink: 0; }
 
+        .restore-status { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .restore-missing { background: #dcfce7; color: #15803d; }
+        .restore-trash { background: #fef3c7; color: #b45309; }
+        .restore-exists { background: #fee2e2; color: #b91c1c; }
+        .logout-btn:disabled { opacity: 0.6; cursor: wait; }
+
         .navbar-right { display: flex; align-items: center; gap: 18px; }
         .user-info { display: none; align-items: center; gap: 10px; font-size: 13px; opacity: 0.9; }
         .logout-btn { padding: 6px 12px; background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
@@ -368,6 +375,10 @@
             <div>Marketing Development Program (Firebase Edition)</div>
             <div class="user-info" id="userInfo">
                 <span id="userEmail"></span>
+                <button type="button" class="logout-btn" onclick="openTrashModal()">휴지통 <span id="trashCount"></span></button>
+                <button type="button" class="logout-btn" id="backupBtn" onclick="downloadFullBackup()">백업</button>
+                <button type="button" class="logout-btn" onclick="document.getElementById('restoreFileInput').click()">복원</button>
+                <input type="file" id="restoreFileInput" accept=".json,application/json" style="display:none;" onchange="handleRestoreFile(this)">
                 <button type="button" class="logout-btn" id="logoutBtn">로그아웃</button>
             </div>
         </div>
@@ -467,7 +478,7 @@
                     <h3>Activity Description</h3>
                     <div class="modal-action-buttons">
                         <button type="button" class="btn-primary" onclick="openEditMode()">이 플랜 수정</button>
-                        <button type="button" class="btn-danger" onclick="deleteCurrentCampaign()">이 플랜 삭제</button>
+                        <button type="button" class="btn-danger" onclick="deleteCurrentCampaign()">휴지통으로 이동</button>
                     </div>
                 </div>
                 <div class="detail-meta-group">
@@ -596,6 +607,40 @@
                     <button type="submit" class="btn-primary submit-btn-sync">저장하기</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- 휴지통 모달 -->
+    <div id="trashModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeTrashModal()">&times;</span>
+            <div class="modal-header">
+                <h2>휴지통</h2>
+                <div class="sub-info">휴지통의 플랜은 목록과 합계에서 제외됩니다. [복구]로 되돌리거나 [영구 삭제]할 수 있습니다.</div>
+            </div>
+            <table class="detail-table">
+                <thead><tr><th style="width:16%;">캠페인 ID</th><th>Activity Name</th><th style="width:15%;">Date of Activity</th><th style="width:16%;">삭제 일시</th><th style="width:20%;">작업</th></tr></thead>
+                <tbody id="trashList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 백업 복원 모달 -->
+    <div id="restoreModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeRestoreModal()">&times;</span>
+            <div class="modal-header">
+                <h2>백업 파일에서 복원</h2>
+                <div class="sub-info">파일: <b id="restoreFileName"></b> · 복원할 캠페인을 선택하세요. 기본으로 "현재 없음" 항목만 선택되어 있습니다.</div>
+            </div>
+            <table class="detail-table">
+                <thead><tr><th style="width:5%;">선택</th><th style="width:15%;">캠페인 ID</th><th>Activity Name</th><th style="width:15%;">Date of Activity</th><th style="width:17%;">비용 (백업 기준)</th><th style="width:22%;">현재 상태</th></tr></thead>
+                <tbody id="restoreList"></tbody>
+            </table>
+            <div class="form-bottom-actions">
+                <button type="button" class="reset-btn" onclick="closeRestoreModal()">취소</button>
+                <button type="button" class="btn-primary" id="applyRestoreBtn" onclick="applyRestore()">선택한 캠페인 복원</button>
+            </div>
         </div>
     </div>
 
@@ -782,10 +827,11 @@
                 }
                 updateMigrationBanner(unmigrated.length);
 
-                populateFilterOptions(globalData.campaigns);
+                populateFilterOptions(getActiveCampaigns());
                 buildCampaignDropdown([]);
                 filterData();
                 renderFundsStatusCharts();
+                updateTrashCount();
 
                 if(loader) loader.style.display = "none";
             } catch (e) {
@@ -907,7 +953,7 @@
                 showToast(isEdit ? "성공적으로 수정되었습니다!" : "성공적으로 등록되었습니다!");
                 
                 closeCreateModal();
-                populateFilterOptions(globalData.campaigns);
+                populateFilterOptions(getActiveCampaigns());
                 filterData();
                 buildCampaignDropdown([]);
                 renderFundsStatusCharts();
@@ -919,30 +965,227 @@
             }
         }
 
+        // ===== 휴지통 =====
+        // 삭제 = Deleted 표시만 (문서는 남김 → 복구 가능, ID도 계속 점유되어 번호 재사용 없음, 향후 CRM 연결도 유지)
+        function getActiveCampaigns() { return globalData.campaigns.filter(c => !c.Deleted); }
+        function getTrashedCampaigns() { return globalData.campaigns.filter(c => c.Deleted); }
+
+        function updateTrashCount() {
+            const n = getTrashedCampaigns().length;
+            document.getElementById("trashCount").innerText = n > 0 ? `(${n})` : "";
+        }
+
+        // 데이터 변경 후 목록·필터·차트·휴지통 개수를 한 번에 갱신 (전체 재조회 없이)
+        function refreshAfterDataChange() {
+            populateFilterOptions(getActiveCampaigns());
+            filterData();
+            renderFundsStatusCharts();
+            updateTrashCount();
+            updateMigrationBanner(globalData.campaigns.filter(c => !isCampaignMigrated(c)).length);
+        }
+
         async function deleteCurrentCampaign() {
             if(!currentSelectedId) return;
-            const isConfirmed = await showConfirmDialog("정말로 이 캠페인 플랜을 삭제하시겠습니까?", "삭제 확인");
+            const isConfirmed = await showConfirmDialog("이 플랜을 휴지통으로 옮깁니다. 휴지통에서 언제든 복구할 수 있습니다.", "휴지통으로 이동");
             if (!isConfirmed) return;
 
             const targetId = currentSelectedId;
             try {
-                // 비용/ROI가 캠페인 문서 안에 있으므로 문서 하나만 삭제
-                // (예전 Cost_Details/ROI_Details 컬렉션은 변환 검증 후 일괄 정리 예정이라 여기서는 건드리지 않음)
-                const db = window.FB_DB;
-                await window.FB_DELETE_DOC(window.FB_DOC(db, "Campaign_Master", targetId));
+                const deletedAt = new Date().toISOString();
+                await window.FB_SET_DOC(window.FB_DOC(window.FB_DB, "Campaign_Master", targetId), { Deleted: true, Deleted_At: deletedAt }, { merge: true });
 
-                // 전체를 다시 불러오지 않고 화면 데이터만 갱신
-                globalData.campaigns = globalData.campaigns.filter(c => c.캠페인_ID !== targetId);
-                updateMigrationBanner(globalData.campaigns.filter(c => !isCampaignMigrated(c)).length);
+                const c = globalData.campaigns.find(x => x.캠페인_ID === targetId);
+                if (c) { c.Deleted = true; c.Deleted_At = deletedAt; }
 
-                showToast("삭제되었습니다.");
+                showToast("휴지통으로 이동했습니다.");
                 closeModal();
-                populateFilterOptions(globalData.campaigns);
-                filterData();
-                renderFundsStatusCharts();
+                refreshAfterDataChange();
             } catch(e) {
                 console.error("Delete Error:", e);
-                showToast("삭제에 실패했습니다. 데이터는 변경되지 않았습니다.");
+                showToast("휴지통 이동에 실패했습니다. 데이터는 변경되지 않았습니다.");
+            }
+        }
+
+        function formatDateTime(iso) {
+            if (!iso) return "-";
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return String(iso);
+            const p2 = n => String(n).padStart(2, "0");
+            return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+        }
+
+        function openTrashModal() {
+            renderTrashList();
+            document.getElementById("trashModal").style.display = "block";
+        }
+        function closeTrashModal() { document.getElementById("trashModal").style.display = "none"; }
+
+        function renderTrashList() {
+            const items = getTrashedCampaigns().sort((a, b) => String(b.Deleted_At || "").localeCompare(String(a.Deleted_At || "")));
+            const tbody = document.getElementById("trashList");
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888;">휴지통이 비어 있습니다.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = items.map(c => `
+                <tr>
+                    <td>${esc(c.캠페인_ID)}</td>
+                    <td style="text-align:left;"><b>${esc(c.Activity_Name || '-')}</b></td>
+                    <td>${esc(formatDateWithDay(c.Activity_Date))}</td>
+                    <td>${esc(formatDateTime(c.Deleted_At))}</td>
+                    <td style="white-space:nowrap;">
+                        <button type="button" class="btn-primary" data-trash-action="restore" data-id="${esc(c.캠페인_ID)}">복구</button>
+                        <button type="button" class="btn-danger-small" style="height:auto; padding:9px 12px;" data-trash-action="purge" data-id="${esc(c.캠페인_ID)}">영구 삭제</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function restoreFromTrash(id) {
+            try {
+                const del = window.FB_DELETE_FIELD();
+                await window.FB_SET_DOC(window.FB_DOC(window.FB_DB, "Campaign_Master", id), { Deleted: del, Deleted_At: del }, { merge: true });
+                const c = globalData.campaigns.find(x => x.캠페인_ID === id);
+                if (c) { delete c.Deleted; delete c.Deleted_At; }
+                showToast("복구되었습니다.");
+                renderTrashList();
+                refreshAfterDataChange();
+            } catch (e) {
+                console.error("Restore Error:", e);
+                showToast("복구에 실패했습니다.");
+            }
+        }
+
+        async function purgeFromTrash(id) {
+            const ok = await showConfirmDialog(`${id} 플랜을 영구 삭제합니다. 영구 삭제 후에는 백업 파일로만 복원할 수 있습니다.`, "영구 삭제");
+            if (!ok) return;
+            try {
+                await window.FB_DELETE_DOC(window.FB_DOC(window.FB_DB, "Campaign_Master", id));
+                globalData.campaigns = globalData.campaigns.filter(x => x.캠페인_ID !== id);
+                showToast("영구 삭제되었습니다.");
+                renderTrashList();
+                refreshAfterDataChange();
+            } catch (e) {
+                console.error("Purge Error:", e);
+                showToast("영구 삭제에 실패했습니다.");
+            }
+        }
+
+        // ===== 전체 백업 =====
+        function localStamp() {
+            const d = new Date(), p2 = n => String(n).padStart(2, "0");
+            return `${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}-${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}`;
+        }
+
+        async function downloadFullBackup() {
+            const btn = document.getElementById("backupBtn");
+            btn.disabled = true;
+            try {
+                const db = window.FB_DB;
+                const [masterSnap, detailSnap] = await Promise.all(
+                    ["Campaign_Master", "Campaign_Details"].map(n => window.FB_GET_DOCS(window.FB_COLLECTION(db, n))));
+                const toRows = snap => snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+                const data = { format: "mdp-dashboard-backup-v2", exportedAt: new Date().toISOString(), Campaign_Master: toRows(masterSnap), Campaign_Details: toRows(detailSnap) };
+                downloadJson(data, `MDP-backup-${localStamp()}.json`);
+                showToast(`백업 파일을 다운로드했습니다. (캠페인 ${data.Campaign_Master.length}개, 휴지통 포함)`);
+            } catch (e) {
+                console.error("Backup Error:", e);
+                showToast("백업에 실패했습니다.");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ===== 백업 파일에서 복원 =====
+        let restoreCandidates = [];
+
+        // 지원 형식: 이 대시보드의 [백업] 파일, 변환 전 자동 백업 파일, 예전 구조 백업(비용/ROI 별도 컬렉션 → 자동 변환)
+        function parseBackupFile(obj) {
+            if (!obj || !Array.isArray(obj.Campaign_Master)) throw new Error("Campaign_Master 데이터가 없는 파일입니다.");
+            const legacyCosts = Array.isArray(obj.Cost_Details) ? obj.Cost_Details : [];
+            const legacyRois = Array.isArray(obj.ROI_Details) ? obj.ROI_Details : [];
+            const byDocId = (a, b) => String(a._docId || "") < String(b._docId || "") ? -1 : 1;
+
+            return obj.Campaign_Master.map(m => {
+                const id = String(m._docId || m.캠페인_ID || "").trim();
+                const { _docId, Deleted, Deleted_At, ...rest } = m;
+                const data = { ...rest, 캠페인_ID: id };
+                if (!Array.isArray(data.Cost_Items)) {
+                    data.Cost_Items = legacyCosts.filter(c => c.캠페인_ID === id).sort(byDocId)
+                        .map(c => ({ 비용_그룹: c.비용_그룹 ?? "", 세부_항목명: c.세부_항목명 ?? "", 금액: Number(c.금액) || 0 }));
+                }
+                if (!Array.isArray(data.ROI_Items)) {
+                    data.ROI_Items = legacyRois.filter(r => r.캠페인_ID === id).sort(byDocId)
+                        .map(r => ({ 지표명: r.지표명 ?? "", 목표수치: r.목표수치 ?? "", 결과수치: r.결과수치 ?? "" }));
+                }
+                return { id, data };
+            }).filter(x => x.id && !x.id.includes("/") && !/^__.*__$/.test(x.id));
+        }
+
+        async function handleRestoreFile(input) {
+            const file = input.files && input.files[0];
+            input.value = "";  // 같은 파일을 다시 선택해도 동작하도록
+            if (!file) return;
+            try {
+                restoreCandidates = parseBackupFile(JSON.parse(await file.text()));
+                if (restoreCandidates.length === 0) throw new Error("복원할 캠페인이 없습니다.");
+                document.getElementById("restoreFileName").innerText = file.name;
+                renderRestoreList();
+                document.getElementById("restoreModal").style.display = "block";
+            } catch (e) {
+                console.error("Restore File Error:", e);
+                showToast("백업 파일을 읽을 수 없습니다. " + (e.message || ""));
+            }
+        }
+
+        function getRestoreStatus(id) {
+            const cur = globalData.campaigns.find(c => c.캠페인_ID === id);
+            if (!cur) return { key: "missing", label: "현재 없음 (영구 삭제됨)", checked: true };
+            if (cur.Deleted) return { key: "trash", label: "휴지통에 있음 (휴지통에서 복구 권장)", checked: false };
+            return { key: "exists", label: "현재 있음 (백업 내용으로 덮어씀)", checked: false };
+        }
+
+        function renderRestoreList() {
+            document.getElementById("restoreList").innerHTML = restoreCandidates.map((c, i) => {
+                const st = getRestoreStatus(c.id);
+                const costSum = c.data.Cost_Items.reduce((s, x) => s + (Number(x.금액) || 0), 0);
+                return `
+                <tr>
+                    <td><input type="checkbox" class="restore-check" data-index="${i}" ${st.checked ? "checked" : ""}></td>
+                    <td>${esc(c.id)}</td>
+                    <td style="text-align:left;"><b>${esc(c.data.Activity_Name || '-')}</b></td>
+                    <td>${esc(formatDateWithDay(c.data.Activity_Date))}</td>
+                    <td style="text-align:right;">₩${costSum.toLocaleString()} / ${c.data.Cost_Items.length}건</td>
+                    <td><span class="restore-status restore-${st.key}">${esc(st.label)}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function closeRestoreModal() { document.getElementById("restoreModal").style.display = "none"; }
+
+        async function applyRestore() {
+            const selected = Array.from(document.querySelectorAll("#restoreList .restore-check:checked")).map(cb => restoreCandidates[Number(cb.dataset.index)]);
+            if (selected.length === 0) { showToast("복원할 캠페인을 선택해 주세요."); return; }
+            const overwrite = selected.filter(c => getRestoreStatus(c.id).key !== "missing").length;
+            const ok = await showConfirmDialog(`선택한 ${selected.length}개 캠페인을 복원합니다.` + (overwrite ? ` 이 중 ${overwrite}개는 현재 데이터를 백업 내용으로 덮어씁니다.` : ""), "백업에서 복원");
+            if (!ok) return;
+
+            const btn = document.getElementById("applyRestoreBtn");
+            btn.disabled = true;
+            try {
+                const db = window.FB_DB;
+                for (let i = 0; i < selected.length; i += 400) {
+                    const batch = window.FB_WRITE_BATCH(db);
+                    selected.slice(i, i + 400).forEach(c => batch.set(window.FB_DOC(db, "Campaign_Master", c.id), c.data));
+                    await batch.commit();
+                }
+                closeRestoreModal();
+                await loadDataFromFirebase();
+                showToast(`${selected.length}개 캠페인을 복원했습니다.`);
+            } catch (e) {
+                console.error("Restore Error:", e);
+                showToast("복원에 실패했습니다. 다시 시도해 주세요.");
+            } finally {
+                btn.disabled = false;
             }
         }
 
@@ -1080,7 +1323,7 @@
             const ind = document.getElementById("filterIndustry").value;
             const tac = document.getElementById("filterTactics").value;
 
-            currentFilteredCampaigns = globalData.campaigns.filter(c => {
+            currentFilteredCampaigns = getActiveCampaigns().filter(c => {
                 const af = getAutodeskFYFQ(c.Activity_Date);
                 return (c.Activity_Name || "").toLowerCase().includes(kw) && (!fy || af.fy === fy) && (!fq || af.fq === fq) && (!ind || c.Industry === ind) && (!tac || c.Tactics === tac);
             });
@@ -1251,7 +1494,7 @@
         }
 
         function renderFundsStatusCharts() {
-            const camps = globalData.campaigns;
+            const camps = getActiveCampaigns();
 
             let fyMap = {};
             camps.forEach(c => {
@@ -1527,6 +1770,10 @@
                     }
                 } else if(detailModal.style.display === 'block') {
                     closeModal();
+                } else if(document.getElementById("restoreModal").style.display === 'block') {
+                    closeRestoreModal();
+                } else if(document.getElementById("trashModal").style.display === 'block') {
+                    closeTrashModal();
                 }
             }
         });
@@ -1537,8 +1784,18 @@
             if (row) openModal(row.dataset.campaignId);
         });
 
+        // 휴지통 [복구]/[영구 삭제] 버튼 (ID를 onclick 코드에 넣지 않고 data 속성으로 전달)
+        document.getElementById("trashList").addEventListener("click", function(e) {
+            const btn = e.target.closest("button[data-trash-action]");
+            if (!btn) return;
+            if (btn.dataset.trashAction === "restore") restoreFromTrash(btn.dataset.id);
+            else if (btn.dataset.trashAction === "purge") purgeFromTrash(btn.dataset.id);
+        });
+
         window.onclick = function(e) {
             if(e.target == document.getElementById("detailModal")) closeModal();
+            if(e.target == document.getElementById("trashModal")) closeTrashModal();
+            if(e.target == document.getElementById("restoreModal")) closeRestoreModal();
         }
     </script>
 </body>
