@@ -129,6 +129,8 @@
             overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;
         }
         .tab-list::-webkit-scrollbar { display: none; }
+        /* 탭끼리 겹치게 하는 -13px 여백이 마지막 탭에 있으면 탭 목록 폭 밖으로 나가 오른쪽 끝이 잘림 */
+        .tab-list .tab-btn:last-child { margin-right: 0; }
 
         /* 관리 버튼: 탭 줄 오른쪽 끝. 공간이 부족하면 다음 줄 오른쪽으로 내려감 */
         .tab-actions { display: none; align-items: center; gap: 8px; margin-left: auto; align-self: center; padding: 6px 0 10px 0; }
