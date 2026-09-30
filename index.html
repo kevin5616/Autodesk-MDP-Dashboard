@@ -226,9 +226,9 @@
         .upcoming-row .title { font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .upcoming-row .meta { font-size: 12px; color: #64748b; white-space: nowrap; }
         .dday { display: inline-block; text-align: center; padding: 3px 0; border-radius: 6px; font-size: 12px; font-weight: 700; }
-        .dday.urgent { background: #fee2e2; color: #b91c1c; }
-        .dday.soon   { background: #fef3c7; color: #b45309; }
-        .dday.later  { background: #f1f5f9; color: #475569; }
+        .dday.urgent { background: #fee2e2; color: #b91c1c; }   /* D-Day ~ D-7 */
+        .dday.soon   { background: #bae6fd; color: #0369a1; }   /* D-8 ~ D-14 */
+        .dday.later  { background: #e0f2fe; color: #0284c7; }   /* D-15 이후 */
         .upcoming-empty { font-size: 13px; color: #94a3b8; padding: 12px 4px; }
         .quick-filter-chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 16px; background: #e0f2fe; color: #0369a1; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
         .quick-filter-chip button { border: none; background: transparent; color: inherit; font-size: 15px; line-height: 1; cursor: pointer; padding: 0; }
@@ -276,10 +276,14 @@
         tr:hover { background-color: #f1f5f9; cursor: pointer; transition: background-color 0.2s; }
         
         .badge { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: normal; word-break: break-all; margin-right: 4px; margin-bottom: 2px; }
-        .badge-dm { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        /* Industry 배지: AEC 초록, D&M 파랑, ALL 분홍, 그 외 회색 (industryStyle() 참고) */
+        .badge-ind-aec { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-ind-dm  { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-ind-all { background-color: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
+        .badge-ind-etc { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
         .badge-tactic { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
         .badge-lifecycle { background-color: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
-        .badge-persona { background-color: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
+        .badge-persona { background-color: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
         .badge-campaign { background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
 
         .detail-meta-group { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0 30px; margin-bottom: 15px; padding: 15px 20px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; align-items: start; }
@@ -429,7 +433,8 @@
         .funds-bar-row.stacked { grid-template-columns: minmax(0, 1fr); gap: 3px; margin-bottom: 11px; }
         .funds-bar-row.stacked .name { white-space: normal; word-break: break-all; }
         .funds-bar-row.stacked .amount { grid-column: 1; margin-top: 0; }
-        .fill-industry { background: #38bdf8; } .fill-tactics { background: #a78bfa; } .fill-campaign { background: #34d399; }
+        .fill-ind-aec { background: #4ade80; } .fill-ind-dm { background: #38bdf8; } .fill-ind-all { background: #f472b6; } .fill-ind-etc { background: #cbd5e1; }
+        .fill-tactics { background: #a78bfa; } .fill-campaign { background: #34d399; }
         .fill-cost { background: #fbbf24; } .fill-empty { background: #cbd5e1; }
         .funds-empty { font-size: 12.5px; color: #94a3b8; }
         .funds-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -475,8 +480,9 @@
         .restore-exists { background: #fee2e2; color: #b91c1c; }
         .logout-btn:disabled { opacity: 0.6; cursor: wait; }
 
-        .navbar-right { display: flex; align-items: center; gap: 18px; }
-        .user-info { display: none; align-items: center; gap: 10px; font-size: 13px; opacity: 0.9; }
+        /* 상단 바 오른쪽: 1줄 프로그램명, 2줄 로그인 이메일 (오른쪽 맞춤) */
+        .navbar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; text-align: right; }
+        .user-info { display: none; align-items: center; gap: 10px; font-size: 12px; opacity: 0.7; }
         .logout-btn { padding: 6px 12px; background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
         .logout-btn:hover { background: rgba(255,255,255,0.22); }
 
@@ -926,6 +932,12 @@
         const HTML_ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
         function esc(value) {
             return String(value ?? '').replace(/[&<>"']/g, ch => HTML_ESCAPE_MAP[ch]);
+        }
+
+        // Industry별 색 (배지 클래스 / 막대 클래스). AEC 초록, D&M 파랑, ALL 분홍, 그 외 회색
+        function industryStyle(ind) {
+            const key = { "AEC": "aec", "D&M": "dm", "ALL": "all" }[String(ind || "").trim().toUpperCase()] || "etc";
+            return { badge: "badge-ind-" + key, fill: "fill-ind-" + key };
         }
 
         function formatDateWithDay(dateStr) {
@@ -1799,7 +1811,7 @@
                 let rows = "";
                 items.forEach(c => {
                     const formattedDate = formatDateWithDay(c.Activity_Date);
-                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge badge-dm">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b></td><td>${esc(formattedDate)}</td><td class="text-right">$${(Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">$${(Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
+                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b></td><td>${esc(formattedDate)}</td><td class="text-right">$${(Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">$${(Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
                 });
                 
                 const isOpen = openFys.has(fy) || !!quickFilter;   // 빠른 필터 사용 중에는 결과가 바로 보이도록 펼침
@@ -1979,7 +1991,7 @@
             el.innerHTML = items.map(i => `
                 <div class="funds-bar-row${stacked ? " stacked" : ""}">
                     <span class="name" title="${esc(i.name)}">${esc(i.name)}</span>
-                    <div class="track"><div class="fill ${i.muted ? "fill-empty" : fillClass}" style="width:${max > 0 ? (i.value / max * 100).toFixed(1) : 0}%"></div></div>
+                    <div class="track"><div class="fill ${i.muted ? "fill-empty" : (i.fillClass || fillClass)}" style="width:${max > 0 ? (i.value / max * 100).toFixed(1) : 0}%"></div></div>
                     <span class="amount">${esc(i.text)}</span>
                 </div>`).join("");
         }
@@ -2002,7 +2014,7 @@
                     name, value: d.amount, muted: name === "미지정",
                     text: `${fmtUsd(d.amount)} · ${total > 0 ? (d.amount / total * 100).toFixed(1) : "0.0"}% · MDP ${d.count}건`
                 }));
-            renderBarList("fundsAllocIndustry", toItems(ind), "fill-industry");
+            renderBarList("fundsAllocIndustry", toItems(ind).map(i => ({ ...i, fillClass: industryStyle(i.name).fill })), "fill-ind-etc");
             renderBarList("fundsAllocTactics", toItems(tac), "fill-tactics");
             renderBarList("fundsAllocCampaign", toItems(camp), "fill-campaign", true);
         }
@@ -2054,7 +2066,7 @@
             document.getElementById("fundsTableBody").innerHTML = rows.length === 0
                 ? `<tr><td colspan="${FUNDS_TABLE_COLUMNS.length}" style="text-align:center; color:#888;">해당 조건의 MDP가 없습니다.</td></tr>`
                 : rows.map(r => `<tr>
-                    <td>${esc(r.id)}</td><td>${esc(r.fy)} ${esc(r.fq)}</td><td>${esc(r.industry)}</td><td>${esc(r.tactics)}</td>
+                    <td>${esc(r.id)}</td><td>${esc(r.fy)} ${esc(r.fq)}</td><td><span class="badge ${industryStyle(r.industry).badge}">${esc(r.industry)}</span></td><td>${esc(r.tactics)}</td>
                     <td class="text-left wrap">${esc(r.activity || "-")}</td><td>${esc(formatDateWithDay(r.date))}</td>
                     <td class="num">${fmtUsd(r.req)}</td><td class="num">${fmtUsd(r.app)}</td>
                     <td><span class="funds-status ${r.confirmed ? "done" : "pending"}">${r.confirmed ? "확정" : "심사 중"}</span></td>
@@ -2113,7 +2125,7 @@
             document.getElementById("modal-summary-app").innerText = "$" + (Number(c.Cost_Approved)||0).toLocaleString();
             document.getElementById("modal-desc").innerText = c.Activity_Description || "";
 
-            document.getElementById("modal-meta-industry").innerHTML = c.Industry ? `<span class="badge badge-dm">${esc(c.Industry)}</span>` : "-";
+            document.getElementById("modal-meta-industry").innerHTML = c.Industry ? `<span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry)}</span>` : "-";
             document.getElementById("modal-meta-tactic").innerHTML = c.Tactics ? `<span class="badge badge-tactic">${esc(c.Tactics)}</span>` : "-";
             document.getElementById("modal-meta-campaign").innerHTML = c.Campaign_Name ? c.Campaign_Name.split(',').map(cp => `<span class="badge badge-campaign">${esc(cp.trim())}</span>`).join(' ') : "-";
             document.getElementById("modal-meta-lifecycle").innerHTML = c.Life_Cycle ? c.Life_Cycle.split(',').map(l => `<span class="badge badge-lifecycle">${esc(l.trim())}</span>`).join(' ') : "-";
