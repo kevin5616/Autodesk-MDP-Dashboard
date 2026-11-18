@@ -198,7 +198,7 @@
         .status-header { margin-bottom: 25px; }
         body:not([data-tab="dashboardTab"]) .status-header,
         body:not([data-tab="dashboardTab"]) .quick-filter-chip { display: none !important; }
-        .status-cards { display: grid; grid-template-columns: minmax(240px, 1.2fr) repeat(3, minmax(170px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .status-cards { display: grid; grid-template-columns: minmax(240px, 1.2fr) repeat(2, minmax(170px, 1fr)); gap: 16px; margin-bottom: 16px; }
         .quarter-card { background: linear-gradient(135deg, #142940, #1f3e60); color: #fff; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; box-shadow: 0 4px 12px rgba(20,41,64,0.2); }
         .quarter-today { font-size: 12.5px; opacity: 0.8; }
         .quarter-name { font-size: 26px; font-weight: bold; margin-top: 2px; letter-spacing: -0.5px; }
@@ -215,7 +215,6 @@
         .todo-sub { font-size: 12px; margin-top: 4px; opacity: 0.85; }
         .todo-upcoming { background: #e0f2fe; color: #0369a1; }  .todo-upcoming.active { border-color: #38bdf8; }
         .todo-result   { background: #dcfce7; color: #15803d; }  .todo-result.active   { border-color: #4ade80; }
-        .todo-approval { background: #fef3c7; color: #b45309; }  .todo-approval.active { border-color: #fbbf24; }
         .upcoming-panel { background: #fff; border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .upcoming-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 15px; font-weight: bold; color: #142940; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; margin-bottom: 4px; }
         .upcoming-hint { font-size: 12px; font-weight: normal; color: #64748b; }
@@ -239,6 +238,32 @@
             .upcoming-row .date { grid-column: 2; grid-row: 2; }
             .upcoming-row .meta { display: none; }
         }
+
+        /* ===== 상태 업데이트 알림 줄 (건수 > 0일 때만 표시) ===== */
+        .update-alert { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 12px 18px; margin-bottom: 16px; font-size: 13.5px; line-height: 1.5; }
+        .update-alert-text { display: flex; align-items: center; gap: 8px; }
+        .update-alert-text svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .update-alert-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #fcd34d; background: #fef3c7; color: #92400e; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background-color 0.2s; }
+        .update-alert-btn:hover { background: #fde68a; }
+
+        /* ===== Status 배지 (아이콘 있는 알약 모양) / Funding 태그 ===== */
+        .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 7px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .status-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .status-planning  { background: #fef3c7; color: #b45309; }
+        .status-ongoing   { background: #dbeafe; color: #1d4ed8; }
+        .status-denied    { background: #fee2e2; color: #b91c1c; }
+        .status-completed { background: #ccfbf1; color: #0f766e; }
+        .status-canceled  { background: #f1f5f9; color: #64748b; text-decoration: line-through; }
+        .status-none { color: #94a3b8; }
+        .self-tag { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid #142940; border-radius: 5px; font-size: 11px; font-weight: 600; color: #142940; background: #fff; vertical-align: 1px; white-space: nowrap; }
+        .badge-funding { background-color: #ffffff; color: #142940; border: 1px solid #142940; }
+
+        /* ===== 등록·수정 화면: Funding 선택 / Status 선택 ===== */
+        .funding-seg { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; height: 42px; box-sizing: border-box; }
+        .funding-seg button { padding: 0 24px; border: none; background: #fff; color: #475569; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background-color 0.2s; }
+        .funding-seg button:hover { background: #f1f5f9; }
+        .funding-seg button.on { background: #e0f2fe; color: #0284c7; }
+        .form-hint { font-size: 12px; color: #64748b; margin-top: 5px; line-height: 1.4; min-height: 17px; }
 
         .filter-container { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
         .filter-container input, .filter-container select { padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; flex: 1; min-width: 140px; outline: none; font-family: inherit; }
@@ -276,6 +301,9 @@
         tr:hover { background-color: #f1f5f9; cursor: pointer; transition: background-color 0.2s; }
         
         .badge { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: normal; word-break: break-all; margin-right: 4px; margin-bottom: 2px; }
+        /* Status 열이 늘어나도 Tactics 배지와 Date of Activity는 한 줄 유지 (넘치는 폭은 Activity Name이 줄바꿈으로 흡수) */
+        .fy-content-wrapper td:nth-child(4) .badge { white-space: nowrap; }
+        .fy-content-wrapper td:nth-child(7) { white-space: nowrap; }
         /* Industry 배지: AEC 초록, D&M 파랑, ALL 분홍, 그 외 회색 (industryStyle() 참고) */
         .badge-ind-aec { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
         .badge-ind-dm  { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
@@ -298,7 +326,8 @@
         .close-btn { position: absolute; top: 20px; right: 30px; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; }
         .close-btn:hover { color: #333; }
         
-        .modal-header h2 { margin-top: 0; color: #142940; margin-bottom: 5px; }
+        .modal-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 5px; padding-right: 40px; }
+        .modal-header h2 { margin: 0; color: #142940; }
         .modal-header .sub-info { color: #666; font-size: 14px; margin-bottom: 20px; }
         
         .form-modal-header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #142940; padding-bottom: 12px; margin-bottom: 25px; }
@@ -439,21 +468,24 @@
         .funds-empty { font-size: 12.5px; color: #94a3b8; }
         .funds-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .funds-table { font-size: 13px; min-width: 980px; }
-        .funds-table th, .funds-table td { padding: 9px 10px; white-space: nowrap; }
+        .funds-table th, .funds-table td { padding: 9px 7px; white-space: nowrap; }   /* Status 열이 넓어져 여백을 줄여 한 화면에 맞춤 */
         .funds-table td.wrap { white-space: normal; min-width: 160px; }
         .funds-table td.num, .funds-table th.num { text-align: right; }
         .funds-table tbody tr:hover { cursor: default; }
         .funds-table tfoot td { font-weight: bold; background: #f8f9fa; border-top: 2px solid #e2e8f0; }
-        .funds-status { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-        .funds-status.done { background: #dcfce7; color: #15803d; }
-        .funds-status.pending { background: #fef3c7; color: #b45309; }
+        .funds-table tr.row-canceled td { opacity: 0.55; }
+        .funds-table tr.row-canceled td.wrap .act-name { text-decoration: line-through; }
+        .funds-kpi .value .pct { font-size: 15px; font-weight: 600; color: #15803d; }
+        .funds-table td.mut { color: #94a3b8; }
+        .funds-self-strip { display: flex; justify-content: space-between; align-items: center; gap: 10px 24px; flex-wrap: wrap; background: #f1f5f9; border-radius: 10px; padding: 12px 18px; margin: -10px 0 25px; font-size: 13px; color: #334155; }
+        .funds-self-strip .note { color: #64748b; font-size: 12px; }
         .funds-print-header { display: none; }
 
         /* PDF 출력(인쇄): Funds Status 내용만 A4 세로로 */
         @media print {
             @page { size: A4 portrait; margin: 12mm; }
             body { background: #fff; }
-            .navbar, .tab-nav-container, .filter-container, .status-header, #loader, #migrationBanner,
+            .navbar, .tab-nav-container, .filter-container, .status-header, #loader, #migrationBanner, #statusMigrationBanner,
             .funds-toolbar-buttons, .funds-basis-toggle, .modal, .toast-msg, .login-overlay { display: none !important; }
             .container { padding: 0; max-width: none; }
             .funds-print-header { display: block; margin-bottom: 14px; border-bottom: 2px solid #142940; padding-bottom: 8px; }
@@ -570,8 +602,22 @@
             <button type="button" id="migrationBtn" class="btn-primary" onclick="runDataMigration()">데이터 구조 변환</button>
         </div>
 
+        <!-- 1회성: Funding/Status 기능 적용을 위한 기존 캠페인 변환 안내 (변환할 캠페인이 없으면 숨김) -->
+        <div id="statusMigrationBanner" class="migration-banner" style="display:none;">
+            <div>
+                <b>Funding · Status 적용을 위한 기존 데이터 변환이 필요합니다.</b>
+                기존 캠페인 <b id="statusMigrationCount">0</b>개를 MDF로 지정하고, 그중 Approved가 있고 활동 FQ가 지난 <b id="statusMigrationCompleted">0</b>개는 Completed로 표시합니다.
+                변환 전 백업 파일이 자동으로 다운로드됩니다.
+            </div>
+            <button type="button" id="statusMigrationBtn" class="btn-primary" onclick="runStatusMigration()">기존 데이터 변환</button>
+        </div>
+
         <!-- MDP Status 상단: 현재 회계 분기 + 할 일 카드 + 다가오는 활동 (MDP Status 탭에서만 표시) -->
         <div class="status-header">
+            <div class="update-alert" id="updateAlert" style="display:none;">
+                <span class="update-alert-text"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span><b>상태 업데이트가 필요한 MDP가 <span id="updateAlertCount">0</span>건 있습니다.</b> M1 말일까지 금액 입력이나 상태 변경이 없었던 건입니다.</span></span>
+                <button type="button" class="update-alert-btn" onclick="setQuickFilter('update')">보기</button>
+            </div>
             <div class="status-cards">
                 <div class="quarter-card">
                     <div>
@@ -596,15 +642,7 @@
                         결과 입력 필요
                     </div>
                     <div class="todo-value" id="todoResultCount">0건</div>
-                    <div class="todo-sub">활동 종료 · ROI 실적 빈 칸 있음</div>
-                </div>
-                <div class="todo-card todo-approval" data-quick="approval" role="button" tabindex="0">
-                    <div class="todo-label">
-                        <svg viewBox="0 0 24 24"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2v4a6 6 0 0 0 12 0V2"></path><path d="M6 22v-4a6 6 0 0 1 12 0v4"></path></svg>
-                        승인 금액 입력 대기
-                    </div>
-                    <div class="todo-value" id="todoApprovalCount">0건</div>
-                    <div class="todo-sub">이번 분기 · Approved 0</div>
+                    <div class="todo-sub">지난 FQ · ROI 빈 칸 또는 Completed 전</div>
                 </div>
             </div>
 
@@ -625,6 +663,8 @@
             </select>
             <select id="filterIndustry" onchange="filterData()"><option value="">모든 Industry</option></select>
             <select id="filterTactics" onchange="filterData()"><option value="">모든 Tactics</option></select>
+            <select id="filterFunding" onchange="filterData()"><option value="">모든 Funding</option><option value="MDF">MDF</option><option value="Self">Self</option></select>
+            <select id="filterStatus" onchange="filterData()"><option value="">모든 Status</option><option value="Planning">Planning</option><option value="Ongoing">Ongoing</option><option value="Denied">Denied</option><option value="Completed">Completed</option><option value="Canceled">Canceled</option><option value="none">상태 없음</option></select>
             <span class="quick-filter-chip" id="quickFilterChip" style="display:none;"></span>
             <button class="reset-btn" onclick="resetFilters()">초기화</button>
         </div>
@@ -653,6 +693,7 @@
             </div>
 
             <div class="funds-kpi-grid" id="fundsKpis"></div>
+            <div class="funds-self-strip" id="fundsSelfStrip" style="display:none;"></div>
 
             <div class="report-section funds-section">
                 <div class="report-header">
@@ -713,13 +754,17 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <div class="modal-header">
-                <h2 id="modal-title">캠페인 상세 정보</h2>
+                <div class="modal-title-row">
+                    <h2 id="modal-title">캠페인 상세 정보</h2>
+                    <span id="modal-status"></span>
+                </div>
                 <div class="sub-info" id="modal-subtitle">-</div>
             </div>
             <div class="detail-summary-cards">
                 <div class="summary-card summary-card-date"><div class="label">Date of Activity</div><div class="value" id="modal-summary-date">-</div></div>
-                <div class="summary-card summary-card-req"><div class="label">Requested ($)</div><div class="value" id="modal-summary-req">$0</div></div>
-                <div class="summary-card summary-card-app"><div class="label">Approved ($)</div><div class="value" id="modal-summary-app">$0</div></div>
+                <div class="summary-card summary-card-req" id="modal-card-req"><div class="label">Requested ($)</div><div class="value" id="modal-summary-req">$0</div></div>
+                <div class="summary-card summary-card-app" id="modal-card-app"><div class="label">Approved ($)</div><div class="value" id="modal-summary-app">$0</div></div>
+                <div class="summary-card summary-card-req" id="modal-card-cost" style="display:none;"><div class="label">Total cost (KRW)</div><div class="value" id="modal-summary-cost">₩0</div></div>
             </div>
             <div class="modal-section">
                 <div class="modal-section-header">
@@ -731,6 +776,7 @@
                 </div>
                 <div class="detail-meta-group">
                     <div class="detail-meta-column">
+                        <div class="detail-meta-row"><span class="detail-meta-title">Funding</span><div class="detail-meta-content" id="modal-meta-funding"></div></div>
                         <div class="detail-meta-row"><span class="detail-meta-title">Industry</span><div class="detail-meta-content" id="modal-meta-industry"></div></div>
                         <div class="detail-meta-row"><span class="detail-meta-title">Tactic</span><div class="detail-meta-content" id="modal-meta-tactic"></div></div>
                         <div class="detail-meta-row"><span class="detail-meta-title">Campaign</span><div class="detail-meta-content" id="modal-meta-campaign"></div></div>
@@ -771,7 +817,22 @@
             </div>
             <form id="createForm" onsubmit="submitPlanData(event)">
                 <input type="hidden" id="editCampaignId">
-                
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Funding</label>
+                        <input type="hidden" id="newFunding" value="MDF">
+                        <div class="funding-seg" id="fundingSeg">
+                            <button type="button" data-funding="MDF" class="on">MDF</button><button type="button" data-funding="Self">Self</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="newStatus"></select>
+                        <div class="form-hint" id="newStatusHint"></div>
+                    </div>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group"><label>Industry</label><select id="newIndustry" required><option value="D&M">D&M</option><option value="AEC">AEC</option><option value="ALL">ALL</option></select></div>
                     <div class="form-group"><label>Activity Name</label><input type="text" id="newActivityName" required></div>
@@ -783,7 +844,7 @@
                     </div>
                     <div class="form-group"><label>Date of Activity</label><input type="date" id="newActivityDate" required></div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" id="amountRow">
                     <div class="form-group"><label>Requested ($)</label><input type="text" id="newRequested" oninput="formatInputNumber(this)" required></div>
                     <div class="form-group">
                         <div class="approved-header-wrap"><label style="margin-bottom:0;">Approved ($)</label><button type="button" class="copy-btn" onclick="copyRequestedToApproved()">Requested 복사</button></div>
@@ -1082,6 +1143,7 @@
                     globalData.rois = [];
                 }
                 updateMigrationBanner(unmigrated.length);
+                updateStatusMigrationBanner();
 
                 populateFilterOptions(getActiveCampaigns());
                 buildCampaignDropdown([]);
@@ -1144,7 +1206,19 @@
             event.preventDefault();
             const editId = document.getElementById("editCampaignId").value;
             const isEdit = editId !== "";
-            
+
+            // Funding / Status: 직접 선택한 상태만 저장 (Auto는 저장하지 않고 화면에서 계산). Self는 Requested·Approved 없음
+            const funding = getFormFunding();
+            let statusOverride = document.getElementById("newStatus").value;
+            if (!MANUAL_STATUSES[funding].includes(statusOverride)) statusOverride = "";
+            const requestedAmt = funding === "Self" ? 0 : parseAmountInput("newRequested");
+            let approvedAmt = funding === "Self" ? 0 : parseAmountInput("newApproved");
+            if (statusOverride === "Denied" && approvedAmt > 0) {
+                const okDenied = await showConfirmDialog("Denied 상태에서는 Approved 금액이 0으로 저장됩니다. Requested는 그대로 유지됩니다. 계속할까요?", "Denied 저장");
+                if (!okDenied) return;
+                approvedAmt = 0;
+            }
+
             const rawActivityDateStr = document.getElementById("newActivityDate").value;
             const activityDateStr = formatDateWithDay(rawActivityDateStr);
             const af = getAutodeskFYFQ(rawActivityDateStr);
@@ -1185,12 +1259,14 @@
                 Life_Cycle: selectedLifecycles.join(', '),
                 Persona: selectedPersonas.join(', '),
                 Activity_Date: activityDateStr,
-                Cost_MDP_Requested: Number(document.getElementById("newRequested").value.replace(/,/g, "")) || 0,
-                Cost_Approved: Number(document.getElementById("newApproved").value.replace(/,/g, "")) || 0,
+                Cost_MDP_Requested: requestedAmt,
+                Cost_Approved: approvedAmt,
                 Activity_Description: document.getElementById("newDescription").value,
                 Cost_Items: costList,
-                ROI_Items: roiList
+                ROI_Items: roiList,
+                Funding: funding
             };
+            if (statusOverride) campaignPayload.Status_Override = statusOverride;
 
             try {
                 // 비용/ROI가 캠페인 문서 안에 있으므로 문서 하나만 쓰면 됨 (자동으로 전부 저장되거나 전부 취소)
@@ -1204,6 +1280,7 @@
                 globalData.campaigns = globalData.campaigns.filter(x => x.캠페인_ID !== editId && x.캠페인_ID !== campaignId);
                 globalData.campaigns.push(campaignPayload);
                 updateMigrationBanner(globalData.campaigns.filter(c => !isCampaignMigrated(c)).length);
+                updateStatusMigrationBanner();
 
                 submitBtns.forEach(b => { b.innerText = "저장하기"; b.disabled = false; });
                 showToast(isEdit ? "성공적으로 수정되었습니다!" : "성공적으로 등록되었습니다!");
@@ -1238,6 +1315,7 @@
             renderFundsStatusCharts();
             updateTrashCount();
             updateMigrationBanner(globalData.campaigns.filter(c => !isCampaignMigrated(c)).length);
+            updateStatusMigrationBanner();
         }
 
         async function deleteCurrentCampaign() {
@@ -1343,11 +1421,70 @@
                 const data = { format: "mdp-dashboard-backup-v2", exportedAt: new Date().toISOString(), Campaign_Master: toRows(masterSnap), Campaign_Details: toRows(detailSnap) };
                 downloadJson(data, `MDP-backup-${localStamp()}.json`);
                 showToast(`백업 파일을 다운로드했습니다. (캠페인 ${data.Campaign_Master.length}개, 휴지통 포함)`);
+                return true;
             } catch (e) {
                 console.error("Backup Error:", e);
                 showToast("백업에 실패했습니다.");
+                return false;
             } finally {
                 btn.disabled = false;
+            }
+        }
+
+        // ===== Funding/Status 적용을 위한 기존 데이터 변환 (1회성) =====
+        // 대상: Funding 필드가 없는 기존 캠페인(휴지통 포함). 모두 Funding "MDF"로 지정하고,
+        // Approved 금액이 있고 활동 FQ가 현재 FQ보다 지난 건(직접 선택 없음)은 Status_Override "Completed"로 표시
+        // 변환 후에는 Funding 필드가 생기므로 다시 나타나지 않음 (이후 등록·수정하는 캠페인은 항상 Funding이 저장됨)
+        function getStatusMigrationPlan() {
+            const nowOrd = quarterOrdinal(getCurrentQuarterInfo());
+            const legacy = globalData.campaigns.filter(c => c.Funding === undefined);
+            const toComplete = legacy.filter(c => {
+                const o = fqOrdinal(c.Activity_Date);
+                return !c.Status_Override && Number(c.Cost_Approved) > 0 && o !== null && o < nowOrd;
+            });
+            return { legacy, toComplete };
+        }
+
+        function updateStatusMigrationBanner() {
+            const { legacy, toComplete } = getStatusMigrationPlan();
+            document.getElementById("statusMigrationBanner").style.display = legacy.length > 0 ? "flex" : "none";
+            document.getElementById("statusMigrationCount").innerText = legacy.length;
+            document.getElementById("statusMigrationCompleted").innerText = toComplete.length;
+        }
+
+        async function runStatusMigration() {
+            const { legacy, toComplete } = getStatusMigrationPlan();
+            if (legacy.length === 0) return;
+            const ok = await showConfirmDialog(`기존 캠페인 ${legacy.length}개를 MDF로 지정하고, 그중 ${toComplete.length}개를 Completed로 표시합니다. 변환 전에 백업 파일이 자동으로 다운로드됩니다. 진행할까요?`, "기존 데이터 변환");
+            if (!ok) return;
+
+            const btn = document.getElementById("statusMigrationBtn");
+            btn.disabled = true; btn.innerText = "변환 중...";
+            try {
+                if (!(await downloadFullBackup())) { showToast("백업에 실패해 변환을 중단했습니다. 데이터는 변경되지 않았습니다."); return; }
+
+                const db = window.FB_DB;
+                const completeIds = new Set(toComplete.map(c => c.캠페인_ID));
+                for (let i = 0; i < legacy.length; i += 400) {
+                    const batch = window.FB_WRITE_BATCH(db);
+                    legacy.slice(i, i + 400).forEach(c => {
+                        const data = { Funding: "MDF" };
+                        if (completeIds.has(c.캠페인_ID)) data.Status_Override = "Completed";
+                        batch.set(window.FB_DOC(db, "Campaign_Master", c.캠페인_ID), data, { merge: true });   // 기존 필드는 그대로 두고 두 항목만 추가
+                    });
+                    await batch.commit();
+                }
+
+                await loadDataFromFirebase();   // 서버 값을 다시 읽어 확인
+                const left = getStatusMigrationPlan().legacy.length;
+                await showConfirmDialog(left === 0
+                    ? `기존 캠페인 ${legacy.length}개를 MDF로 지정하고, ${toComplete.length}개를 Completed로 표시했습니다.`
+                    : `${legacy.length - left}개를 변환했고 ${left}개가 남았습니다. 다시 실행하면 남은 캠페인만 이어서 변환합니다.`, left === 0 ? "변환 완료" : "변환 확인 필요");
+            } catch (e) {
+                console.error("Status Migration Error:", e);
+                showToast("변환 중 오류가 발생했습니다. 다시 실행하면 남은 캠페인만 이어서 변환합니다.");
+            } finally {
+                btn.disabled = false; btn.innerText = "기존 데이터 변환";
             }
         }
 
@@ -1485,6 +1622,7 @@
         }
 
         function calculateRequestedFromCosts() {
+            if (getFormFunding() === "Self") return;   // Self는 Requested 없음
             let totalKRW = 0;
             document.querySelectorAll("#costRowsContainer tr").forEach(tr => {
                 const amtInput = tr.querySelector(".cost-amount");
@@ -1508,6 +1646,77 @@
             let fq = m >= 2 && m <= 4 ? "Q1" : m >= 5 && m <= 7 ? "Q2" : m >= 8 && m <= 10 ? "Q3" : "Q4";
             let fy = m >= 2 ? y + 1 : y;
             return { fy: "FY" + fy, fq: fq };
+        }
+
+        // ===== Funding / Status =====
+        // Funding: MDF(오토데스크 지원) | Self(자체 실행). 필드가 없는 기존 캠페인은 MDF로 취급
+        // Status: 직접 선택한 값(Status_Override)만 저장하고, 나머지는 Funding·금액·활동 FQ로 계산
+        //   Self      → 기본 Ongoing,           직접 선택: Completed / Canceled
+        //   MDF       → Approved 있음 → Ongoing, Approved 0 + Requested 있음 + 활동 FQ가 현재 FQ 이후 → Planning, 그 외 상태 없음
+        //              직접 선택: Denied / Completed / Canceled
+        const MANUAL_STATUSES = { MDF: ["Denied", "Completed", "Canceled"], Self: ["Completed", "Canceled"] };
+        const STATUS_META = {
+            Planning:  { cls: "status-planning",  icon: '<circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline>' },
+            Ongoing:   { cls: "status-ongoing",   icon: '<polygon points="7 4 20 12 7 20 7 4"></polygon>' },
+            Denied:    { cls: "status-denied",    icon: '<circle cx="12" cy="12" r="9"></circle><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line>' },
+            Completed: { cls: "status-completed", icon: '<polyline points="3 13 7 17 14 8"></polyline><polyline points="11 17 13 19 21 9"></polyline>' },
+            Canceled:  { cls: "status-canceled",  icon: '<circle cx="12" cy="12" r="9"></circle><line x1="5.7" y1="5.7" x2="18.3" y2="18.3"></line>' }
+        };
+        const STATUS_SORT_RANK = { Planning: 1, Ongoing: 2, Completed: 3, Denied: 4, Canceled: 5 };
+
+        function getFunding(c) { return c.Funding === "Self" ? "Self" : "MDF"; }
+
+        // FY·FQ를 하나의 순번으로 (FY2027 Q4 → 2027*4+4). 날짜가 잘못되면 null
+        function fqOrdinal(dateStr) {
+            const af = getAutodeskFYFQ(dateStr);
+            const fyNum = Number(String(af.fy).replace("FY", ""));
+            const qNum = Number(String(af.fq).replace("Q", ""));
+            return (isNaN(fyNum) || isNaN(qNum)) ? null : fyNum * 4 + qNum;
+        }
+        function quarterOrdinal(q) { return Number(q.fy.replace("FY", "")) * 4 + Number(q.fq.replace("Q", "")); }
+
+        function getStatusKey(c, q) {
+            q = q || getCurrentQuarterInfo();
+            const funding = getFunding(c);
+            if (c.Status_Override && MANUAL_STATUSES[funding].includes(c.Status_Override)) return c.Status_Override;
+            if (funding === "Self") return "Ongoing";
+            if (Number(c.Cost_Approved) > 0) return "Ongoing";
+            if (Number(c.Cost_MDP_Requested) > 0) {
+                const o = fqOrdinal(c.Activity_Date);
+                if (o !== null && o >= quarterOrdinal(q)) return "Planning";
+            }
+            return null;
+        }
+
+        function statusPillHtml(key) {
+            if (!key) return `<span class="status-none">-</span>`;
+            const m = STATUS_META[key];
+            return `<span class="status-pill ${m.cls}"><svg viewBox="0 0 24 24">${m.icon}</svg>${esc(key)}</span>`;
+        }
+        function selfTagHtml(c) { return getFunding(c) === "Self" ? `<span class="self-tag">Self</span>` : ""; }
+
+        // 해당 MDP의 FQ 첫 달(M1) 말일. Q1 2월, Q2 5월, Q3 8월, Q4 11월 (Q4의 1월은 전년 11월 시작)
+        function getFqM1End(dateStr) {
+            const d = parseActivityDate(dateStr);
+            if (!d) return null;
+            const m = d.getMonth() + 1, y = d.getFullYear();
+            let sm, sy = y;
+            if (m >= 2 && m <= 4) sm = 2; else if (m >= 5 && m <= 7) sm = 5; else if (m >= 8 && m <= 10) sm = 8; else { sm = 11; if (m === 1) sy = y - 1; }
+            return new Date(sy, sm, 0);
+        }
+
+        // 상태 업데이트 필요: MDF이고 직접 선택 없음 + Approved 0 + Requested 있음 + 오늘이 그 MDP의 FQ M1 말일을 지남 (지난 FQ 건도 해결 전까지 유지)
+        function needsStatusUpdate(c, q) {
+            if (getFunding(c) !== "MDF" || c.Status_Override) return false;
+            if (Number(c.Cost_Approved) > 0 || !(Number(c.Cost_MDP_Requested) > 0)) return false;
+            const m1End = getFqM1End(c.Activity_Date);
+            return !!m1End && (q || getCurrentQuarterInfo()).today > m1End;
+        }
+
+        function statusFilterMatches(c, filterValue, q) {
+            if (!filterValue) return true;
+            const key = getStatusKey(c, q);
+            return filterValue === "none" ? key === null : key === filterValue;
         }
 
         function toggleCampaignDropdown(e) { if(e) e.stopPropagation(); document.getElementById("campaignMultiselect").classList.toggle("open"); }
@@ -1576,7 +1785,7 @@
 
         // ===== MDP Status 상단: 현재 분기 + 할 일 카드 =====
         const DAY_MS = 24 * 60 * 60 * 1000;
-        const QUICK_FILTER_LABELS = { upcoming: "다가오는 활동", result: "결과 입력 필요", approval: "승인 금액 입력 대기" };
+        const QUICK_FILTER_LABELS = { upcoming: "다가오는 활동", result: "결과 입력 필요", update: "상태 업데이트 필요" };
 
         function toLocalDateKey(d) {
             return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -1599,26 +1808,29 @@
             return { today, start, end, fy: af.fy, fq: af.fq };
         }
 
+        // 오늘부터 이번 분기 말까지 시작하는 활동 (Denied·Canceled 제외)
         function isUpcomingActivity(c, q) {
+            const st = getStatusKey(c, q);
+            if (st === "Denied" || st === "Canceled") return false;
             const d = parseActivityDate(c.Activity_Date);
             return !!d && d >= q.today && d <= q.end;
         }
-        // 활동일이 지났고, 이름이 있는 ROI 지표 중 결과 수치가 하나라도 비어 있으면 대상 (지표가 없는 MDP는 제외)
+        // Date of Activity는 시작일 → 활동 FQ가 현재 FQ보다 지난 MDP가 대상 (Denied·Canceled 제외)
+        // 아직 Ongoing(Completed 처리 전)이거나, 이름이 있는 ROI 지표 중 결과 수치가 하나라도 비어 있으면 대상 (지표가 없는 MDP는 ROI 조건에서 제외)
         function needsResultInput(c, q) {
-            const d = parseActivityDate(c.Activity_Date);
-            if (!d || d >= q.today) return false;
+            const st = getStatusKey(c, q);
+            if (st === "Denied" || st === "Canceled") return false;
+            const o = fqOrdinal(c.Activity_Date);
+            if (o === null || o >= quarterOrdinal(q)) return false;
+            if (st === "Ongoing") return true;
             const metrics = (getCampaignRois(c) || []).filter(r => String(r.지표명 ?? "").trim() !== "");
             return metrics.some(r => String(r.결과수치 ?? "").trim() === "");
-        }
-        function isAwaitingApproval(c, q) {
-            const af = getAutodeskFYFQ(c.Activity_Date);
-            return af.fy === q.fy && af.fq === q.fq && !(Number(c.Cost_Approved) > 0);
         }
 
         function matchesQuickFilter(c, q) {
             if (quickFilter === "upcoming") return isUpcomingActivity(c, q);
             if (quickFilter === "result") return needsResultInput(c, q);
-            if (quickFilter === "approval") return isAwaitingApproval(c, q);
+            if (quickFilter === "update") return needsStatusUpdate(c, q);
             return true;
         }
 
@@ -1642,7 +1854,9 @@
                 ? `이번 분기 남은 활동 · 가장 빠른 ${Math.round((upcoming[0].d - q.today) / DAY_MS) === 0 ? "D-Day" : "D-" + Math.round((upcoming[0].d - q.today) / DAY_MS)}`
                 : "이번 분기 남은 활동";
             document.getElementById("todoResultCount").innerText = camps.filter(c => needsResultInput(c, q)).length + "건";
-            document.getElementById("todoApprovalCount").innerText = camps.filter(c => isAwaitingApproval(c, q)).length + "건";
+            const updateCount = camps.filter(c => needsStatusUpdate(c, q)).length;
+            document.getElementById("updateAlertCount").innerText = updateCount;
+            document.getElementById("updateAlert").style.display = updateCount > 0 ? "flex" : "none";
             document.querySelectorAll(".todo-card").forEach(el => el.classList.toggle("active", el.dataset.quick === quickFilter));
 
             const MAX_ROWS = 5;
@@ -1656,7 +1870,7 @@
                     return `<div class="upcoming-row" data-campaign-id="${esc(c.캠페인_ID)}">
                         <span class="dday ${cls}">${n === 0 ? "D-Day" : "D-" + n}</span>
                         <span class="date">${esc(formatDateWithDay(toLocalDateKey(d)))}</span>
-                        <span class="title">${esc(c.Activity_Name || "-")}</span>
+                        <span class="title">${esc(c.Activity_Name || "-")}${selfTagHtml(c)}</span>
                         <span class="meta">${esc(c.Industry || "-")} · ${esc(c.Tactics || "-")}</span>
                     </div>`;
                 }).join("") + (upcoming.length > MAX_ROWS
@@ -1684,11 +1898,14 @@
             const fq = document.getElementById("filterFQ").value;
             const ind = document.getElementById("filterIndustry").value;
             const tac = document.getElementById("filterTactics").value;
+            const fund = document.getElementById("filterFunding").value;
+            const stf = document.getElementById("filterStatus").value;
             const q = getCurrentQuarterInfo();
 
             currentFilteredCampaigns = getActiveCampaigns().filter(c => {
                 const af = getAutodeskFYFQ(c.Activity_Date);
                 return (c.Activity_Name || "").toLowerCase().includes(kw) && (!fy || af.fy === fy) && (!fq || af.fq === fq) && (!ind || c.Industry === ind) && (!tac || c.Tactics === tac)
+                    && (!fund || getFunding(c) === fund) && statusFilterMatches(c, stf, q)
                     && matchesQuickFilter(c, q);
             });
             renderStatusHeader(q);
@@ -1703,6 +1920,8 @@
             document.getElementById("filterFQ").value = "";
             document.getElementById("filterIndustry").value = "";
             document.getElementById("filterTactics").value = "";
+            document.getElementById("filterFunding").value = "";
+            document.getElementById("filterStatus").value = "";
             quickFilter = null;
             filterData();
         }
@@ -1750,10 +1969,11 @@
 
         function renderDashboard(camps) {
             let groups = {};
+            const nowQ = getCurrentQuarterInfo();
             camps.forEach(c => {
                 const af = getAutodeskFYFQ(c.Activity_Date);
                 if(!groups[af.fy]) groups[af.fy] = [];
-                groups[af.fy].push({ ...c, calculatedFY: af.fy, calculatedFQ: af.fq });
+                groups[af.fy].push({ ...c, calculatedFY: af.fy, calculatedFQ: af.fq, statusKey: getStatusKey(c, nowQ) });
             });
 
             Object.keys(groups).forEach(fy => {
@@ -1780,6 +2000,9 @@
                     } else if (col === 'activityName') {
                         valA = a.Activity_Name || '';
                         valB = b.Activity_Name || '';
+                    } else if (col === 'status') {
+                        valA = STATUS_SORT_RANK[a.statusKey] || 9;
+                        valB = STATUS_SORT_RANK[b.statusKey] || 9;
                     } else if (col === 'date') {
                         valA = a.Activity_Date || '';
                         valB = b.Activity_Date || '';
@@ -1811,7 +2034,7 @@
                 let rows = "";
                 items.forEach(c => {
                     const formattedDate = formatDateWithDay(c.Activity_Date);
-                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b></td><td>${esc(formattedDate)}</td><td class="text-right">$${(Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">$${(Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
+                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b>${selfTagHtml(c)}</td><td>${statusPillHtml(c.statusKey)}</td><td>${esc(formattedDate)}</td><td class="text-right">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
                 });
                 
                 const isOpen = openFys.has(fy) || !!quickFilter;   // 빠른 필터 사용 중에는 결과가 바로 보이도록 펼침
@@ -1843,6 +2066,7 @@
                                        <th onclick="sortTable('${fy}', 'industry')">Industry ${getSortIcon(fy, 'industry')}</th>
                                        <th style="text-align:left;" onclick="sortTable('${fy}', 'tactics')">Tactics ${getSortIcon(fy, 'tactics')}</th>
                                        <th style="text-align:left;" onclick="sortTable('${fy}', 'activityName')">Activity Name ${getSortIcon(fy, 'activityName')}</th>
+                                       <th onclick="sortTable('${fy}', 'status')">Status ${getSortIcon(fy, 'status')}</th>
                                        <th onclick="sortTable('${fy}', 'date')">Date of Activity ${getSortIcon(fy, 'date')}</th>
                                        <th style="text-align:right;" onclick="sortTable('${fy}', 'requested')">Requested($) ${getSortIcon(fy, 'requested')}</th>
                                        <th style="text-align:right;" onclick="sortTable('${fy}', 'approved')">Approved($) ${getSortIcon(fy, 'approved')}</th>
@@ -1856,8 +2080,8 @@
         }
 
         // ===== Funds Status 탭 =====
-        // 기준: 상단 필터 FY/FQ/Industry/Tactics (Activity Name 검색어는 적용하지 않음), 휴지통 제외
-        // Approved = 0 은 "심사 중"으로 간주
+        // 기준: 상단 필터 FY/FQ/Industry/Tactics/Funding/Status (Activity Name 검색어는 적용하지 않음), 휴지통 제외
+        // 합계·차트·배분·비용 구조는 MDF이면서 Canceled가 아닌 건만 집계 (Self는 맨 위 요약 줄에 따로, 상세 표에는 모두 표시)
         const fmtUsd = v => "$" + Math.round(v).toLocaleString();
         const fmtKrw = v => "₩" + Math.round(v).toLocaleString();
         const fmtUsdCompact = v => v >= 1000 ? "$" + (v / 1000).toFixed(1).replace(/\.0$/, "") + "K" : "$" + Math.round(v);
@@ -1868,60 +2092,86 @@
                 fy: document.getElementById("filterFY").value,
                 fq: document.getElementById("filterFQ").value,
                 ind: document.getElementById("filterIndustry").value,
-                tac: document.getElementById("filterTactics").value
+                tac: document.getElementById("filterTactics").value,
+                fund: document.getElementById("filterFunding").value,
+                st: document.getElementById("filterStatus").value
             };
         }
 
         function getFundsCriteriaText() {
             const f = getFundsFilters();
-            return [f.fy || "전체 FY", f.fq || "전체 분기", f.ind ? "Industry " + f.ind : "전체 Industry", f.tac ? "Tactics " + f.tac : "전체 Tactics", "휴지통 제외"].join(" · ");
+            const parts = [f.fy || "전체 FY", f.fq || "전체 분기", f.ind ? "Industry " + f.ind : "전체 Industry", f.tac ? "Tactics " + f.tac : "전체 Tactics"];
+            if (f.fund) parts.push("Funding " + f.fund);
+            if (f.st) parts.push("Status " + (f.st === "none" ? "상태 없음" : f.st));
+            parts.push("휴지통 제외");
+            return parts.join(" · ");
         }
 
         // ignorePeriod: 전년 비교용으로 FY/FQ 필터만 빼고 가져올 때 사용
         function getFundsRows(ignorePeriod = false) {
             const f = getFundsFilters();
+            const q = getCurrentQuarterInfo();
             return getActiveCampaigns().map(c => {
                 const af = getAutodeskFYFQ(c.Activity_Date);
                 const app = Number(c.Cost_Approved) || 0;
+                const funding = getFunding(c);
                 return {
                     c, id: c.캠페인_ID || "", fy: af.fy, fq: af.fq,
                     industry: c.Industry || "미지정", tactics: c.Tactics || "미지정",
                     campaigns: (c.Campaign_Name || "").split(",").map(s => s.trim()).filter(Boolean),
                     activity: c.Activity_Name || "", date: c.Activity_Date || "",
-                    req: Number(c.Cost_MDP_Requested) || 0, app, confirmed: app > 0,
+                    funding, self: funding === "Self", status: getStatusKey(c, q),
+                    req: Number(c.Cost_MDP_Requested) || 0, app, confirmed: funding === "MDF" && app > 0,
                     cost: sumBy(getCampaignCosts(c) || [], x => Number(x.금액) || 0)
                 };
             }).filter(r => (ignorePeriod || ((!f.fy || r.fy === f.fy) && (!f.fq || r.fq === f.fq)))
-                && (!f.ind || r.c.Industry === f.ind) && (!f.tac || r.c.Tactics === f.tac));
+                && (!f.ind || r.c.Industry === f.ind) && (!f.tac || r.c.Tactics === f.tac)
+                && (!f.fund || r.funding === f.fund)
+                && (!f.st || (f.st === "none" ? r.status === null : r.status === f.st)));
         }
+
+        // 합계·차트·배분·비용 구조에 들어가는 건: MDF이면서 Canceled가 아닌 건
+        const isFundsAggRow = r => !r.self && r.status !== "Canceled";
 
         function renderFundsStatusCharts() {
             // 숨겨진 탭에서 차트를 그리면 크기가 0이 되므로, 탭이 열려 있을 때만 그림 (탭 전환 시 다시 호출됨)
             if (document.body.dataset.tab !== "reportTab") return;
             fundsRows = getFundsRows();
+            const aggRows = fundsRows.filter(isFundsAggRow);
             document.getElementById("fundsCriteria").innerText = "기준: " + getFundsCriteriaText();
-            renderFundsKpis(fundsRows);
-            renderFundsQuarterChart(fundsRows);
-            renderFundsAllocation(fundsRows);
-            renderFundsCost(fundsRows);
+            renderFundsKpis(aggRows);
+            renderFundsSelfStrip(fundsRows);
+            renderFundsQuarterChart(aggRows);
+            renderFundsAllocation(aggRows);
+            renderFundsCost(aggRows);
             renderFundsTable();
         }
 
         function renderFundsKpis(rows) {
-            const confirmed = rows.filter(r => r.confirmed), pending = rows.filter(r => !r.confirmed);
+            const confirmed = rows.filter(r => r.confirmed), planning = rows.filter(r => r.status === "Planning"), denied = rows.filter(r => r.status === "Denied");
             const confReq = sumBy(confirmed, r => r.req), confApp = sumBy(confirmed, r => r.app);
             const extra = confApp - confReq;
+            const extraHtml = confReq > 0
+                ? `${extra >= 0 ? "+" : "−"}${fmtUsd(Math.abs(extra))} <span class="pct">(${Math.round(confApp / confReq * 100)}%)</span>`
+                : "-";
             const cards = [
-                ["k-blue", "총 Requested", fmtUsd(sumBy(rows, r => r.req)), `MDP ${rows.length}건`],
-                ["k-navy", "총 Approved", fmtUsd(sumBy(rows, r => r.app)), `확정 ${confirmed.length}건`],
-                ["k-purple", "승인율 (확정 건 기준)", confReq > 0 ? Math.round(confApp / confReq * 100) + "%" : "-",
-                    confReq > 0 ? `${fmtUsd(confApp)} ÷ ${fmtUsd(confReq)}` : "확정된 MDP 없음"],
-                ["k-green", "추가 지원액", (extra >= 0 ? "+" : "−") + fmtUsd(Math.abs(extra)), "확정 건 Approved − Requested"],
-                ["k-amber", "심사 중", `${pending.length}건`, `Approved 0 · 요청 ${fmtUsd(sumBy(pending, r => r.req))}`],
-                ["k-orange", "총 집행 비용", fmtKrw(sumBy(rows, r => r.cost)), "비용 내역 합계 (원화)"]
+                ["k-blue", "총 Requested", esc(fmtUsd(sumBy(rows, r => r.req))), `MDP ${rows.length}건` + (denied.length ? ` (Denied ${denied.length}건 포함)` : "")],
+                ["k-navy", "총 Approved", esc(fmtUsd(sumBy(rows, r => r.app))), `Approved ${confirmed.length}건`],
+                ["k-green", "추가 지원액", extraHtml, "Requested vs Approved"],
+                ["k-amber", "Planning", `${planning.length}건`, `Approved 0 · 요청 ${fmtUsd(sumBy(planning, r => r.req))}`],
+                ["k-orange", "총 집행 비용", esc(fmtKrw(sumBy(rows, r => r.cost))), "MDF 비용 내역 합계 (원화)"]
             ];
-            document.getElementById("fundsKpis").innerHTML = cards.map(([cls, label, value, sub]) =>
-                `<div class="funds-kpi ${cls}"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="sub">${esc(sub)}</div></div>`).join("");
+            document.getElementById("fundsKpis").innerHTML = cards.map(([cls, label, valueHtml, sub]) =>
+                `<div class="funds-kpi ${cls}"><div class="label">${esc(label)}</div><div class="value">${valueHtml}</div><div class="sub">${esc(sub)}</div></div>`).join("");
+        }
+
+        // Self 건은 위 합계에 넣지 않고 건수와 집행 비용만 따로 표시 (현재 필터 범위에 Self가 없으면 숨김)
+        function renderFundsSelfStrip(rows) {
+            const el = document.getElementById("fundsSelfStrip");
+            const selfRows = rows.filter(r => r.self && r.status !== "Canceled");
+            if (selfRows.length === 0) { el.style.display = "none"; el.innerHTML = ""; return; }
+            el.innerHTML = `<span><b>Self (자체 실행)</b> · ${selfRows.length}건</span><span>집행 비용 ${esc(fmtKrw(sumBy(selfRows, r => r.cost)))}</span><span class="note">위 합계에는 포함되지 않습니다</span>`;
+            el.style.display = "flex";
         }
 
         // 막대 위에 금액 표시 (별도 라이브러리 없이 Chart.js 플러그인으로 직접 그림)
@@ -1946,12 +2196,12 @@
             const agg = {};
             rows.filter(r => r.fy !== "기타").forEach(r => {
                 const k = keyOf(r);
-                agg[k] ??= { req: 0, app: 0, pending: 0 };
-                agg[k].req += r.req; agg[k].app += r.app; if (!r.confirmed) agg[k].pending++;
+                agg[k] ??= { req: 0, app: 0, planning: 0 };
+                agg[k].req += r.req; agg[k].app += r.app; if (r.status === "Planning") agg[k].planning++;
             });
-            // 전년 같은 분기 Approved: FY/FQ 필터만 빼고(Industry/Tactics는 유지) 집계
+            // 전년 같은 분기 Approved: FY/FQ 필터만 빼고(나머지 필터는 유지) 같은 규칙으로 집계
             const prevBase = {};
-            getFundsRows(true).filter(r => r.fy !== "기타").forEach(r => { prevBase[keyOf(r)] = (prevBase[keyOf(r)] || 0) + r.app; });
+            getFundsRows(true).filter(r => r.fy !== "기타" && isFundsAggRow(r)).forEach(r => { prevBase[keyOf(r)] = (prevBase[keyOf(r)] || 0) + r.app; });
 
             const keys = Object.keys(agg).sort();
             const prevData = keys.map(k => {
@@ -1959,7 +2209,7 @@
                 const pk = `FY${Number(fy.slice(2)) - 1} ${q}`;
                 return pk in prevBase ? prevBase[pk] : null;
             });
-            const labels = keys.map(k => agg[k].pending ? [k, `심사 중 ${agg[k].pending}건`] : k);
+            const labels = keys.map(k => agg[k].planning ? [k, `Planning ${agg[k].planning}건`] : k);
 
             const datasets = [
                 { label: "Requested ($)", data: keys.map(k => agg[k].req), backgroundColor: "#90caf9", borderRadius: 4, order: 2 },
@@ -2044,12 +2294,12 @@
             { key: "id", label: "캠페인 ID" }, { key: "fyfq", label: "FY / FQ" }, { key: "industry", label: "Industry" },
             { key: "tactics", label: "Tactics" }, { key: "activity", label: "Activity Name" }, { key: "date", label: "Date of Activity" },
             { key: "req", label: "Requested($)", num: true }, { key: "app", label: "Approved($)", num: true },
-            { key: "status", label: "상태" }, { key: "cost", label: "집행 비용(₩)", num: true }
+            { key: "status", label: "Status" }, { key: "cost", label: "집행 비용(₩)", num: true }
         ];
 
         function sortFundsRows(rows) {
             const { col, dir } = fundsTableSort;
-            const v = r => col === "fyfq" ? `${r.fy} ${r.fq}` : col === "status" ? (r.confirmed ? 1 : 0) : r[col];
+            const v = r => col === "fyfq" ? `${r.fy} ${r.fq}` : col === "status" ? (STATUS_SORT_RANK[r.status] || 9) : r[col];
             return [...rows].sort((a, b) => {
                 const x = v(a), y = v(b);
                 const cmp = typeof x === "number" ? x - y : String(x).localeCompare(String(y));
@@ -2065,17 +2315,19 @@
             const rows = sortFundsRows(fundsRows);
             document.getElementById("fundsTableBody").innerHTML = rows.length === 0
                 ? `<tr><td colspan="${FUNDS_TABLE_COLUMNS.length}" style="text-align:center; color:#888;">해당 조건의 MDP가 없습니다.</td></tr>`
-                : rows.map(r => `<tr>
+                : rows.map(r => `<tr class="${r.status === "Canceled" ? "row-canceled" : ""}">
                     <td>${esc(r.id)}</td><td>${esc(r.fy)} ${esc(r.fq)}</td><td><span class="badge ${industryStyle(r.industry).badge}">${esc(r.industry)}</span></td><td>${esc(r.tactics)}</td>
-                    <td class="text-left wrap">${esc(r.activity || "-")}</td><td>${esc(formatDateWithDay(r.date))}</td>
-                    <td class="num">${fmtUsd(r.req)}</td><td class="num">${fmtUsd(r.app)}</td>
-                    <td><span class="funds-status ${r.confirmed ? "done" : "pending"}">${r.confirmed ? "확정" : "심사 중"}</span></td>
+                    <td class="text-left wrap"><span class="act-name">${esc(r.activity || "-")}</span>${r.self ? '<span class="self-tag">Self</span>' : ""}</td><td>${esc(formatDateWithDay(r.date))}</td>
+                    <td class="num${r.self ? " mut" : ""}">${r.self ? "-" : fmtUsd(r.req)}</td><td class="num${r.self ? " mut" : ""}">${r.self ? "-" : fmtUsd(r.app)}</td>
+                    <td>${statusPillHtml(r.status)}</td>
                     <td class="num">${fmtKrw(r.cost)}</td></tr>`).join("");
 
+            // 합계 줄은 KPI와 같은 기준 (Canceled · Self 제외)
+            const aggRows = rows.filter(isFundsAggRow);
             document.getElementById("fundsTableFoot").innerHTML = rows.length === 0 ? "" : `<tr>
-                <td colspan="6" style="text-align:center;">합계 (${rows.length}건)</td>
-                <td class="num">${fmtUsd(sumBy(rows, r => r.req))}</td><td class="num">${fmtUsd(sumBy(rows, r => r.app))}</td>
-                <td></td><td class="num">${fmtKrw(sumBy(rows, r => r.cost))}</td></tr>`;
+                <td colspan="6" style="text-align:center;">합계 (${aggRows.length}건 · Canceled, Self 제외)</td>
+                <td class="num">${fmtUsd(sumBy(aggRows, r => r.req))}</td><td class="num">${fmtUsd(sumBy(aggRows, r => r.app))}</td>
+                <td></td><td class="num">${fmtKrw(sumBy(aggRows, r => r.cost))}</td></tr>`;
         }
 
         function downloadText(text, fileName, mime) {
@@ -2095,13 +2347,14 @@
                 if (/^[=+\-@]/.test(s)) s = "'" + s;
                 return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
             };
-            const header = ["캠페인 ID", "FY", "FQ", "Industry", "Tactics", "Campaign", "Activity Name", "Date of Activity", "Requested($)", "Approved($)", "상태", "집행 비용(KRW)"];
+            // Self는 Requested·Approved가 해당 없음이라 빈 칸. 상태가 없으면 빈 칸
+            const header = ["캠페인 ID", "FY", "FQ", "Industry", "Tactics", "Campaign", "Activity Name", "Date of Activity", "Funding", "Requested($)", "Approved($)", "Status", "집행 비용(KRW)"];
             const lines = [header, ...sortFundsRows(fundsRows).map(r => [
                 r.id, r.fy, r.fq, r.industry, r.tactics, r.campaigns.join(", "), r.activity, formatDateWithDay(r.date),
-                r.req, r.app, r.confirmed ? "확정" : "심사 중", r.cost
+                r.funding, r.self ? "" : r.req, r.self ? "" : r.app, r.status || "", r.cost
             ])].map(row => row.map(cell).join(","));
             const f = getFundsFilters();
-            const tag = [f.fy || "ALL-FY", f.fq, f.ind, f.tac].filter(Boolean).join("_").replace(/[\\/:*?"<>|\s&]+/g, "-");
+            const tag = [f.fy || "ALL-FY", f.fq, f.ind, f.tac, f.fund, f.st === "none" ? "NoStatus" : f.st].filter(Boolean).join("_").replace(/[\\/:*?"<>|\s&]+/g, "-");
             downloadText("﻿" + lines.join("\r\n"), `MDP-Funds-${tag}-${localStamp()}.csv`, "text/csv;charset=utf-8");
         }
 
@@ -2117,13 +2370,23 @@
             const c = globalData.campaigns.find(x => x.캠페인_ID === id);
             if(!c) return;
             
+            const isSelf = getFunding(c) === "Self";
+            const statusKey = getStatusKey(c);
             document.getElementById("modal-title").innerText = c.Activity_Name || "-";
-            // [요청 반영] Industry 대신 "Autodesk MDP : 캠페인_ID" 형식으로 표시
+            document.getElementById("modal-status").innerHTML = statusKey ? statusPillHtml(statusKey) : "";   // 상태가 없으면 배지를 표시하지 않음
+            // 부제목은 Funding(MDF/Self)과 무관하게 항상 "Autodesk MDP : 캠페인_ID" (Funding은 아래 정보 그룹에 표시)
             document.getElementById("modal-subtitle").innerText = `Autodesk MDP : ${c.캠페인_ID || "-"}`;
             document.getElementById("modal-summary-date").innerText = formatDateWithDay(c.Activity_Date) || "-";
             document.getElementById("modal-summary-req").innerText = "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString();
             document.getElementById("modal-summary-app").innerText = "$" + (Number(c.Cost_Approved)||0).toLocaleString();
+            // Self는 Requested·Approved 카드 대신 비용 상세 내역 합계(원화) 카드
+            document.getElementById("modal-card-req").style.display = isSelf ? "none" : "";
+            document.getElementById("modal-card-app").style.display = isSelf ? "none" : "";
+            document.getElementById("modal-card-cost").style.display = isSelf ? "" : "none";
+            document.getElementById("modal-summary-cost").innerText = fmtKrw(sumBy(getCampaignCosts(c) || [], x => Number(x.금액) || 0));
             document.getElementById("modal-desc").innerText = c.Activity_Description || "";
+
+            document.getElementById("modal-meta-funding").innerHTML = `<span class="badge badge-funding">${esc(getFunding(c))}</span>`;
 
             document.getElementById("modal-meta-industry").innerHTML = c.Industry ? `<span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry)}</span>` : "-";
             document.getElementById("modal-meta-tactic").innerHTML = c.Tactics ? `<span class="badge badge-tactic">${esc(c.Tactics)}</span>` : "-";
@@ -2192,6 +2455,7 @@
             addCostRow(); addRoiRow();
             document.getElementById("newDescription").value = DEFAULT_DESCRIPTION_TEMPLATE;
             buildCampaignDropdown([]);
+            setFormFunding("MDF", "");   // reset()은 숨김 입력칸을 되돌리지 못하므로 직접 초기화
             formInitialSnapshot = getFormSnapshot();
             document.getElementById("createModal").style.display = "block";
         }
@@ -2219,6 +2483,7 @@
             document.getElementById("newRequested").value = (Number(c.Cost_MDP_Requested)||0).toLocaleString();
             document.getElementById("newApproved").value = c.Cost_Approved ? Number(c.Cost_Approved).toLocaleString() : "";
             document.getElementById("newDescription").value = c.Activity_Description || "";
+            setFormFunding(getFunding(c), c.Status_Override || "");
 
             const lifecycles = c.Life_Cycle ? c.Life_Cycle.split(',').map(s => s.trim()) : [];
             document.querySelectorAll('#lifecycleCheckboxGroup input').forEach(cb => {
@@ -2259,6 +2524,37 @@
         function getFormSnapshot() {
             return JSON.stringify(Array.from(document.querySelectorAll("#createForm input, #createForm select, #createForm textarea"))
                 .map(el => el.type === "checkbox" ? el.checked : el.value));
+        }
+
+        // ===== 등록·수정 화면: Funding / Status =====
+        const parseAmountInput = id => Number(document.getElementById(id).value.replace(/,/g, "")) || 0;
+        function getFormFunding() { return document.getElementById("newFunding").value === "Self" ? "Self" : "MDF"; }
+
+        function updateStatusHint() {
+            const funding = getFormFunding(), v = document.getElementById("newStatus").value;
+            let text;
+            if (v === "") text = funding === "Self" ? "Auto: 등록하면 Ongoing" : "Auto: Approved 금액을 입력하면 Ongoing, 입력 전에는 Planning 또는 상태 없음";
+            else if (v === "Completed" && funding === "MDF" && !(parseAmountInput("newApproved") > 0)) text = "Approved 금액이 없는 상태로 Completed 저장됩니다.";
+            else text = "직접 선택한 상태가 자동 상태보다 우선합니다.";
+            document.getElementById("newStatusHint").innerText = text;
+        }
+
+        // Funding에 따라 선택 가능한 상태가 달라짐 (MDF: Denied/Completed/Canceled, Self: Completed/Canceled)
+        function fillStatusSelect(funding, current) {
+            const sel = document.getElementById("newStatus");
+            sel.innerHTML = `<option value="">Auto</option>` + MANUAL_STATUSES[funding].map(s => `<option value="${s}">${s}</option>`).join("");
+            sel.value = MANUAL_STATUSES[funding].includes(current) ? current : "";
+            sel.dataset.prev = sel.value;
+            updateStatusHint();
+        }
+
+        function setFormFunding(funding, currentStatus) {
+            const isSelf = funding === "Self";
+            document.getElementById("newFunding").value = funding;
+            document.querySelectorAll("#fundingSeg button").forEach(b => b.classList.toggle("on", b.dataset.funding === funding));
+            document.getElementById("amountRow").style.display = isSelf ? "none" : "";
+            document.getElementById("newRequested").required = !isSelf;   // 숨긴 칸이 필수면 저장이 막히므로 Self는 해제
+            fillStatusSelect(funding, currentStatus);
         }
 
         // 창을 연 시점과 비교해 실제로 바뀐 내용이 있을 때만 true (등록/수정 모드 공통)
@@ -2344,6 +2640,37 @@
             const row = e.target.closest(".upcoming-row[data-campaign-id]");
             if (row) openModal(row.dataset.campaignId);
         });
+
+        // 등록·수정 화면: Funding 선택 (MDF ↔ Self). Self로 바꿀 때 금액·Denied 상태가 있으면 확인 후 정리
+        document.getElementById("fundingSeg").addEventListener("click", async function(e) {
+            const btn = e.target.closest("button[data-funding]");
+            if (!btn) return;
+            const next = btn.dataset.funding;
+            if (next === getFormFunding()) return;
+            if (next === "Self") {
+                const hasAmountOrDenied = parseAmountInput("newRequested") > 0 || parseAmountInput("newApproved") > 0 || document.getElementById("newStatus").value === "Denied";
+                if (hasAmountOrDenied) {
+                    const ok = await showConfirmDialog("Self로 바꾸면 Requested·Approved 금액이 0으로 정리되고, Denied 상태는 해제됩니다. 계속할까요?", "Funding 변경");
+                    if (!ok) return;
+                }
+                document.getElementById("newRequested").value = "";
+                document.getElementById("newApproved").value = "";
+            }
+            setFormFunding(next, document.getElementById("newStatus").value);   // Self에 없는 상태(Denied)는 Auto로 돌아감
+            if (next === "MDF") calculateRequestedFromCosts();                  // 비용 내역 기준으로 Requested 다시 계산
+        });
+
+        // 등록·수정 화면: Status 선택. Denied를 고를 때 Approved 금액이 있으면 확인 후 0으로 정리 (Requested는 유지)
+        document.getElementById("newStatus").addEventListener("change", async function() {
+            if (this.value === "Denied" && parseAmountInput("newApproved") > 0) {
+                const ok = await showConfirmDialog("Denied로 바꾸면 Approved 금액이 0으로 정리됩니다. Requested는 그대로 유지됩니다. 계속할까요?", "Denied 선택");
+                if (!ok) { this.value = this.dataset.prev || ""; updateStatusHint(); return; }
+                document.getElementById("newApproved").value = "";
+            }
+            this.dataset.prev = this.value;
+            updateStatusHint();
+        });
+        document.getElementById("newApproved").addEventListener("input", updateStatusHint);
 
         // Funds Status: 배분 기준 전환 (Approved / Requested)
         document.getElementById("fundsBasisToggle").addEventListener("click", function(e) {
