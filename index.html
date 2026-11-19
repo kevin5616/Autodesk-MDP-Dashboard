@@ -261,6 +261,8 @@
         .status-canceled  { background: #f1f5f9; color: #64748b; text-decoration: line-through; }
         .status-none { color: #94a3b8; }
         .self-tag { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid #142940; border-radius: 5px; font-size: 11px; font-weight: 600; color: #142940; background: #fff; vertical-align: 1px; white-space: nowrap; }
+        .carry-tag { display: inline-block; margin-left: 5px; padding: 0 6px; border-radius: 5px; font-size: 11px; font-weight: 600; color: #475569; background: #e2e8f0; vertical-align: 1px; white-space: nowrap; }   /* v34 Carry-over 태그 */
+        .summary-card .end-line { font-size: 13px; font-weight: 600; margin-top: 3px; }
         .badge-funding { background-color: #ffffff; color: #142940; border: 1px solid #142940; }
 
         /* ===== 등록·수정 화면: Funding 선택 / Status 선택 ===== */
@@ -308,7 +310,7 @@
         .badge { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: normal; word-break: break-all; margin-right: 4px; margin-bottom: 2px; }
         /* Status 열이 늘어나도 Tactics 배지와 Date of Activity는 한 줄 유지 (넘치는 폭은 Activity Name이 줄바꿈으로 흡수) */
         .fy-content-wrapper td:nth-child(4) .badge { white-space: nowrap; }
-        .fy-content-wrapper td:nth-child(6) { white-space: nowrap; }   /* v33: Date of Activity는 6번째 열 (Status가 그 뒤) */
+        .fy-content-wrapper td:nth-child(6), .fy-content-wrapper td:nth-child(7) { white-space: nowrap; }   /* Status 칸은 Carry-over 태그가 붙어도 한 줄 */   /* v33: Date of Activity는 6번째 열 (Status가 그 뒤) */
         /* v33: 캠페인 현황표 헤더는 한 줄 (FY·FQ는 좁게), 금액 칸은 오른쪽 정렬(헤더는 가운데 유지) */
         .fy-content-wrapper th { white-space: nowrap; padding: 12px 8px; }
         .fy-content-wrapper td { padding: 12px 8px; }
@@ -852,7 +854,11 @@
                         <label>Tactics</label>
                         <input type="text" id="newTactics" list="tacticsDatalist" placeholder="선택 또는 수기 입력" autocomplete="off" required>
                     </div>
-                    <div class="form-group"><label>Date of Activity</label><input type="date" id="newActivityDate" required></div>
+                    <div class="form-group"><label>Date of Activity</label><input type="date" id="newActivityDate" required oninput="updateCarryHint()"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>End Date <span style="font-weight:normal; color:#64748b;">(선택)</span></label><input type="date" id="newActivityEndDate" oninput="updateCarryHint()"></div>
+                    <div class="form-group" style="justify-content:flex-end;"><div id="carryHint" style="font-size:12px; color:#64748b; line-height:1.4;"></div></div>
                 </div>
                 <div class="form-row" id="amountRow">
                     <div class="form-group"><label>Requested ($)</label><input type="text" id="newRequested" oninput="formatInputNumber(this)" required></div>
@@ -1231,6 +1237,11 @@
 
             const rawActivityDateStr = document.getElementById("newActivityDate").value;
             const activityDateStr = formatDateWithDay(rawActivityDateStr);
+            const rawEndDateStr = document.getElementById("newActivityEndDate").value;   // 선택 입력 (v34 Carry-over)
+            if (rawEndDateStr && rawEndDateStr < rawActivityDateStr) {
+                showToast("종료일은 Date of Activity(시작일) 이후여야 합니다.");
+                return;
+            }
             const af = getAutodeskFYFQ(rawActivityDateStr);
             const targetFyNum = af.fy.replace("FY", "");
             const targetFq = af.fq;
@@ -1277,6 +1288,7 @@
                 Funding: funding
             };
             if (statusOverride) campaignPayload.Status_Override = statusOverride;
+            if (rawEndDateStr) campaignPayload.Activity_End_Date = formatDateWithDay(rawEndDateStr);   // 비우면 저장하지 않음(기존 종료일도 삭제)
 
             try {
                 // 비용/ROI가 캠페인 문서 안에 있으므로 문서 하나만 쓰면 됨 (자동으로 전부 저장되거나 전부 취소)
@@ -1698,6 +1710,20 @@
             return null;
         }
 
+        // ===== v34 Carry-over(이월): 선택 입력 종료일(Activity_End_Date)이 시작 FQ보다 뒤 FQ에 걸치면 이월 =====
+        // 종료일이 없거나 시작 FQ와 같으면 기존처럼 시작일 하나로 동작
+        function getLastFqOrdinal(c) {
+            const s = fqOrdinal(c.Activity_Date);
+            if (s === null) return null;
+            const e = c.Activity_End_Date ? fqOrdinal(c.Activity_End_Date) : null;
+            return (e !== null && e > s) ? e : s;
+        }
+        function isCarryOver(c) {
+            const s = fqOrdinal(c.Activity_Date), l = getLastFqOrdinal(c);
+            return s !== null && l !== null && l > s;
+        }
+        function carryOverTagHtml(c) { return isCarryOver(c) ? `<span class="carry-tag" title="종료일이 다음 분기에 걸칩니다">Carry-over</span>` : ""; }
+
         function statusPillHtml(key) {
             if (!key) return `<span class="status-none">-</span>`;
             const m = STATUS_META[key];
@@ -1824,7 +1850,9 @@
             const st = getStatusKey(c, q);
             if (st === "Denied" || st === "Canceled") return false;
             const d = parseActivityDate(c.Activity_Date);
-            return !!d && fqOrdinal(c.Activity_Date) === quarterOrdinal(q);
+            const o = fqOrdinal(c.Activity_Date), last = getLastFqOrdinal(c), cur = quarterOrdinal(q);
+            // v34: 시작 FQ ~ 종료 FQ(이월 건) 사이의 모든 분기에서 표시. 종료일이 없으면 시작 FQ만
+            return !!d && o !== null && o <= cur && cur <= last;
         }
         // 목록 오른쪽 금액: MDF는 Approved($), Approved가 0이면 Requested를 연하게, Self는 Total cost(₩)
         function thisQuarterAmountHtml(c) {
@@ -1841,7 +1869,7 @@
         function needsResultInput(c, q) {
             const st = getStatusKey(c, q);
             if (st === "Denied" || st === "Canceled") return false;
-            const o = fqOrdinal(c.Activity_Date);
+            const o = getLastFqOrdinal(c);   // v34: 이월 건은 종료 FQ가 지나기 전까지 알림 제외
             if (o === null || o >= quarterOrdinal(q)) return false;
             if (st === "Ongoing") return true;
             const metrics = (getCampaignRois(c) || []).filter(r => String(r.지표명 ?? "").trim() !== "");
@@ -1894,7 +1922,7 @@
                     return `<div class="upcoming-row" data-campaign-id="${esc(c.캠페인_ID)}">
                         <span class="dday ${cls}">${label}</span>
                         <span class="date">${esc(formatDateWithDay(toLocalDateKey(d)))}</span>
-                        <span class="title">${esc(c.Activity_Name || "-")}${selfTagHtml(c)}</span>
+                        <span class="title">${esc(c.Activity_Name || "-")}${selfTagHtml(c)}${carryOverTagHtml(c)}</span>
                         <span class="meta">${esc(c.Industry || "-")} · ${esc(c.Tactics || "-")}</span>
                         ${thisQuarterAmountHtml(c)}
                     </div>`;
@@ -2059,7 +2087,7 @@
                 let rows = "";
                 items.forEach(c => {
                     const formattedDate = formatDateWithDay(c.Activity_Date);
-                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b>${selfTagHtml(c)}</td><td>${esc(formattedDate)}</td><td>${statusPillHtml(c.statusKey)}</td><td class="text-right">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
+                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b>${selfTagHtml(c)}</td><td>${esc(formattedDate)}</td><td>${statusPillHtml(c.statusKey)}${carryOverTagHtml(c)}</td><td class="text-right">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
                 });
                 
                 const isOpen = openFys.has(fy) || !!quickFilter;   // 빠른 필터 사용 중에는 결과가 바로 보이도록 펼침
@@ -2144,7 +2172,7 @@
                     c, id: c.캠페인_ID || "", fy: af.fy, fq: af.fq,
                     industry: c.Industry || "미지정", tactics: c.Tactics || "미지정",
                     campaigns: (c.Campaign_Name || "").split(",").map(s => s.trim()).filter(Boolean),
-                    activity: c.Activity_Name || "", date: c.Activity_Date || "",
+                    activity: c.Activity_Name || "", date: c.Activity_Date || "", endDate: c.Activity_End_Date || "",
                     funding, self: funding === "Self", status: getStatusKey(c, q),
                     req: Number(c.Cost_MDP_Requested) || 0, app, confirmed: funding === "MDF" && app > 0,
                     cost: sumBy(getCampaignCosts(c) || [], x => Number(x.금액) || 0)
@@ -2374,9 +2402,9 @@
                 return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
             };
             // Self는 Requested·Approved가 해당 없음이라 빈 칸. 상태가 없으면 빈 칸
-            const header = ["캠페인 ID", "FY", "FQ", "Industry", "Tactics", "Campaign", "Activity Name", "Date of Activity", "Status", "Funding", "Requested($)", "Approved($)", "집행 비용(KRW)"];
+            const header = ["캠페인 ID", "FY", "FQ", "Industry", "Tactics", "Campaign", "Activity Name", "Date of Activity", "End Date", "Status", "Funding", "Requested($)", "Approved($)", "집행 비용(KRW)"];
             const lines = [header, ...sortFundsRows(fundsRows).map(r => [
-                r.id, r.fy, r.fq, r.industry, r.tactics, r.campaigns.join(", "), r.activity, formatDateWithDay(r.date),
+                r.id, r.fy, r.fq, r.industry, r.tactics, r.campaigns.join(", "), r.activity, formatDateWithDay(r.date), r.endDate ? formatDateWithDay(r.endDate) : "",
                 r.status || "", r.funding, r.self ? "" : r.req, r.self ? "" : r.app, r.cost
             ])].map(row => row.map(cell).join(","));
             const f = getFundsFilters();
@@ -2399,10 +2427,11 @@
             const isSelf = getFunding(c) === "Self";
             const statusKey = getStatusKey(c);
             document.getElementById("modal-title").innerText = c.Activity_Name || "-";
-            document.getElementById("modal-status").innerHTML = statusKey ? statusPillHtml(statusKey) : "";   // 상태가 없으면 배지를 표시하지 않음
+            document.getElementById("modal-status").innerHTML = (statusKey ? statusPillHtml(statusKey) : "") + carryOverTagHtml(c);   // 상태가 없으면 상태 배지를 표시하지 않음 (이월 건은 Carry-over 태그 추가)
             // 부제목은 Funding(MDF/Self)과 무관하게 항상 "Autodesk MDP : 캠페인_ID" (v33: 상세 창에는 Funding 행을 표시하지 않음 — Self는 Total cost 카드로 구분)
             document.getElementById("modal-subtitle").innerText = `Autodesk MDP : ${c.캠페인_ID || "-"}`;
-            document.getElementById("modal-summary-date").innerText = formatDateWithDay(c.Activity_Date) || "-";
+            document.getElementById("modal-summary-date").innerHTML = esc(formatDateWithDay(c.Activity_Date) || "-")
+                + (c.Activity_End_Date ? `<div class="end-line">~ ${esc(formatDateWithDay(c.Activity_End_Date))}</div>` : "");
             document.getElementById("modal-summary-req").innerText = "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString();
             document.getElementById("modal-summary-app").innerText = "$" + (Number(c.Cost_Approved)||0).toLocaleString();
             // Self는 Requested·Approved 카드 대신 비용 상세 내역 합계(원화) 카드
@@ -2480,6 +2509,7 @@
             document.getElementById("newDescription").value = DEFAULT_DESCRIPTION_TEMPLATE;
             buildCampaignDropdown([]);
             setFormFunding("MDF", "");   // reset()은 숨김 입력칸을 되돌리지 못하므로 직접 초기화
+            updateCarryHint();
             formInitialSnapshot = getFormSnapshot();
             document.getElementById("createModal").style.display = "block";
         }
@@ -2504,6 +2534,8 @@
 
             const rawDate = c.Activity_Date ? c.Activity_Date.split('(')[0] : "";
             document.getElementById("newActivityDate").value = rawDate;
+            document.getElementById("newActivityEndDate").value = c.Activity_End_Date ? c.Activity_End_Date.split('(')[0] : "";
+            updateCarryHint();
             document.getElementById("newRequested").value = (Number(c.Cost_MDP_Requested)||0).toLocaleString();
             document.getElementById("newApproved").value = c.Cost_Approved ? Number(c.Cost_Approved).toLocaleString() : "";
             document.getElementById("newDescription").value = c.Activity_Description || "";
@@ -2553,6 +2585,23 @@
         // ===== 등록·수정 화면: Funding / Status =====
         const parseAmountInput = id => Number(document.getElementById(id).value.replace(/,/g, "")) || 0;
         function getFormFunding() { return document.getElementById("newFunding").value === "Self" ? "Self" : "MDF"; }
+
+        // 종료일 입력 안내: 이월(Carry-over) 여부를 입력하는 동안 바로 알려 줌
+        function updateCarryHint() {
+            const s = document.getElementById("newActivityDate").value, endEl = document.getElementById("newActivityEndDate");
+            const e = endEl.value, el = document.getElementById("carryHint");
+            endEl.min = s || "";
+            el.style.color = "#64748b";
+            if (!e) { el.innerText = "비워 두면 시작일 하나로 처리됩니다. 다음 분기로 이어지면 종료일을 입력하세요."; return; }
+            if (s && e < s) { el.style.color = "#b91c1c"; el.innerText = "종료일은 시작일 이후여야 합니다."; return; }
+            const so = fqOrdinal(s), eo = fqOrdinal(e);
+            if (so !== null && eo !== null && eo > so) {
+                const a = getAutodeskFYFQ(s), b = getAutodeskFYFQ(e);
+                el.innerText = `Carry-over: ${a.fy} ${a.fq} → ${b.fy} ${b.fq} (두 분기의 '이번 분기 MDP'에 표시됩니다)`;
+            } else {
+                el.innerText = "같은 분기 안에 끝나므로 이월이 아닙니다.";
+            }
+        }
 
         function updateStatusHint() {
             const funding = getFormFunding(), v = document.getElementById("newStatus").value;
