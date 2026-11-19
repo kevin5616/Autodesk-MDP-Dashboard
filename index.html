@@ -510,7 +510,7 @@
         .funds-self-strip .note { color: #64748b; font-size: 12px; }
         .funds-print-header { display: none; }
         /* 분기 차트 전용 기간 선택 */
-        .fqc-sub { display: block; margin-top: 3px; }
+        .report-header.fqc-header { align-items: flex-end; padding-bottom: 8px; margin-bottom: 14px; }
         .fqc-topnote { text-align: right; }
         .fqc-controls { display: flex; align-items: center; gap: 10px 28px; flex-wrap: wrap; margin-bottom: 10px; }
         .fqc-grp { display: flex; align-items: center; gap: 8px; }
@@ -521,14 +521,18 @@
         .fqc-chip { font-size: 12.5px; padding: 4px 11px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #475569; cursor: pointer; font-family: inherit; }
         .fqc-chip.on { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; font-weight: 600; }
         .fqc-all { font-size: 12px; color: #64748b; text-decoration: underline; cursor: pointer; margin-left: 2px; background: none; border: none; font-family: inherit; }
-        .fqc-period { font-size: 12.5px; color: #475569; margin-bottom: 8px; }
+        .fqc-period { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: #475569; }
+        .fqc-period:empty { display: none; }
+        .fqc-period::before { content: ""; width: 1px; height: 18px; background: #cbd5e1; flex-shrink: 0; }
+        .fqc-period.wrapped::before { display: none; }   /* 줄바꿈되어 아래 줄로 내려가면 구분선 숨김 (JS가 판단) */
+        .fqc-period.warn { color: #b45309; }
 
         /* PDF 출력(인쇄): Funds Status 내용만 A4 세로로 */
         @media print {
             @page { size: A4 portrait; margin: 12mm; }
             body { background: #fff; }
             .navbar, .tab-nav-container, .filter-container, .status-header, #loader, #migrationBanner, #statusMigrationBanner,
-            .funds-toolbar-buttons, .funds-basis-toggle, .fqc-controls, .modal, .toast-msg, .login-overlay { display: none !important; }
+            .funds-toolbar-buttons, .funds-basis-toggle, .fqc-grp, .fqc-period::before, .modal, .toast-msg, .login-overlay { display: none !important; }
             .container { padding: 0; max-width: none; }
             .funds-print-header { display: block; margin-bottom: 14px; border-bottom: 2px solid #142940; padding-bottom: 8px; }
             .funds-print-title { font-size: 18px; font-weight: bold; color: #142940; }
@@ -736,8 +740,8 @@
             <div class="funds-self-strip" id="fundsSelfStrip" style="display:none;"></div>
 
             <div class="report-section funds-section">
-                <div class="report-header">
-                    <span>분기별 MDF 신청·승인 현황<span class="funds-note fqc-sub" id="fqcSub"></span></span>
+                <div class="report-header fqc-header">
+                    <span>분기별 MDF 신청·승인 현황</span>
                     <span class="funds-note fqc-topnote">Industry·Tactics·Funding·Status는 상단 필터를 따릅니다</span>
                 </div>
                 <div class="fqc-controls">
@@ -746,8 +750,8 @@
                         <div class="mf mf-chart" id="fqcFYMf"><button type="button" class="mf-btn" aria-haspopup="true"><span class="mf-lb">FY 선택</span><span class="mf-arrow">&#9662;</span></button><div class="mf-menu"></div></div>
                     </div>
                     <div class="fqc-grp"><span class="fqc-lbl">FQ</span><span class="fqc-chips" id="fqcFQ"></span></div>
+                    <div class="fqc-period" id="fqcPeriod"></div>
                 </div>
-                <div class="fqc-period" id="fqcPeriod"></div>
                 <div style="position: relative; height: 300px;"><canvas id="fundsQuarterChart"></canvas></div>
             </div>
 
@@ -2403,6 +2407,14 @@
                 + `<button type="button" class="fqc-all" onclick="fqcAll('fq')">전체</button>`;
         }
 
+        // 표시 기간 문구가 줄바꿈되어 아래 줄로 내려갔으면 앞의 구분선을 숨김
+        function fqcUpdateWrap() {
+            const per = document.getElementById("fqcPeriod"), prev = per.previousElementSibling;
+            if (!per || !prev || per.offsetParent === null) return;
+            per.classList.toggle("wrapped", per.offsetTop > prev.offsetTop + prev.offsetHeight / 2);
+        }
+        window.addEventListener("resize", fqcUpdateWrap);
+
         // FY 드롭다운 이벤트 (메뉴 내용은 매번 다시 그려지므로 위임 방식으로 한 번만 연결)
         (function () {
             const root = document.getElementById("fqcFYMf"), menu = root.querySelector(".mf-menu");
@@ -2435,10 +2447,10 @@
                 cell[k].req += r.req; cell[k].app += r.app; if (r.status === "Planning") cell[k].planning++;
             });
 
-            let labels = [], datasets = [], sub = "", period = "";
+            let labels = [], datasets = [], period = "", warn = false;
             const fqText = fqs.length === 4 ? "전 분기" : "분기 " + fqs.join(", ");
             if (fys.length === 0 || fqs.length === 0) {
-                period = "FY와 FQ를 하나 이상 선택하세요.";
+                period = "FY와 FQ를 하나 이상 선택하세요."; warn = true;
             } else if (mode === "base") {
                 const keys = [];
                 fys.forEach(fy => fqs.forEach(q => { if (`${fy} ${q}` in cell) keys.push(`${fy} ${q}`); }));
@@ -2456,8 +2468,8 @@
                     datasets.push({ type: "line", label: "전년 같은 분기 Approved ($)", data: prevData, borderColor: "#f59e0b", backgroundColor: "#f59e0b",
                         borderDash: [6, 4], borderWidth: 2, pointRadius: 4, spanGaps: false, tension: 0, order: 1 });
                 }
-                sub = "점선: 전년 같은 분기 Approved";
                 period = keys.length ? `표시 기간: ${keys[0]} ~ ${keys[keys.length - 1]} · ${keys.length}개 분기` : "선택한 기간에 해당하는 데이터가 없습니다.";
+                warn = keys.length === 0;
             } else if (mode === "fy") {
                 labels = fys;
                 const sum = (fy, f) => fqs.reduce((s, q) => s + (cell[`${fy} ${q}`] ? cell[`${fy} ${q}`][f] : 0), 0);
@@ -2465,8 +2477,7 @@
                     { label: "Requested ($)", data: fys.map(fy => sum(fy, "req")), backgroundColor: "#90caf9", borderRadius: 4, isReq: true },
                     { label: "Approved ($)", data: fys.map(fy => sum(fy, "app")), backgroundColor: "#142940", borderRadius: 4 }
                 ];
-                sub = `선택한 FQ(${fqs.join(", ")})의 합계를 FY별로 비교`;
-                period = `비교: ${fys.join(" vs ")} · ${fqText}`;
+                period = `비교: ${fys.join(" vs ")} · ${fqText} (선택한 FQ의 합계를 FY별로 비교)`;
             } else {
                 labels = fqs;
                 fys.forEach((fy, i) => {
@@ -2474,11 +2485,12 @@
                     datasets.push({ label: `${fy} Requested`, data: fqs.map(q => cell[`${fy} ${q}`] ? cell[`${fy} ${q}`].req : 0), backgroundColor: p[0], borderRadius: 4, isReq: true });
                     datasets.push({ label: `${fy} Approved`, data: fqs.map(q => cell[`${fy} ${q}`] ? cell[`${fy} ${q}`].app : 0), backgroundColor: p[1], borderRadius: 4 });
                 });
-                sub = "같은 분기끼리 FY별로 나란히 비교";
-                period = `비교: ${fys.join(" vs ")} · ${fqText}`;
+                period = `비교: ${fys.join(" vs ")} · ${fqText} (같은 분기끼리 FY별로 나란히 비교)`;
             }
-            document.getElementById("fqcSub").textContent = sub;
-            document.getElementById("fqcPeriod").textContent = period;
+            const perEl = document.getElementById("fqcPeriod");
+            perEl.textContent = period;
+            perEl.classList.toggle("warn", warn);
+            fqcUpdateWrap();
 
             if (fundsQuarterChartInstance) { fundsQuarterChartInstance.destroy(); fundsQuarterChartInstance = null; }
             if (datasets.length === 0 || labels.length === 0) return;
