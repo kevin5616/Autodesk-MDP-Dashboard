@@ -476,9 +476,20 @@
         .funds-kpi.k-blue { border-left-color: #90caf9; } .funds-kpi.k-navy { border-left-color: #142940; }
         .funds-kpi.k-green { border-left-color: #a5d6a7; } .funds-kpi.k-purple { border-left-color: #c4b5fd; }
         .funds-kpi.k-orange { border-left-color: #ffcc80; } .funds-kpi.k-amber { border-left-color: #fcd34d; }
-        .funds-basis-toggle { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
-        .funds-basis-toggle button { padding: 6px 12px; font-size: 12.5px; font-weight: 600; border: none; background: #fff; color: #475569; cursor: pointer; font-family: inherit; }
-        .funds-basis-toggle button.active { background: #e0f2fe; color: #0284c7; }
+        .funds-basis-toggle { display: inline-flex; gap: 4px; padding: 3px; background: #f1f5f9; border-radius: 999px; }
+        .funds-basis-toggle button { padding: 6px 13px; font-size: 12.5px; font-weight: 600; border: none; border-radius: 999px; background: transparent; color: #64748b; cursor: pointer; font-family: inherit; transition: all .2s; }
+        .funds-basis-toggle button.active { background: linear-gradient(135deg, #dbeafe, #e9d5ff); color: #4338ca; box-shadow: 0 3px 8px rgba(129,140,248,0.35); }
+        /* 파스텔 차트 (화면용 — 인쇄 시에는 JS가 진한 단색으로 다시 그림) */
+        .report-section.funds-section { border-radius: 16px; box-shadow: 0 10px 30px rgba(99,102,241,0.10), 0 2px 6px rgba(15,23,42,0.05); }
+        .funds-donut { position: relative; width: 170px; height: 170px; margin: 0 auto 10px; }
+        .funds-donut .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+        .funds-donut .center b { font-size: 15px; color: #142940; }
+        .funds-donut .center span { font-size: 11px; color: #64748b; }
+        .funds-donut-legend { font-size: 12px; }
+        .funds-donut-legend > div { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 7px; align-items: center; padding: 3px 0; }
+        .funds-donut-legend i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+        .funds-donut-legend .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #334155; }
+        .funds-donut-legend em { font-style: normal; color: #64748b; font-size: 11.5px; white-space: nowrap; }
         .funds-alloc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
         .funds-cost-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
         .funds-alloc-title { font-size: 13.5px; font-weight: 700; color: #142940; margin-bottom: 10px; }
@@ -495,6 +506,8 @@
         .fill-tactics { background: #a78bfa; } .fill-campaign { background: #34d399; }
         .fill-cost { background: #fbbf24; } .fill-empty { background: #cbd5e1; }
         .funds-empty { font-size: 12.5px; color: #94a3b8; }
+        .funds-bar-row .track { height: 12px; border-radius: 999px; }
+        .funds-bar-row .fill { border-radius: 999px; transition: width .9s cubic-bezier(.2,.8,.2,1); }
         .funds-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .funds-table { font-size: 13px; min-width: 980px; }
         .funds-table th, .funds-table td { padding: 9px 7px; white-space: nowrap; }   /* Status 열이 넓어져 여백을 줄여 한 화면에 맞춤 */
@@ -2339,6 +2352,85 @@
             el.style.display = "flex";
         }
 
+        // ===== 차트 색상 (화면: 파스텔 + 그라데이션 + 그림자 / PDF 인쇄: 진한 단색) =====
+        // FC[톤] = [연한 색, 진한 색]. 세로 막대는 위(진함)→아래(연함), 가로 막대는 왼쪽(연함)→오른쪽(진함)
+        const FC = {
+            mint: ["#c9f2df", "#6fcfa2"], sky: ["#c7e6ff", "#7fbdf2"], pink: ["#ffd3e2", "#f58db3"], lav: ["#dccfff", "#a98ff0"],
+            peach: ["#ffe1c2", "#ffa866"], butter: ["#fff2b8", "#f2cf4f"], peri: ["#cfcfff", "#7f80ec"], teal: ["#c6ece6", "#4fb6a8"], gray: ["#e5e7eb", "#b8bec9"]
+        };
+        const FC_PRINT = {
+            mint: "#34b27b", sky: "#4f9de0", pink: "#e8588f", lav: "#8b6cf0", peach: "#f08a3c", butter: "#e3b100", peri: "#5b5bd6", teal: "#2f9e91", gray: "#94a3b8"
+        };
+        const FUNDS_COST_TONES = ["butter", "peach", "lav", "sky", "mint", "pink"];
+        let fundsPrintMode = false;                      // true인 동안(PDF 인쇄 중)에는 진한 단색으로 그림
+        const fundsDonuts = {};                          // 도넛 차트 인스턴스 (요소 id → Chart)
+
+        const fundsToneColor = tone => fundsPrintMode ? FC_PRINT[tone] : FC[tone][1];
+        function fundsBarGrad(tone) {
+            return c => {
+                // 애니메이션 중의 막대 위치가 아니라, 값 기준의 최종 위치(축 픽셀)로 계산해야 처음부터 올바르게 칠해짐
+                const ys = c.chart.scales && c.chart.scales.y, v = c.parsed && c.parsed.y;
+                if (!ys || v === undefined || v === null) return FC[tone][1];   // 범례 등 막대 값이 없을 때
+                const y0 = ys.getPixelForValue(v), y1 = ys.getPixelForValue(0);
+                if (!Number.isFinite(y0) || !Number.isFinite(y1) || y0 === y1) return FC[tone][1];
+                const g = c.chart.ctx.createLinearGradient(0, y0, 0, y1);
+                g.addColorStop(0, FC[tone][1]); g.addColorStop(1, FC[tone][0]);
+                return g;
+            };
+        }
+        const fundsBarFill = tone => fundsPrintMode ? FC_PRINT[tone] : fundsBarGrad(tone);
+        const fundsBarRadius = () => fundsPrintMode ? 3 : { topLeft: 10, topRight: 10 };
+        const fundsAnim = () => fundsPrintMode ? false : { duration: 900, easing: "easeOutQuart" };
+
+        // 막대·도넛 아래 부드러운 그림자 (인쇄 때는 끔)
+        const fundsShadowPlugin = {
+            id: "fundsShadow",
+            beforeDatasetsDraw(chart) { chart._fx = !fundsPrintMode; if (!chart._fx) return; const c = chart.ctx; c.save(); c.shadowColor = "rgba(99,102,241,0.24)"; c.shadowBlur = 12; c.shadowOffsetY = 5; },
+            afterDatasetsDraw(chart) { if (chart._fx) chart.ctx.restore(); }
+        };
+        // 도넛 뒤의 아주 연한 바탕 링 (조각이 틈을 두어도 하나의 원으로 보이게)
+        const fundsDonutTrackPlugin = {
+            id: "fundsDonutTrack",
+            beforeDatasetsDraw(chart) {
+                if (fundsPrintMode) return;
+                const a = chart.getDatasetMeta(0).data[0]; if (!a) return;
+                const c = chart.ctx; c.save(); c.beginPath();
+                c.arc(a.x, a.y, (a.outerRadius + a.innerRadius) / 2, 0, Math.PI * 2);
+                c.lineWidth = a.outerRadius - a.innerRadius; c.strokeStyle = "rgba(148,163,184,0.16)"; c.stroke(); c.restore();
+            }
+        };
+
+        // 항목이 6개 이상이면 비중 3% 미만 항목(2개 이상일 때)을 "기타"로 묶음
+        function groupSmallItems(items, total) {
+            if (items.length <= 5 || total <= 0) return items;
+            const big = items.filter(i => i.value / total >= 0.03), small = items.filter(i => i.value / total < 0.03);
+            if (small.length < 2) return items;
+            return [...big, { name: "기타", value: sumBy(small, i => i.value), count: sumBy(small, i => i.count || 0), tone: "gray", muted: true }];
+        }
+
+        // 도넛 차트 + 아래 범례 (items: [{name, value, count?, tone, muted?}], textOf(item): 범례 오른쪽 문구)
+        function renderFundsDonut(elId, items, centerText, textOf) {
+            if (fundsDonuts[elId]) { fundsDonuts[elId].destroy(); delete fundsDonuts[elId]; }
+            const el = document.getElementById(elId);
+            const data = items.filter(i => i.value > 0);
+            if (data.length === 0) { el.innerHTML = `<div class="funds-empty">해당 데이터가 없습니다.</div>`; return; }
+            const toneOf = i => i.muted ? "gray" : i.tone;
+            el.innerHTML = `<div class="funds-donut"><canvas id="${elId}Canvas"></canvas><div class="center"><b>${esc(centerText)}</b><span>합계</span></div></div>
+                <div class="funds-donut-legend">${data.map(i => `<div><i style="background:${fundsToneColor(toneOf(i))}"></i><span class="nm" title="${esc(i.name)}">${esc(i.name)}</span><em>${esc(textOf(i))}</em></div>`).join("")}</div>`;
+            fundsDonuts[elId] = new Chart(document.getElementById(elId + "Canvas").getContext("2d"), {
+                type: "doughnut",
+                data: { labels: data.map(i => i.name), datasets: [{
+                    data: data.map(i => i.value), backgroundColor: data.map(i => fundsToneColor(toneOf(i))),
+                    borderWidth: fundsPrintMode ? 2 : 0, borderColor: "#ffffff", borderRadius: fundsPrintMode ? 0 : 3, spacing: fundsPrintMode ? 0 : 1.5, hoverOffset: 3
+                }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: "66%", layout: { padding: 10 }, animation: fundsAnim(),
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${textOf(data[ctx.dataIndex])}` } } }
+                },
+                plugins: [fundsDonutTrackPlugin, fundsShadowPlugin]
+            });
+        }
+
         // 막대 위에 금액 표시 (별도 라이브러리 없이 Chart.js 플러그인으로 직접 그림)
         const fundsBarValuePlugin = {
             id: "fundsBarValue",
@@ -2364,7 +2456,8 @@
         // mode: base(기본) | fy(FY 비교) | fq(FQ 비교) / fys: null = 기본값(가장 최근 2개 FY)
         const fundsChartSel = { mode: "base", fys: null, fqs: ["Q1", "Q2", "Q3", "Q4"] };
         const FQC_MODES = [["base", "기본"], ["fy", "FY 비교"], ["fq", "FQ 비교"]];
-        const FQC_PALETTE = [["#90caf9", "#142940"], ["#9fe1cb", "#085041"], ["#cecbf6", "#3c3489"], ["#fed7aa", "#9a3412"], ["#fbcfe8", "#9d174d"]];
+        // FQ 비교: FY마다 [Requested 톤, Approved 톤] (같은 계열의 연한 색 / 진한 색)
+        const FQC_TONES = [["sky", "peri"], ["mint", "teal"], ["butter", "peach"], ["pink", "lav"], ["gray", "teal"]];
 
         function fqcAvailableFys() {
             const set = new Set();
@@ -2461,12 +2554,13 @@
                     return pk in cell ? cell[pk].app : null;
                 });
                 datasets = [
-                    { label: "Requested ($)", data: keys.map(k => cell[k].req), backgroundColor: "#90caf9", borderRadius: 4, order: 2, isReq: true },
-                    { label: "Approved ($)", data: keys.map(k => cell[k].app), backgroundColor: "#142940", borderRadius: 4, order: 2 }
+                    { label: "Requested ($)", data: keys.map(k => cell[k].req), backgroundColor: fundsBarFill("sky"), borderRadius: fundsBarRadius(), borderSkipped: false, order: 2, isReq: true },
+                    { label: "Approved ($)", data: keys.map(k => cell[k].app), backgroundColor: fundsBarFill("peri"), borderRadius: fundsBarRadius(), borderSkipped: false, order: 2 }
                 ];
                 if (prevData.some(v => v !== null)) {
-                    datasets.push({ type: "line", label: "전년 같은 분기 Approved ($)", data: prevData, borderColor: "#f59e0b", backgroundColor: "#f59e0b",
-                        borderDash: [6, 4], borderWidth: 2, pointRadius: 4, spanGaps: false, tension: 0, order: 1 });
+                    const lc = fundsPrintMode ? FC_PRINT.peach : "#ffb88c";
+                    datasets.push({ type: "line", label: "전년 같은 분기 Approved ($)", data: prevData, borderColor: lc, backgroundColor: "#ffffff", pointBackgroundColor: "#ffffff", pointBorderColor: lc,
+                        borderDash: [7, 5], borderWidth: fundsPrintMode ? 2 : 2.5, pointRadius: fundsPrintMode ? 4 : 5, pointBorderWidth: 2.5, spanGaps: false, tension: fundsPrintMode ? 0 : 0.35, order: 1 });
                 }
                 period = keys.length ? `표시 기간: ${keys[0]} ~ ${keys[keys.length - 1]} · ${keys.length}개 분기` : "선택한 기간에 해당하는 데이터가 없습니다.";
                 warn = keys.length === 0;
@@ -2474,16 +2568,16 @@
                 labels = fys;
                 const sum = (fy, f) => fqs.reduce((s, q) => s + (cell[`${fy} ${q}`] ? cell[`${fy} ${q}`][f] : 0), 0);
                 datasets = [
-                    { label: "Requested ($)", data: fys.map(fy => sum(fy, "req")), backgroundColor: "#90caf9", borderRadius: 4, isReq: true },
-                    { label: "Approved ($)", data: fys.map(fy => sum(fy, "app")), backgroundColor: "#142940", borderRadius: 4 }
+                    { label: "Requested ($)", data: fys.map(fy => sum(fy, "req")), backgroundColor: fundsBarFill("sky"), borderRadius: fundsBarRadius(), borderSkipped: false, isReq: true },
+                    { label: "Approved ($)", data: fys.map(fy => sum(fy, "app")), backgroundColor: fundsBarFill("peri"), borderRadius: fundsBarRadius(), borderSkipped: false }
                 ];
                 period = `비교: ${fys.join(" vs ")} · ${fqText} (선택한 FQ의 합계를 FY별로 비교)`;
             } else {
                 labels = fqs;
                 fys.forEach((fy, i) => {
-                    const p = FQC_PALETTE[i % FQC_PALETTE.length];
-                    datasets.push({ label: `${fy} Requested`, data: fqs.map(q => cell[`${fy} ${q}`] ? cell[`${fy} ${q}`].req : 0), backgroundColor: p[0], borderRadius: 4, isReq: true });
-                    datasets.push({ label: `${fy} Approved`, data: fqs.map(q => cell[`${fy} ${q}`] ? cell[`${fy} ${q}`].app : 0), backgroundColor: p[1], borderRadius: 4 });
+                    const p = FQC_TONES[i % FQC_TONES.length];
+                    datasets.push({ label: `${fy} Requested`, data: fqs.map(q => cell[`${fy} ${q}`] ? cell[`${fy} ${q}`].req : 0), backgroundColor: fundsBarFill(p[0]), borderRadius: fundsBarRadius(), borderSkipped: false, isReq: true });
+                    datasets.push({ label: `${fy} Approved`, data: fqs.map(q => cell[`${fy} ${q}`] ? cell[`${fy} ${q}`].app : 0), backgroundColor: fundsBarFill(p[1]), borderRadius: fundsBarRadius(), borderSkipped: false });
                 });
                 period = `비교: ${fys.join(" vs ")} · ${fqText} (같은 분기끼리 FY별로 나란히 비교)`;
             }
@@ -2498,25 +2592,37 @@
                 type: "bar",
                 data: { labels, datasets },
                 options: {
-                    responsive: true, maintainAspectRatio: false, layout: { padding: { top: 22 } },
-                    scales: { y: { beginAtZero: true, ticks: { callback: v => fmtUsdCompact(v) } } },
+                    responsive: true, maintainAspectRatio: false, layout: { padding: { top: 22 } }, animation: fundsAnim(),
+                    datasets: { bar: { maxBarThickness: 46 } },
+                    scales: {
+                        x: { grid: { display: false }, border: { display: false } },
+                        y: { beginAtZero: true, border: { display: false }, grid: { color: "rgba(148,163,184,0.2)", drawTicks: false }, ticks: { callback: v => fmtUsdCompact(v) } }
+                    },
                     plugins: { tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw === null ? "-" : fmtUsd(ctx.raw)}` } } }
                 },
-                plugins: [fundsBarValuePlugin]
+                plugins: [fundsShadowPlugin, fundsBarValuePlugin]
             });
         }
 
         // 가로 막대 목록 (items: [{ name, value, text, muted }])
-        function renderBarList(elId, items, fillClass, stacked = false) {
+        // tone: FC 색 이름. 화면에서는 왼쪽(연함)→오른쪽(진함) 그라데이션 + 그림자, 인쇄에서는 진한 단색
+        function renderBarList(elId, items, tone, stacked = false) {
             const el = document.getElementById(elId);
             if (items.length === 0) { el.innerHTML = `<div class="funds-empty">해당 데이터가 없습니다.</div>`; return; }
             const max = Math.max(...items.map(i => i.value), 0);
-            el.innerHTML = items.map(i => `
+            el.innerHTML = items.map(i => {
+                const t = i.muted ? "gray" : (i.tone || tone);
+                const w = max > 0 ? (i.value / max * 100).toFixed(1) : 0;
+                const bg = fundsPrintMode ? FC_PRINT[t] : `linear-gradient(90deg, ${FC[t][0]}, ${FC[t][1]})`;
+                const sd = fundsPrintMode ? "" : `box-shadow:0 3px 8px ${FC[t][1]}88;`;
+                return `
                 <div class="funds-bar-row${stacked ? " stacked" : ""}">
                     <span class="name" title="${esc(i.name)}">${esc(i.name)}</span>
-                    <div class="track"><div class="fill ${i.muted ? "fill-empty" : (i.fillClass || fillClass)}" style="width:${max > 0 ? (i.value / max * 100).toFixed(1) : 0}%"></div></div>
+                    <div class="track"><div class="fill" data-w="${w}" style="width:${fundsPrintMode ? w : 0}%;background:${bg};${sd}"></div></div>
                     <span class="amount">${esc(i.text)}</span>
-                </div>`).join("");
+                </div>`;
+            }).join("");
+            if (!fundsPrintMode) setTimeout(() => el.querySelectorAll(".fill[data-w]").forEach(f => { f.style.width = f.dataset.w + "%"; }), 40);
         }
 
         function renderFundsAllocation(rows) {
@@ -2537,9 +2643,15 @@
                     name, value: d.amount, muted: name === "미지정",
                     text: `${fmtUsd(d.amount)} · ${total > 0 ? (d.amount / total * 100).toFixed(1) : "0.0"}% · MDP ${d.count}건`
                 }));
-            renderBarList("fundsAllocIndustry", toItems(ind).map(i => ({ ...i, fillClass: industryStyle(i.name).fill })), "fill-ind-etc");
-            renderBarList("fundsAllocTactics", toItems(tac), "fill-tactics");
-            renderBarList("fundsAllocCampaign", toItems(camp), "fill-campaign", true);
+            // Industry는 도넛 (비중이 핵심), Tactics·Campaign은 막대 (순위·긴 이름)
+            const indTone = { aec: "mint", dm: "sky", all: "pink" };
+            const indItems = groupSmallItems(Object.entries(ind).sort((a, b) => b[1].amount - a[1].amount || a[0].localeCompare(b[0]))
+                .map(([name, d]) => ({ name, value: d.amount, count: d.count, muted: name === "미지정",
+                    tone: indTone[industryStyle(name).fill.replace("fill-ind-", "")] || "gray" })), total);
+            renderFundsDonut("fundsAllocIndustry", indItems, fmtUsd(total),
+                i => `${fmtUsd(i.value)} · ${total > 0 ? (i.value / total * 100).toFixed(1) : "0.0"}% · MDP ${i.count}건`);
+            renderBarList("fundsAllocTactics", toItems(tac), "lav");
+            renderBarList("fundsAllocCampaign", toItems(camp), "mint", true);
         }
 
         function renderFundsCost(rows) {
@@ -2551,16 +2663,18 @@
                 groups[g] = (groups[g] || 0) + amount;
             }));
             const groupTotal = Object.values(groups).reduce((s, v) => s + v, 0);
-            renderBarList("fundsCostGroups", Object.entries(groups).sort((a, b) => b[1] - a[1]).map(([name, v]) => ({
-                name, value: v, muted: name === "미분류",
-                text: `${fmtKrw(v)} · ${groupTotal > 0 ? (v / groupTotal * 100).toFixed(1) : "0.0"}%`
-            })), "fill-cost");
+            // 비용 그룹은 구성 비율이 핵심이라 도넛 (색은 그룹 순서대로 돌려 쓰고, 미분류·기타는 회색)
+            const krwCompact = v => v >= 1e8 ? "₩" + (v / 1e8).toFixed(1).replace(/\.0$/, "") + "억" : v >= 1e4 ? "₩" + Math.round(v / 1e4).toLocaleString() + "만" : fmtKrw(v);
+            const groupItems = groupSmallItems(Object.entries(groups).sort((a, b) => b[1] - a[1])
+                .map(([name, v], idx) => ({ name, value: v, muted: name === "미분류", tone: FUNDS_COST_TONES[idx % FUNDS_COST_TONES.length] })), groupTotal);
+            renderFundsDonut("fundsCostGroups", groupItems, krwCompact(groupTotal),
+                i => `${fmtKrw(i.value)} · ${groupTotal > 0 ? (i.value / groupTotal * 100).toFixed(1) : "0.0"}%`);
 
             const byTactic = {};
             rows.filter(r => r.cost > 0).forEach(r => { byTactic[r.tactics] ??= { total: 0, count: 0 }; byTactic[r.tactics].total += r.cost; byTactic[r.tactics].count += 1; });
             renderBarList("fundsCostByTactic", Object.entries(byTactic).map(([name, d]) => ({ name, avg: d.total / d.count, d }))
                 .sort((a, b) => b.avg - a.avg)
-                .map(({ name, avg, d }) => ({ name, value: avg, text: `평균 ${fmtKrw(avg)} · MDP ${d.count}건 · 합계 ${fmtKrw(d.total)}` })), "fill-tactics");
+                .map(({ name, avg, d }) => ({ name, value: avg, text: `평균 ${fmtKrw(avg)} · MDP ${d.count}건 · 합계 ${fmtKrw(d.total)}` })), "peach");
         }
 
         const FUNDS_TABLE_COLUMNS = [
@@ -2984,8 +3098,14 @@
         });
 
         // PDF 출력 시 차트를 인쇄 폭에 맞게 다시 그림
-        window.addEventListener("beforeprint", () => { if (fundsQuarterChartInstance) fundsQuarterChartInstance.resize(); });
-        window.addEventListener("afterprint", () => { if (fundsQuarterChartInstance) fundsQuarterChartInstance.resize(); });
+        // 인쇄하는 동안에는 차트·막대를 진한 단색(그라데이션·그림자 없음)으로 다시 그리고, 끝나면 파스텔로 되돌림
+        function fundsRedrawForPrint(on) {
+            fundsPrintMode = on;
+            if (document.body.dataset.tab === "reportTab") renderFundsStatusCharts();
+            if (fundsQuarterChartInstance) fundsQuarterChartInstance.resize();
+        }
+        window.addEventListener("beforeprint", () => fundsRedrawForPrint(true));
+        window.addEventListener("afterprint", () => fundsRedrawForPrint(false));
 
         // 휴지통 [복구]/[영구 삭제] 버튼 (ID를 onclick 코드에 넣지 않고 data 속성으로 전달)
         document.getElementById("trashList").addEventListener("click", function(e) {
