@@ -308,7 +308,7 @@
         .badge { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: normal; word-break: break-all; margin-right: 4px; margin-bottom: 2px; }
         /* Status 열이 늘어나도 Tactics 배지와 Date of Activity는 한 줄 유지 (넘치는 폭은 Activity Name이 줄바꿈으로 흡수) */
         .fy-content-wrapper td:nth-child(4) .badge { white-space: nowrap; }
-        .fy-content-wrapper td:nth-child(7) { white-space: nowrap; }
+        .fy-content-wrapper td:nth-child(6) { white-space: nowrap; }   /* v33: Date of Activity는 6번째 열 (Status가 그 뒤) */
         /* v33: 캠페인 현황표 헤더는 한 줄 (FY·FQ는 좁게), 금액 칸은 오른쪽 정렬(헤더는 가운데 유지) */
         .fy-content-wrapper th { white-space: nowrap; padding: 12px 8px; }
         .fy-content-wrapper td { padding: 12px 8px; }
@@ -2059,7 +2059,7 @@
                 let rows = "";
                 items.forEach(c => {
                     const formattedDate = formatDateWithDay(c.Activity_Date);
-                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b>${selfTagHtml(c)}</td><td>${statusPillHtml(c.statusKey)}</td><td>${esc(formattedDate)}</td><td class="text-right">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
+                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b>${selfTagHtml(c)}</td><td>${esc(formattedDate)}</td><td>${statusPillHtml(c.statusKey)}</td><td class="text-right">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
                 });
                 
                 const isOpen = openFys.has(fy) || !!quickFilter;   // 빠른 필터 사용 중에는 결과가 바로 보이도록 펼침
@@ -2091,8 +2091,8 @@
                                        <th onclick="sortTable('${fy}', 'industry')">Industry ${getSortIcon(fy, 'industry')}</th>
                                        <th style="text-align:left;" onclick="sortTable('${fy}', 'tactics')">Tactics ${getSortIcon(fy, 'tactics')}</th>
                                        <th style="text-align:left;" onclick="sortTable('${fy}', 'activityName')">Activity Name ${getSortIcon(fy, 'activityName')}</th>
-                                       <th onclick="sortTable('${fy}', 'status')">Status ${getSortIcon(fy, 'status')}</th>
                                        <th onclick="sortTable('${fy}', 'date')">Date of Activity ${getSortIcon(fy, 'date')}</th>
+                                       <th onclick="sortTable('${fy}', 'status')">Status ${getSortIcon(fy, 'status')}</th>
                                        <th onclick="sortTable('${fy}', 'requested')">Requested($) ${getSortIcon(fy, 'requested')}</th>
                                        <th onclick="sortTable('${fy}', 'approved')">Approved($) ${getSortIcon(fy, 'approved')}</th>
                                    </tr>
