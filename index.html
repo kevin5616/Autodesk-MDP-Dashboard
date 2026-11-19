@@ -276,6 +276,21 @@
         .filter-container { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
         .filter-container input, .filter-container select { padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; flex: 1; min-width: 140px; outline: none; font-family: inherit; }
         
+        /* 복수 선택 필터 (체크박스 드롭다운) */
+        .mf { position: relative; flex: 1; min-width: 140px; }
+        .mf-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; background: #fff; font-size: 14px; font-family: inherit; color: #000; cursor: pointer; text-align: left; }
+        .mf-lb { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mf-arrow { font-size: 11px; color: #64748b; flex-shrink: 0; }
+        .mf.has-sel .mf-btn { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; font-weight: 600; }
+        .mf.open .mf-btn { border-color: #0284c7; }
+        .mf-menu { display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: max(100%, 190px); max-height: 320px; overflow-y: auto; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 8px 24px rgba(15,23,42,0.14); padding: 6px; z-index: 60; }
+        .mf.open .mf-menu { display: block; }
+        .mf-menu label { display: flex; align-items: center; gap: 8px; padding: 7px 8px; font-size: 13.5px; color: #1e293b; border-radius: 5px; cursor: pointer; white-space: nowrap; }
+        .mf-menu label:hover { background: #f1f5f9; }
+        .mf-menu input { width: 15px; height: 15px; margin: 0; flex: 0 0 auto; }
+        .mf-menu .mf-act { display: flex; justify-content: space-between; margin-top: 4px; padding: 7px 8px 2px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; }
+        .mf-menu .mf-act span { cursor: pointer; }
+        .mf-menu .mf-act span:hover { color: #0284c7; }
         .reset-btn { padding: 9px 18px; background-color: #e2e8f0; color: #334155; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; font-size: 13px; }
         .reset-btn:hover { background-color: #cbd5e1; }
 
@@ -494,13 +509,24 @@
         .funds-self-strip { display: flex; justify-content: space-between; align-items: center; gap: 10px 24px; flex-wrap: wrap; background: #f1f5f9; border-radius: 10px; padding: 12px 18px; margin: -10px 0 25px; font-size: 13px; color: #334155; }
         .funds-self-strip .note { color: #64748b; font-size: 12px; }
         .funds-print-header { display: none; }
+        /* 분기 차트 전용 기간 선택 */
+        .fqc-sub { display: block; margin-top: 3px; }
+        .fqc-topnote { text-align: right; }
+        .fqc-controls { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .fqc-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .fqc-lbl { font-size: 12px; color: #64748b; min-width: 30px; }
+        .fqc-chips { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .fqc-chip { font-size: 12.5px; padding: 4px 11px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #475569; cursor: pointer; font-family: inherit; }
+        .fqc-chip.on { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; font-weight: 600; }
+        .fqc-all { font-size: 12px; color: #64748b; text-decoration: underline; cursor: pointer; margin-left: 2px; background: none; border: none; font-family: inherit; }
+        .fqc-period { font-size: 12.5px; color: #475569; margin-bottom: 8px; }
 
         /* PDF 출력(인쇄): Funds Status 내용만 A4 세로로 */
         @media print {
             @page { size: A4 portrait; margin: 12mm; }
             body { background: #fff; }
             .navbar, .tab-nav-container, .filter-container, .status-header, #loader, #migrationBanner, #statusMigrationBanner,
-            .funds-toolbar-buttons, .funds-basis-toggle, .modal, .toast-msg, .login-overlay { display: none !important; }
+            .funds-toolbar-buttons, .funds-basis-toggle, .fqc-controls, .modal, .toast-msg, .login-overlay { display: none !important; }
             .container { padding: 0; max-width: none; }
             .funds-print-header { display: block; margin-bottom: 14px; border-bottom: 2px solid #142940; padding-bottom: 8px; }
             .funds-print-title { font-size: 18px; font-weight: bold; color: #142940; }
@@ -672,13 +698,11 @@
         <div class="filter-container">
             <input type="text" id="searchInput" placeholder="Activity Name 검색..." oninput="filterData()">
             <select id="filterFY" onchange="filterData()"><option value="">모든 FY</option></select>
-            <select id="filterFQ" onchange="filterData()">
-                <option value="">모든 FQ</option><option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option>
-            </select>
-            <select id="filterIndustry" onchange="filterData()"><option value="">모든 Industry</option></select>
-            <select id="filterTactics" onchange="filterData()"><option value="">모든 Tactics</option></select>
+            <div class="mf" id="filterFQ" data-key="fq"><button type="button" class="mf-btn" aria-haspopup="true"><span class="mf-lb">모든 FQ</span><span class="mf-arrow">&#9662;</span></button><div class="mf-menu"></div></div>
+            <div class="mf" id="filterIndustry" data-key="ind"><button type="button" class="mf-btn" aria-haspopup="true"><span class="mf-lb">모든 Industry</span><span class="mf-arrow">&#9662;</span></button><div class="mf-menu"></div></div>
+            <div class="mf" id="filterTactics" data-key="tac"><button type="button" class="mf-btn" aria-haspopup="true"><span class="mf-lb">모든 Tactics</span><span class="mf-arrow">&#9662;</span></button><div class="mf-menu"></div></div>
             <select id="filterFunding" onchange="filterData()"><option value="">모든 Funding</option><option value="MDF">MDF</option><option value="Self">Self</option></select>
-            <select id="filterStatus" onchange="filterData()"><option value="">모든 Status</option><option value="Planning">Planning</option><option value="Ongoing">Ongoing</option><option value="Denied">Denied</option><option value="Completed">Completed</option><option value="Canceled">Canceled</option><option value="none">상태 없음</option></select>
+            <div class="mf" id="filterStatus" data-key="st"><button type="button" class="mf-btn" aria-haspopup="true"><span class="mf-lb">모든 Status</span><span class="mf-arrow">&#9662;</span></button><div class="mf-menu"></div></div>
             <span class="quick-filter-chip" id="quickFilterChip" style="display:none;"></span>
             <button class="reset-btn" onclick="resetFilters()">초기화</button>
         </div>
@@ -711,15 +735,21 @@
 
             <div class="report-section funds-section">
                 <div class="report-header">
-                    <span>분기별 Requested vs Approved</span>
-                    <span class="funds-note">점선: 전년 같은 분기 Approved</span>
+                    <span>분기별 MDF 신청·승인 현황<span class="funds-note fqc-sub" id="fqcSub"></span></span>
+                    <span class="funds-note fqc-topnote">Industry·Tactics·Funding·Status는 상단 필터를 따릅니다</span>
                 </div>
+                <div class="fqc-controls">
+                    <div class="fqc-row"><span class="fqc-lbl">보기</span><span class="funds-basis-toggle" id="fqcMode"></span></div>
+                    <div class="fqc-row"><span class="fqc-lbl">FY</span><span class="fqc-chips" id="fqcFY"></span></div>
+                    <div class="fqc-row"><span class="fqc-lbl">FQ</span><span class="fqc-chips" id="fqcFQ"></span></div>
+                </div>
+                <div class="fqc-period" id="fqcPeriod"></div>
                 <div style="position: relative; height: 300px;"><canvas id="fundsQuarterChart"></canvas></div>
             </div>
 
             <div class="report-section funds-section">
                 <div class="report-header">
-                    <span>Fund 배분</span>
+                    <span>MDF 분야별 배분 현황</span>
                     <span class="funds-basis-toggle" id="fundsBasisToggle">
                         <button type="button" data-basis="approved" class="active">Approved 기준</button>
                         <button type="button" data-basis="requested">Requested 기준</button>
@@ -735,7 +765,7 @@
 
             <div class="report-section funds-section">
                 <div class="report-header">
-                    <span>비용 구조 (원화 · 비용 내역 기준)</span>
+                    <span>집행 비용 분석 (KRW)</span>
                 </div>
                 <div class="funds-cost-grid">
                     <div><div class="funds-alloc-title">비용 그룹별 합계</div><div id="fundsCostGroups"></div></div>
@@ -1816,9 +1846,85 @@
                 sel.value = values.includes(prev) ? prev : "";
             };
             fillSelect("filterFY", "모든 FY", Array.from(fys).sort().reverse());
-            fillSelect("filterIndustry", "모든 Industry", Array.from(inds).sort());
-            fillSelect("filterTactics", "모든 Tactics", Array.from(tacs).sort());
+            setMfOptions("fq", MF_FQ_OPTIONS);
+            setMfOptions("ind", Array.from(inds).sort().map(v => ({ v, t: v })));
+            setMfOptions("tac", Array.from(tacs).sort().map(v => ({ v, t: v })));
+            setMfOptions("st", MF_ST_OPTIONS);
         }
+
+        // ===== 복수 선택 필터 (FQ·Industry·Tactics·Status) =====
+        // 같은 필터 안의 값끼리는 OR, 서로 다른 필터끼리는 AND. 아무것도 고르지 않으면 "전체".
+        const MF_DEFS = {
+            fq:  { id: "filterFQ",       all: "모든 FQ",       name: "FQ" },
+            ind: { id: "filterIndustry", all: "모든 Industry", name: "Industry" },
+            tac: { id: "filterTactics",  all: "모든 Tactics",  name: "Tactics" },
+            st:  { id: "filterStatus",   all: "모든 Status",   name: "Status" }
+        };
+        const MF_FQ_OPTIONS = ["Q1", "Q2", "Q3", "Q4"].map(v => ({ v, t: v }));
+        const MF_ST_OPTIONS = ["Planning", "Ongoing", "Denied", "Completed", "Canceled"].map(v => ({ v, t: v })).concat([{ v: "none", t: "상태 없음" }]);
+        const mfSel = { fq: [], ind: [], tac: [], st: [] };
+        const mfOpts = { fq: [], ind: [], tac: [], st: [] };
+
+        function mfText(key, v) { const o = mfOpts[key].find(x => x.v === v); return o ? o.t : v; }
+
+        function mfSyncButton(key) {
+            const root = document.getElementById(MF_DEFS[key].id), s = mfSel[key];
+            root.querySelector(".mf-lb").textContent = s.length === 0 ? MF_DEFS[key].all : (s.length === 1 ? mfText(key, s[0]) : `${mfText(key, s[0])} 외 ${s.length - 1}`);
+            root.classList.toggle("has-sel", s.length > 0);
+        }
+
+        function mfRenderMenu(key) {
+            const root = document.getElementById(MF_DEFS[key].id);
+            root.querySelector(".mf-menu").innerHTML = mfOpts[key].map(o =>
+                `<label><input type="checkbox" value="${esc(o.v)}"${mfSel[key].includes(o.v) ? " checked" : ""}>${esc(o.t)}</label>`).join("")
+                + `<div class="mf-act"><span data-act="clear">전체 해제</span><span data-act="close">닫기</span></div>`;
+        }
+
+        // 선택지 목록을 다시 만들되, 이미 고른 값은 유지(목록에서 사라진 값만 제거)
+        function setMfOptions(key, opts) {
+            mfOpts[key] = opts;
+            mfSel[key] = mfSel[key].filter(v => opts.some(o => o.v === v));
+            mfRenderMenu(key);
+            mfSyncButton(key);
+        }
+
+        function mfClearAll() {
+            Object.keys(mfSel).forEach(k => { mfSel[k] = []; mfRenderMenu(k); mfSyncButton(k); });
+        }
+
+        function mfCloseAll(except) {
+            document.querySelectorAll(".mf.open").forEach(el => { if (el !== except) el.classList.remove("open"); });
+        }
+
+        document.querySelectorAll(".mf").forEach(root => {
+            const key = root.dataset.key, menu = root.querySelector(".mf-menu");
+            root.querySelector(".mf-btn").addEventListener("click", e => {
+                e.stopPropagation();
+                const willOpen = !root.classList.contains("open");
+                mfCloseAll(root);
+                root.classList.toggle("open", willOpen);
+            });
+            menu.addEventListener("click", e => e.stopPropagation());
+            menu.addEventListener("change", e => {
+                const cb = e.target; if (!cb || cb.type !== "checkbox") return;
+                const i = mfSel[key].indexOf(cb.value);
+                if (cb.checked && i < 0) mfSel[key].push(cb.value);
+                if (!cb.checked && i > -1) mfSel[key].splice(i, 1);
+                mfSyncButton(key);
+                filterData();
+            });
+            menu.addEventListener("click", e => {
+                const act = e.target.dataset && e.target.dataset.act; if (!act) return;
+                if (act === "clear") { mfSel[key] = []; mfRenderMenu(key); mfSyncButton(key); filterData(); }
+                else root.classList.remove("open");
+            });
+        });
+        document.addEventListener("click", () => mfCloseAll());
+        document.addEventListener("keydown", e => { if (e.key === "Escape") mfCloseAll(); });
+
+        // 선택 값 → 조건 판정 (빈 목록 = 전체)
+        const mfHas = (key, v) => mfSel[key].length === 0 || mfSel[key].includes(v);
+        const mfStatusMatch = (c, q) => mfSel.st.length === 0 || mfSel.st.some(s => statusFilterMatches(c, s, q));
 
         // ===== MDP Status 상단: 현재 분기 + 할 일 카드 =====
         const DAY_MS = 24 * 60 * 60 * 1000;
@@ -1953,17 +2059,13 @@
         function filterData() {
             const kw = document.getElementById("searchInput").value.toLowerCase();
             const fy = document.getElementById("filterFY").value;
-            const fq = document.getElementById("filterFQ").value;
-            const ind = document.getElementById("filterIndustry").value;
-            const tac = document.getElementById("filterTactics").value;
             const fund = document.getElementById("filterFunding").value;
-            const stf = document.getElementById("filterStatus").value;
             const q = getCurrentQuarterInfo();
 
             currentFilteredCampaigns = getActiveCampaigns().filter(c => {
                 const af = getAutodeskFYFQ(c.Activity_Date);
-                return (c.Activity_Name || "").toLowerCase().includes(kw) && (!fy || af.fy === fy) && (!fq || af.fq === fq) && (!ind || c.Industry === ind) && (!tac || c.Tactics === tac)
-                    && (!fund || getFunding(c) === fund) && statusFilterMatches(c, stf, q)
+                return (c.Activity_Name || "").toLowerCase().includes(kw) && (!fy || af.fy === fy) && mfHas("fq", af.fq) && mfHas("ind", c.Industry) && mfHas("tac", c.Tactics)
+                    && (!fund || getFunding(c) === fund) && mfStatusMatch(c, q)
                     && matchesQuickFilter(c, q);
             });
             renderStatusHeader(q);
@@ -1975,11 +2077,8 @@
         function resetFilters() {
             document.getElementById("searchInput").value = "";
             document.getElementById("filterFY").value = "";
-            document.getElementById("filterFQ").value = "";
-            document.getElementById("filterIndustry").value = "";
-            document.getElementById("filterTactics").value = "";
             document.getElementById("filterFunding").value = "";
-            document.getElementById("filterStatus").value = "";
+            mfClearAll();
             quickFilter = null;
             filterData();
         }
@@ -2148,19 +2247,19 @@
         function getFundsFilters() {
             return {
                 fy: document.getElementById("filterFY").value,
-                fq: document.getElementById("filterFQ").value,
-                ind: document.getElementById("filterIndustry").value,
-                tac: document.getElementById("filterTactics").value,
+                fq: mfSel.fq.slice(),
+                ind: mfSel.ind.slice(),
+                tac: mfSel.tac.slice(),
                 fund: document.getElementById("filterFunding").value,
-                st: document.getElementById("filterStatus").value
+                st: mfSel.st.slice()
             };
         }
 
         function getFundsCriteriaText() {
             const f = getFundsFilters();
-            const parts = [f.fy || "전체 FY", f.fq || "전체 분기", f.ind ? "Industry " + f.ind : "전체 Industry", f.tac ? "Tactics " + f.tac : "전체 Tactics"];
+            const parts = [f.fy || "전체 FY", f.fq.length ? f.fq.join(", ") : "전체 분기", f.ind.length ? "Industry " + f.ind.join(", ") : "전체 Industry", f.tac.length ? "Tactics " + f.tac.join(", ") : "전체 Tactics"];
             if (f.fund) parts.push("Funding " + f.fund);
-            if (f.st) parts.push("Status " + (f.st === "none" ? "상태 없음" : f.st));
+            if (f.st.length) parts.push("Status " + f.st.map(s => mfText("st", s)).join(", "));
             parts.push("휴지통 제외");
             return parts.join(" · ");
         }
@@ -2182,10 +2281,10 @@
                     req: Number(c.Cost_MDP_Requested) || 0, app, confirmed: funding === "MDF" && app > 0,
                     cost: sumBy(getCampaignCosts(c) || [], x => Number(x.금액) || 0)
                 };
-            }).filter(r => (ignorePeriod || ((!f.fy || r.fy === f.fy) && (!f.fq || r.fq === f.fq)))
-                && (!f.ind || r.c.Industry === f.ind) && (!f.tac || r.c.Tactics === f.tac)
+            }).filter(r => (ignorePeriod || ((!f.fy || r.fy === f.fy) && (!f.fq.length || f.fq.includes(r.fq))))
+                && (!f.ind.length || f.ind.includes(r.c.Industry)) && (!f.tac.length || f.tac.includes(r.c.Tactics))
                 && (!f.fund || r.funding === f.fund)
-                && (!f.st || (f.st === "none" ? r.status === null : r.status === f.st)));
+                && (!f.st.length || f.st.some(s => s === "none" ? r.status === null : r.status === s)));
         }
 
         // 합계·차트·배분·비용 구조에 들어가는 건: MDF이면서 Canceled가 아닌 건
@@ -2199,7 +2298,7 @@
             document.getElementById("fundsCriteria").innerText = "기준: " + getFundsCriteriaText();
             renderFundsKpis(aggRows);
             renderFundsSelfStrip(fundsRows);
-            renderFundsQuarterChart(aggRows);
+            renderFundsQuarterChart();
             renderFundsAllocation(aggRows);
             renderFundsCost(aggRows);
             renderFundsTable();
@@ -2240,45 +2339,122 @@
                 ctx.save();
                 ctx.font = "600 11px 'Malgun Gothic', sans-serif";
                 ctx.fillStyle = "#334155"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+                // 막대가 많아지면(FQ 비교에서 FY가 여러 개) 글자를 줄이고, 6개 이상이면 Requested 금액은 생략 (툴팁으로 확인)
+                const barCount = chart.data.datasets.filter(d => d.type !== "line").length;
+                ctx.font = `600 ${barCount >= 4 ? 10 : 11}px 'Malgun Gothic', sans-serif`;
                 chart.data.datasets.forEach((ds, i) => {
                     const meta = chart.getDatasetMeta(i);
                     if (ds.type === "line" || meta.hidden) return;
+                    if (barCount >= 6 && ds.isReq) return;
                     meta.data.forEach((bar, j) => { const v = ds.data[j]; if (v) ctx.fillText(fmtUsdCompact(v), bar.x, bar.y - 3); });
                 });
                 ctx.restore();
             }
         };
 
-        function renderFundsQuarterChart(rows) {
-            const keyOf = r => `${r.fy} ${r.fq}`;
-            const agg = {};
-            rows.filter(r => r.fy !== "기타").forEach(r => {
-                const k = keyOf(r);
-                agg[k] ??= { req: 0, app: 0, planning: 0 };
-                agg[k].req += r.req; agg[k].app += r.app; if (r.status === "Planning") agg[k].planning++;
-            });
-            // 전년 같은 분기 Approved: FY/FQ 필터만 빼고(나머지 필터는 유지) 같은 규칙으로 집계
-            const prevBase = {};
-            getFundsRows(true).filter(r => r.fy !== "기타" && isFundsAggRow(r)).forEach(r => { prevBase[keyOf(r)] = (prevBase[keyOf(r)] || 0) + r.app; });
+        // 분기 차트 전용 선택 (상단 FY·FQ 필터와 무관, 새로고침하면 기본값으로 복귀)
+        // mode: base(기본) | fy(FY 비교) | fq(FQ 비교) / fys: null = 기본값(가장 최근 2개 FY)
+        const fundsChartSel = { mode: "base", fys: null, fqs: ["Q1", "Q2", "Q3", "Q4"] };
+        const FQC_MODES = [["base", "기본"], ["fy", "FY 비교"], ["fq", "FQ 비교"]];
+        const FQC_PALETTE = [["#90caf9", "#142940"], ["#9fe1cb", "#085041"], ["#cecbf6", "#3c3489"], ["#fed7aa", "#9a3412"], ["#fbcfe8", "#9d174d"]];
 
-            const keys = Object.keys(agg).sort();
-            const prevData = keys.map(k => {
-                const [fy, q] = k.split(" ");
-                const pk = `FY${Number(fy.slice(2)) - 1} ${q}`;
-                return pk in prevBase ? prevBase[pk] : null;
-            });
-            const labels = keys.map(k => agg[k].planning ? [k, `Planning ${agg[k].planning}건`] : k);
-
-            const datasets = [
-                { label: "Requested ($)", data: keys.map(k => agg[k].req), backgroundColor: "#90caf9", borderRadius: 4, order: 2 },
-                { label: "Approved ($)", data: keys.map(k => agg[k].app), backgroundColor: "#142940", borderRadius: 4, order: 2 }
-            ];
-            if (prevData.some(v => v !== null)) {
-                datasets.push({ type: "line", label: "전년 같은 분기 Approved ($)", data: prevData, borderColor: "#f59e0b", backgroundColor: "#f59e0b",
-                    borderDash: [6, 4], borderWidth: 2, pointRadius: 4, spanGaps: false, tension: 0, order: 1 });
+        function fqcAvailableFys() {
+            const set = new Set();
+            getActiveCampaigns().forEach(c => { const af = getAutodeskFYFQ(c.Activity_Date); if (af.fy !== "기타") set.add(af.fy); });
+            return Array.from(set).sort();
+        }
+        function fqcEffectiveFys(avail) {
+            return fundsChartSel.fys === null ? avail.slice(-2) : avail.filter(f => fundsChartSel.fys.includes(f));
+        }
+        function fqcSetMode(m) { fundsChartSel.mode = m; renderFundsQuarterChart(); }
+        function fqcToggle(kind, v) {
+            if (kind === "fy") {
+                const cur = fqcEffectiveFys(fqcAvailableFys()).slice();
+                const i = cur.indexOf(v); if (i > -1) cur.splice(i, 1); else cur.push(v);
+                fundsChartSel.fys = cur;
+            } else {
+                const cur = fundsChartSel.fqs.slice();
+                const i = cur.indexOf(v); if (i > -1) cur.splice(i, 1); else cur.push(v);
+                fundsChartSel.fqs = cur;
             }
+            renderFundsQuarterChart();
+        }
+        function fqcAll(kind) {
+            if (kind === "fy") fundsChartSel.fys = fqcAvailableFys(); else fundsChartSel.fqs = ["Q1", "Q2", "Q3", "Q4"];
+            renderFundsQuarterChart();
+        }
 
-            if (fundsQuarterChartInstance) fundsQuarterChartInstance.destroy();
+        function renderFqcControls(avail, fys) {
+            document.getElementById("fqcMode").innerHTML = FQC_MODES.map(([m, t]) =>
+                `<button type="button" class="${fundsChartSel.mode === m ? "active" : ""}" onclick="fqcSetMode('${m}')">${t}</button>`).join("");
+            const chips = (kind, list, sel) => list.map(v => `<button type="button" class="fqc-chip${sel.includes(v) ? " on" : ""}" onclick="fqcToggle('${kind}','${v}')">${esc(v)}</button>`).join("")
+                + `<button type="button" class="fqc-all" onclick="fqcAll('${kind}')">전체</button>`;
+            document.getElementById("fqcFY").innerHTML = chips("fy", avail, fys);
+            document.getElementById("fqcFQ").innerHTML = chips("fq", ["Q1", "Q2", "Q3", "Q4"], fundsChartSel.fqs);
+        }
+
+        function renderFundsQuarterChart() {
+            const avail = fqcAvailableFys();
+            const fys = fqcEffectiveFys(avail);
+            const fqs = ["Q1", "Q2", "Q3", "Q4"].filter(q => fundsChartSel.fqs.includes(q));
+            const mode = fundsChartSel.mode;
+            renderFqcControls(avail, fys);
+
+            // 상단 FY·FQ 필터는 쓰지 않고, 나머지 필터(Industry·Tactics·Funding·Status)만 적용해 같은 규칙으로 집계
+            const cell = {};
+            getFundsRows(true).filter(r => r.fy !== "기타" && isFundsAggRow(r)).forEach(r => {
+                const k = `${r.fy} ${r.fq}`;
+                cell[k] ??= { req: 0, app: 0, planning: 0 };
+                cell[k].req += r.req; cell[k].app += r.app; if (r.status === "Planning") cell[k].planning++;
+            });
+
+            let labels = [], datasets = [], sub = "", period = "";
+            const fqText = fqs.length === 4 ? "전 분기" : "분기 " + fqs.join(", ");
+            if (fys.length === 0 || fqs.length === 0) {
+                period = "FY와 FQ를 하나 이상 선택하세요.";
+            } else if (mode === "base") {
+                const keys = [];
+                fys.forEach(fy => fqs.forEach(q => { if (`${fy} ${q}` in cell) keys.push(`${fy} ${q}`); }));
+                labels = keys.map(k => cell[k].planning ? [k, `Planning ${cell[k].planning}건`] : k);
+                const prevData = keys.map(k => {
+                    const [fy, q] = k.split(" ");
+                    const pk = `FY${Number(fy.slice(2)) - 1} ${q}`;
+                    return pk in cell ? cell[pk].app : null;
+                });
+                datasets = [
+                    { label: "Requested ($)", data: keys.map(k => cell[k].req), backgroundColor: "#90caf9", borderRadius: 4, order: 2, isReq: true },
+                    { label: "Approved ($)", data: keys.map(k => cell[k].app), backgroundColor: "#142940", borderRadius: 4, order: 2 }
+                ];
+                if (prevData.some(v => v !== null)) {
+                    datasets.push({ type: "line", label: "전년 같은 분기 Approved ($)", data: prevData, borderColor: "#f59e0b", backgroundColor: "#f59e0b",
+                        borderDash: [6, 4], borderWidth: 2, pointRadius: 4, spanGaps: false, tension: 0, order: 1 });
+                }
+                sub = "점선: 전년 같은 분기 Approved";
+                period = keys.length ? `표시 기간: ${keys[0]} ~ ${keys[keys.length - 1]} · ${keys.length}개 분기` : "선택한 기간에 해당하는 데이터가 없습니다.";
+            } else if (mode === "fy") {
+                labels = fys;
+                const sum = (fy, f) => fqs.reduce((s, q) => s + (cell[`${fy} ${q}`] ? cell[`${fy} ${q}`][f] : 0), 0);
+                datasets = [
+                    { label: "Requested ($)", data: fys.map(fy => sum(fy, "req")), backgroundColor: "#90caf9", borderRadius: 4, isReq: true },
+                    { label: "Approved ($)", data: fys.map(fy => sum(fy, "app")), backgroundColor: "#142940", borderRadius: 4 }
+                ];
+                sub = `선택한 FQ(${fqs.join(", ")})의 합계를 FY별로 비교`;
+                period = `비교: ${fys.join(" vs ")} · ${fqText}`;
+            } else {
+                labels = fqs;
+                fys.forEach((fy, i) => {
+                    const p = FQC_PALETTE[i % FQC_PALETTE.length];
+                    datasets.push({ label: `${fy} Requested`, data: fqs.map(q => cell[`${fy} ${q}`] ? cell[`${fy} ${q}`].req : 0), backgroundColor: p[0], borderRadius: 4, isReq: true });
+                    datasets.push({ label: `${fy} Approved`, data: fqs.map(q => cell[`${fy} ${q}`] ? cell[`${fy} ${q}`].app : 0), backgroundColor: p[1], borderRadius: 4 });
+                });
+                sub = "같은 분기끼리 FY별로 나란히 비교";
+                period = `비교: ${fys.join(" vs ")} · ${fqText}`;
+            }
+            document.getElementById("fqcSub").textContent = sub;
+            document.getElementById("fqcPeriod").textContent = period;
+
+            if (fundsQuarterChartInstance) { fundsQuarterChartInstance.destroy(); fundsQuarterChartInstance = null; }
+            if (datasets.length === 0 || labels.length === 0) return;
             fundsQuarterChartInstance = new Chart(document.getElementById("fundsQuarterChart").getContext("2d"), {
                 type: "bar",
                 data: { labels, datasets },
@@ -2413,7 +2589,7 @@
                 r.status || "", r.funding, r.self ? "" : r.req, r.self ? "" : r.app, r.cost
             ])].map(row => row.map(cell).join(","));
             const f = getFundsFilters();
-            const tag = [f.fy || "ALL-FY", f.fq, f.ind, f.tac, f.fund, f.st === "none" ? "NoStatus" : f.st].filter(Boolean).join("_").replace(/[\\/:*?"<>|\s&]+/g, "-");
+            const tag = [f.fy || "ALL-FY", f.fq.join("+"), f.ind.join("+"), f.tac.join("+"), f.fund, f.st.map(s => s === "none" ? "NoStatus" : s).join("+")].filter(Boolean).join("_").replace(/[\\/:*?"<>|\s&]+/g, "-");
             downloadText("﻿" + lines.join("\r\n"), `MDP-Funds-${tag}-${localStamp()}.csv`, "text/csv;charset=utf-8");
         }
 
