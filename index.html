@@ -218,6 +218,7 @@
         .upcoming-panel { background: #fff; border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .upcoming-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 15px; font-weight: bold; color: #142940; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; margin-bottom: 4px; }
         .upcoming-hint { font-size: 12px; font-weight: normal; color: #64748b; }
+        #upcomingList { max-height: 320px; overflow-y: auto; }   /* v35: 약 8줄 높이까지만 보이고 넘으면 스크롤 */
         .upcoming-qinfo { font-size: 12px; font-weight: normal; color: #64748b; margin-left: 6px; }
         .upcoming-row { display: grid; grid-template-columns: 64px 120px minmax(0, 1fr) auto 96px; gap: 12px; align-items: center; padding: 9px 4px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 13.5px; }
         .upcoming-row:last-child { border-bottom: none; }
@@ -998,7 +999,7 @@
         let quickFilter = null;                                // MDP Status 할 일 카드 필터: upcoming | result | approval
         let fundsQuarterChartInstance = null;
         let fundsBasis = "approved";                           // Fund 배분 기준: approved | requested
-        let fundsTableSort = { col: "id", dir: "asc" };
+        let fundsTableSort = { col: "date", dir: "desc" };   // v35: 기본 정렬 = Date of Activity 최신순
         let fundsRows = [];                                    // 현재 필터 기준 Funds 집계 대상 (CSV/표 공용)
 
         let fySortStates = {};
@@ -1897,7 +1898,12 @@
 
             const upcoming = camps.filter(c => isUpcomingActivity(c, q))
                 .map(c => ({ c, d: parseActivityDate(c.Activity_Date) }))
-                .sort((a, b) => a.d - b.d);
+                // v35: D- 순 — 시작 전(D-Day, D-1, D-2…)을 가까운 순으로 먼저, 그 뒤 시작한 건(D+1, D+2…)을 최근 시작 순으로
+                .sort((a, b) => {
+                    const na = Math.round((a.d - q.today) / DAY_MS), nb = Math.round((b.d - q.today) / DAY_MS);
+                    const ka = na >= 0 ? na : 1e6 - na, kb = nb >= 0 ? nb : 1e6 - nb;
+                    return ka - kb;
+                });
             document.getElementById("todoUpcomingCount").innerText = upcoming.length + "건";
             const startedCount = upcoming.filter(x => x.d < q.today).length;
             document.getElementById("todoUpcomingSub").innerText = upcoming.length
@@ -1910,12 +1916,12 @@
             document.getElementById("updateAlert").style.display = updateCount > 0 ? "flex" : "none";
             document.querySelectorAll(".todo-card").forEach(el => el.classList.toggle("active", el.dataset.quick === quickFilter));
 
-            const MAX_ROWS = 8;   // v33: 분기 전체가 대상이라 5 → 8행
+            // v35: 줄 수 제한 없이 전체를 표시하고, 8줄 높이를 넘으면 목록 안에서 스크롤 (CSS #upcomingList)
             const list = document.getElementById("upcomingList");
             if (upcoming.length === 0) {
                 list.innerHTML = `<div class="upcoming-empty">이번 분기에 해당하는 MDP가 없습니다.</div>`;
             } else {
-                list.innerHTML = upcoming.slice(0, MAX_ROWS).map(({ c, d }) => {
+                list.innerHTML = upcoming.map(({ c, d }) => {
                     const n = Math.round((d - q.today) / DAY_MS);   // 양수 = 시작 전(D-n), 음수 = 이미 시작(D+n)
                     const cls = n < 0 ? "started" : n <= 7 ? "urgent" : n <= 14 ? "soon" : "later";
                     const label = n === 0 ? "D-Day" : n > 0 ? "D-" + n : "D+" + (-n);
@@ -1926,8 +1932,7 @@
                         <span class="meta">${esc(c.Industry || "-")} · ${esc(c.Tactics || "-")}</span>
                         ${thisQuarterAmountHtml(c)}
                     </div>`;
-                }).join("") + (upcoming.length > MAX_ROWS
-                    ? `<div class="upcoming-empty">외 ${upcoming.length - MAX_ROWS}건 · "이번 분기 MDP" 카드를 누르면 전체를 볼 수 있습니다.</div>` : "");
+                }).join("");
             }
 
             const chip = document.getElementById("quickFilterChip");
@@ -2087,7 +2092,7 @@
                 let rows = "";
                 items.forEach(c => {
                     const formattedDate = formatDateWithDay(c.Activity_Date);
-                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b>${selfTagHtml(c)}</td><td>${esc(formattedDate)}</td><td>${statusPillHtml(c.statusKey)}${carryOverTagHtml(c)}</td><td class="text-right">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
+                    rows += `<tr data-campaign-id="${esc(c.캠페인_ID)}"><td><b>${esc(fy)}</b></td><td>${esc(c.calculatedFQ)}</td><td><span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry||'-')}</span></td><td class="text-left"><span class="badge badge-tactic">${esc(c.Tactics||'-')}</span></td><td class="text-left"><b>${esc(c.Activity_Name||'-')}</b>${selfTagHtml(c)}</td><td>${esc(formattedDate)}</td><td>${statusPillHtml(c.statusKey)}</td><td class="text-right">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString()}</td><td class="text-right" style="font-weight:bold;">${getFunding(c) === "Self" ? '<span class="status-none">-</span>' : "$" + (Number(c.Cost_Approved)||0).toLocaleString()}</td></tr>`;
                 });
                 
                 const isOpen = openFys.has(fy) || !!quickFilter;   // 빠른 필터 사용 중에는 결과가 바로 보이도록 펼침
