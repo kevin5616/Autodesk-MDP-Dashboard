@@ -512,8 +512,10 @@
         /* 분기 차트 전용 기간 선택 */
         .fqc-sub { display: block; margin-top: 3px; }
         .fqc-topnote { text-align: right; }
-        .fqc-controls { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-        .fqc-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .fqc-controls { display: flex; align-items: center; gap: 10px 28px; flex-wrap: wrap; margin-bottom: 10px; }
+        .fqc-grp { display: flex; align-items: center; gap: 8px; }
+        .mf.mf-chart { flex: 0 0 auto; min-width: 150px; }
+        .mf.mf-chart .mf-btn { padding: 6px 10px; font-size: 13px; }
         .fqc-lbl { font-size: 12px; color: #64748b; min-width: 30px; }
         .fqc-chips { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .fqc-chip { font-size: 12.5px; padding: 4px 11px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #475569; cursor: pointer; font-family: inherit; }
@@ -739,9 +741,11 @@
                     <span class="funds-note fqc-topnote">Industry·Tactics·Funding·Status는 상단 필터를 따릅니다</span>
                 </div>
                 <div class="fqc-controls">
-                    <div class="fqc-row"><span class="fqc-lbl">보기</span><span class="funds-basis-toggle" id="fqcMode"></span></div>
-                    <div class="fqc-row"><span class="fqc-lbl">FY</span><span class="fqc-chips" id="fqcFY"></span></div>
-                    <div class="fqc-row"><span class="fqc-lbl">FQ</span><span class="fqc-chips" id="fqcFQ"></span></div>
+                    <div class="fqc-grp"><span class="fqc-lbl">보기</span><span class="funds-basis-toggle" id="fqcMode"></span></div>
+                    <div class="fqc-grp"><span class="fqc-lbl">FY</span>
+                        <div class="mf mf-chart" id="fqcFYMf"><button type="button" class="mf-btn" aria-haspopup="true"><span class="mf-lb">FY 선택</span><span class="mf-arrow">&#9662;</span></button><div class="mf-menu"></div></div>
+                    </div>
+                    <div class="fqc-grp"><span class="fqc-lbl">FQ</span><span class="fqc-chips" id="fqcFQ"></span></div>
                 </div>
                 <div class="fqc-period" id="fqcPeriod"></div>
                 <div style="position: relative; height: 300px;"><canvas id="fundsQuarterChart"></canvas></div>
@@ -1896,7 +1900,7 @@
             document.querySelectorAll(".mf.open").forEach(el => { if (el !== except) el.classList.remove("open"); });
         }
 
-        document.querySelectorAll(".mf").forEach(root => {
+        document.querySelectorAll(".mf[data-key]").forEach(root => {
             const key = root.dataset.key, menu = root.querySelector(".mf-menu");
             root.querySelector(".mf-btn").addEventListener("click", e => {
                 e.stopPropagation();
@@ -2387,11 +2391,34 @@
         function renderFqcControls(avail, fys) {
             document.getElementById("fqcMode").innerHTML = FQC_MODES.map(([m, t]) =>
                 `<button type="button" class="${fundsChartSel.mode === m ? "active" : ""}" onclick="fqcSetMode('${m}')">${t}</button>`).join("");
-            const chips = (kind, list, sel) => list.map(v => `<button type="button" class="fqc-chip${sel.includes(v) ? " on" : ""}" onclick="fqcToggle('${kind}','${v}')">${esc(v)}</button>`).join("")
-                + `<button type="button" class="fqc-all" onclick="fqcAll('${kind}')">전체</button>`;
-            document.getElementById("fqcFY").innerHTML = chips("fy", avail, fys);
-            document.getElementById("fqcFQ").innerHTML = chips("fq", ["Q1", "Q2", "Q3", "Q4"], fundsChartSel.fqs);
+            // FY: 체크박스 드롭다운 (FY가 늘어나도 폭이 변하지 않음) / FQ: 칩
+            const root = document.getElementById("fqcFYMf");
+            root.querySelector(".mf-lb").textContent = fys.length === 0 ? "FY 선택" : (fys.length === 1 ? fys[0] : `${fys[0]} 외 ${fys.length - 1}`);
+            root.classList.toggle("has-sel", fys.length > 0);
+            root.querySelector(".mf-menu").innerHTML = avail.map(v =>
+                `<label><input type="checkbox" value="${esc(v)}"${fys.includes(v) ? " checked" : ""}>${esc(v)}</label>`).join("")
+                + `<div class="mf-act"><span data-act="all">전체 선택</span><span data-act="close">닫기</span></div>`;
+            document.getElementById("fqcFQ").innerHTML = ["Q1", "Q2", "Q3", "Q4"].map(v =>
+                `<button type="button" class="fqc-chip${fundsChartSel.fqs.includes(v) ? " on" : ""}" onclick="fqcToggle('fq','${v}')">${v}</button>`).join("")
+                + `<button type="button" class="fqc-all" onclick="fqcAll('fq')">전체</button>`;
         }
+
+        // FY 드롭다운 이벤트 (메뉴 내용은 매번 다시 그려지므로 위임 방식으로 한 번만 연결)
+        (function () {
+            const root = document.getElementById("fqcFYMf"), menu = root.querySelector(".mf-menu");
+            root.querySelector(".mf-btn").addEventListener("click", e => {
+                e.stopPropagation();
+                const willOpen = !root.classList.contains("open");
+                mfCloseAll(root);
+                root.classList.toggle("open", willOpen);
+            });
+            menu.addEventListener("click", e => {
+                e.stopPropagation();
+                const act = e.target.dataset && e.target.dataset.act; if (!act) return;
+                if (act === "all") fqcAll("fy"); else root.classList.remove("open");
+            });
+            menu.addEventListener("change", e => { if (e.target.type === "checkbox") fqcToggle("fy", e.target.value); });
+        })();
 
         function renderFundsQuarterChart() {
             const avail = fqcAvailableFys();
