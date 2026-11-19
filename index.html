@@ -194,7 +194,7 @@
         .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(20, 41, 64, 0.2); border-radius: 50%; border-top-color: #142940; animation: spin 1s ease-in-out infinite; vertical-align: middle; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ===== MDP Status 상단 (현재 분기 + 할 일 카드 + 다가오는 활동) ===== */
+        /* ===== MDP Status 상단 (현재 분기 + 할 일 카드 + 이번 분기 MDP) ===== */
         .status-header { margin-bottom: 25px; }
         body:not([data-tab="dashboardTab"]) .status-header,
         body:not([data-tab="dashboardTab"]) .quick-filter-chip { display: none !important; }
@@ -218,7 +218,8 @@
         .upcoming-panel { background: #fff; border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .upcoming-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 15px; font-weight: bold; color: #142940; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; margin-bottom: 4px; }
         .upcoming-hint { font-size: 12px; font-weight: normal; color: #64748b; }
-        .upcoming-row { display: grid; grid-template-columns: 64px 120px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 4px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 13.5px; }
+        .upcoming-qinfo { font-size: 12px; font-weight: normal; color: #64748b; margin-left: 6px; }
+        .upcoming-row { display: grid; grid-template-columns: 64px 120px minmax(0, 1fr) auto 96px; gap: 12px; align-items: center; padding: 9px 4px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 13.5px; }
         .upcoming-row:last-child { border-bottom: none; }
         .upcoming-row:hover { background: #f8fafc; }
         .upcoming-row .date { color: #64748b; font-size: 12.5px; white-space: nowrap; }
@@ -228,6 +229,9 @@
         .dday.urgent { background: #fee2e2; color: #b91c1c; }   /* D-Day ~ D-7 */
         .dday.soon   { background: #bae6fd; color: #0369a1; }   /* D-8 ~ D-14 */
         .dday.later  { background: #e0f2fe; color: #0284c7; }   /* D-15 이후 */
+        .dday.started { background: #1d4ed8; color: #fff; }     /* v33: 이미 시작한 활동 D+n (Ongoing 배지 글자색 계열의 진한 파랑) */
+        .upcoming-row .amt { text-align: right; font-weight: 700; color: #142940; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .upcoming-row .amt.light { color: #94a3b8; font-weight: 500; }   /* Approved 0 → Requested를 연하게 */
         .upcoming-empty { font-size: 13px; color: #94a3b8; padding: 12px 4px; }
         .quick-filter-chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 16px; background: #e0f2fe; color: #0369a1; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
         .quick-filter-chip button { border: none; background: transparent; color: inherit; font-size: 15px; line-height: 1; cursor: pointer; padding: 0; }
@@ -237,6 +241,7 @@
             .upcoming-row { grid-template-columns: 58px minmax(0, 1fr); }
             .upcoming-row .date { grid-column: 2; grid-row: 2; }
             .upcoming-row .meta { display: none; }
+            .upcoming-row .amt { grid-column: 2; grid-row: 3; text-align: left; }
         }
 
         /* ===== 상태 업데이트 알림 줄 (건수 > 0일 때만 표시) ===== */
@@ -304,6 +309,12 @@
         /* Status 열이 늘어나도 Tactics 배지와 Date of Activity는 한 줄 유지 (넘치는 폭은 Activity Name이 줄바꿈으로 흡수) */
         .fy-content-wrapper td:nth-child(4) .badge { white-space: nowrap; }
         .fy-content-wrapper td:nth-child(7) { white-space: nowrap; }
+        /* v33: 캠페인 현황표 헤더는 한 줄 (FY·FQ는 좁게), 금액 칸은 오른쪽 정렬(헤더는 가운데 유지) */
+        .fy-content-wrapper th { white-space: nowrap; padding: 12px 8px; }
+        .fy-content-wrapper td { padding: 12px 8px; }
+        .fy-content-wrapper th:nth-child(1), .fy-content-wrapper th:nth-child(2),
+        .fy-content-wrapper td:nth-child(1), .fy-content-wrapper td:nth-child(2) { padding-left: 5px; padding-right: 5px; }
+        .fy-content-wrapper td.text-right { text-align: right; padding-right: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
         /* Industry 배지: AEC 초록, D&M 파랑, ALL 분홍, 그 외 회색 (industryStyle() 참고) */
         .badge-ind-aec { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
         .badge-ind-dm  { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
@@ -612,7 +623,7 @@
             <button type="button" id="statusMigrationBtn" class="btn-primary" onclick="runStatusMigration()">기존 데이터 변환</button>
         </div>
 
-        <!-- MDP Status 상단: 현재 회계 분기 + 할 일 카드 + 다가오는 활동 (MDP Status 탭에서만 표시) -->
+        <!-- MDP Status 상단: 현재 회계 분기 + 할 일 카드 + 이번 분기 MDP (MDP Status 탭에서만 표시) -->
         <div class="status-header">
             <div class="update-alert" id="updateAlert" style="display:none;">
                 <span class="update-alert-text"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span><b>상태 업데이트가 필요한 MDP가 <span id="updateAlertCount">0</span>건 있습니다.</b> M1 말일까지 금액 입력이나 상태 변경이 없었던 건입니다.</span></span>
@@ -631,10 +642,10 @@
                 <div class="todo-card todo-upcoming" data-quick="upcoming" role="button" tabindex="0">
                     <div class="todo-label">
                         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        다가오는 활동
+                        이번 분기 MDP
                     </div>
                     <div class="todo-value" id="todoUpcomingCount">0건</div>
-                    <div class="todo-sub" id="todoUpcomingSub">이번 분기 남은 활동</div>
+                    <div class="todo-sub" id="todoUpcomingSub">활동 FQ가 이번 분기인 MDP</div>
                 </div>
                 <div class="todo-card todo-result" data-quick="result" role="button" tabindex="0">
                     <div class="todo-label">
@@ -648,7 +659,7 @@
 
             <div class="upcoming-panel">
                 <div class="upcoming-head">
-                    <span>다가오는 활동</span>
+                    <span>이번 분기 MDP <span class="upcoming-qinfo" id="upcomingQInfo"></span></span>
                     <span class="upcoming-hint">카드를 누르면 아래 목록이 해당 건만 표시됩니다</span>
                 </div>
                 <div id="upcomingList"></div>
@@ -776,7 +787,6 @@
                 </div>
                 <div class="detail-meta-group">
                     <div class="detail-meta-column">
-                        <div class="detail-meta-row"><span class="detail-meta-title">Funding</span><div class="detail-meta-content" id="modal-meta-funding"></div></div>
                         <div class="detail-meta-row"><span class="detail-meta-title">Industry</span><div class="detail-meta-content" id="modal-meta-industry"></div></div>
                         <div class="detail-meta-row"><span class="detail-meta-title">Tactic</span><div class="detail-meta-content" id="modal-meta-tactic"></div></div>
                         <div class="detail-meta-row"><span class="detail-meta-title">Campaign</span><div class="detail-meta-content" id="modal-meta-campaign"></div></div>
@@ -1785,7 +1795,7 @@
 
         // ===== MDP Status 상단: 현재 분기 + 할 일 카드 =====
         const DAY_MS = 24 * 60 * 60 * 1000;
-        const QUICK_FILTER_LABELS = { upcoming: "다가오는 활동", result: "결과 입력 필요", update: "상태 업데이트 필요" };
+        const QUICK_FILTER_LABELS = { upcoming: "이번 분기 MDP", result: "결과 입력 필요", update: "상태 업데이트 필요" };
 
         function toLocalDateKey(d) {
             return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -1808,12 +1818,23 @@
             return { today, start, end, fy: af.fy, fq: af.fq };
         }
 
-        // 오늘부터 이번 분기 말까지 시작하는 활동 (Denied·Canceled 제외)
+        // v33 "이번 분기 MDP": 활동 FQ(Date of Activity 기준)가 현재 FQ인 MDP 전체 (Denied·Canceled 제외)
+        // 함수·빠른 필터 키 이름(upcoming)은 이전 버전과 같이 유지
         function isUpcomingActivity(c, q) {
             const st = getStatusKey(c, q);
             if (st === "Denied" || st === "Canceled") return false;
             const d = parseActivityDate(c.Activity_Date);
-            return !!d && d >= q.today && d <= q.end;
+            return !!d && fqOrdinal(c.Activity_Date) === quarterOrdinal(q);
+        }
+        // 목록 오른쪽 금액: MDF는 Approved($), Approved가 0이면 Requested를 연하게, Self는 Total cost(₩)
+        function thisQuarterAmountHtml(c) {
+            if (getFunding(c) === "Self") {
+                return `<span class="amt" title="Total cost">${fmtKrw(sumBy(getCampaignCosts(c) || [], x => Number(x.금액) || 0))}</span>`;
+            }
+            const app = Number(c.Cost_Approved) || 0, req = Number(c.Cost_MDP_Requested) || 0;
+            if (app > 0) return `<span class="amt" title="Approved">${fmtUsd(app)}</span>`;
+            if (req > 0) return `<span class="amt light" title="Requested (Approved 0)">${fmtUsd(req)}</span>`;
+            return `<span class="amt light">-</span>`;
         }
         // Date of Activity는 시작일 → 활동 FQ가 현재 FQ보다 지난 MDP가 대상 (Denied·Canceled 제외)
         // 아직 Ongoing(Completed 처리 전)이거나, 이름이 있는 ROI 지표 중 결과 수치가 하나라도 비어 있으면 대상 (지표가 없는 MDP는 ROI 조건에서 제외)
@@ -1850,31 +1871,35 @@
                 .map(c => ({ c, d: parseActivityDate(c.Activity_Date) }))
                 .sort((a, b) => a.d - b.d);
             document.getElementById("todoUpcomingCount").innerText = upcoming.length + "건";
+            const startedCount = upcoming.filter(x => x.d < q.today).length;
             document.getElementById("todoUpcomingSub").innerText = upcoming.length
-                ? `이번 분기 남은 활동 · 가장 빠른 ${Math.round((upcoming[0].d - q.today) / DAY_MS) === 0 ? "D-Day" : "D-" + Math.round((upcoming[0].d - q.today) / DAY_MS)}`
-                : "이번 분기 남은 활동";
+                ? `시작함 ${startedCount}건 · 시작 전 ${upcoming.length - startedCount}건`
+                : "활동 FQ가 이번 분기인 MDP";
+            document.getElementById("upcomingQInfo").innerText = `${q.fy} ${q.fq} · ${upcoming.length}건`;
             document.getElementById("todoResultCount").innerText = camps.filter(c => needsResultInput(c, q)).length + "건";
             const updateCount = camps.filter(c => needsStatusUpdate(c, q)).length;
             document.getElementById("updateAlertCount").innerText = updateCount;
             document.getElementById("updateAlert").style.display = updateCount > 0 ? "flex" : "none";
             document.querySelectorAll(".todo-card").forEach(el => el.classList.toggle("active", el.dataset.quick === quickFilter));
 
-            const MAX_ROWS = 5;
+            const MAX_ROWS = 8;   // v33: 분기 전체가 대상이라 5 → 8행
             const list = document.getElementById("upcomingList");
             if (upcoming.length === 0) {
-                list.innerHTML = `<div class="upcoming-empty">이번 분기에 남은 활동이 없습니다.</div>`;
+                list.innerHTML = `<div class="upcoming-empty">이번 분기에 해당하는 MDP가 없습니다.</div>`;
             } else {
                 list.innerHTML = upcoming.slice(0, MAX_ROWS).map(({ c, d }) => {
-                    const n = Math.round((d - q.today) / DAY_MS);
-                    const cls = n <= 7 ? "urgent" : n <= 14 ? "soon" : "later";
+                    const n = Math.round((d - q.today) / DAY_MS);   // 양수 = 시작 전(D-n), 음수 = 이미 시작(D+n)
+                    const cls = n < 0 ? "started" : n <= 7 ? "urgent" : n <= 14 ? "soon" : "later";
+                    const label = n === 0 ? "D-Day" : n > 0 ? "D-" + n : "D+" + (-n);
                     return `<div class="upcoming-row" data-campaign-id="${esc(c.캠페인_ID)}">
-                        <span class="dday ${cls}">${n === 0 ? "D-Day" : "D-" + n}</span>
+                        <span class="dday ${cls}">${label}</span>
                         <span class="date">${esc(formatDateWithDay(toLocalDateKey(d)))}</span>
                         <span class="title">${esc(c.Activity_Name || "-")}${selfTagHtml(c)}</span>
                         <span class="meta">${esc(c.Industry || "-")} · ${esc(c.Tactics || "-")}</span>
+                        ${thisQuarterAmountHtml(c)}
                     </div>`;
                 }).join("") + (upcoming.length > MAX_ROWS
-                    ? `<div class="upcoming-empty">외 ${upcoming.length - MAX_ROWS}건 · "다가오는 활동" 카드를 누르면 전체를 볼 수 있습니다.</div>` : "");
+                    ? `<div class="upcoming-empty">외 ${upcoming.length - MAX_ROWS}건 · "이번 분기 MDP" 카드를 누르면 전체를 볼 수 있습니다.</div>` : "");
             }
 
             const chip = document.getElementById("quickFilterChip");
@@ -2068,8 +2093,8 @@
                                        <th style="text-align:left;" onclick="sortTable('${fy}', 'activityName')">Activity Name ${getSortIcon(fy, 'activityName')}</th>
                                        <th onclick="sortTable('${fy}', 'status')">Status ${getSortIcon(fy, 'status')}</th>
                                        <th onclick="sortTable('${fy}', 'date')">Date of Activity ${getSortIcon(fy, 'date')}</th>
-                                       <th style="text-align:right;" onclick="sortTable('${fy}', 'requested')">Requested($) ${getSortIcon(fy, 'requested')}</th>
-                                       <th style="text-align:right;" onclick="sortTable('${fy}', 'approved')">Approved($) ${getSortIcon(fy, 'approved')}</th>
+                                       <th onclick="sortTable('${fy}', 'requested')">Requested($) ${getSortIcon(fy, 'requested')}</th>
+                                       <th onclick="sortTable('${fy}', 'approved')">Approved($) ${getSortIcon(fy, 'approved')}</th>
                                    </tr>
                                </thead>
                                <tbody>${rows}</tbody>
@@ -2293,8 +2318,9 @@
         const FUNDS_TABLE_COLUMNS = [
             { key: "id", label: "캠페인 ID" }, { key: "fyfq", label: "FY / FQ" }, { key: "industry", label: "Industry" },
             { key: "tactics", label: "Tactics" }, { key: "activity", label: "Activity Name" }, { key: "date", label: "Date of Activity" },
+            { key: "status", label: "Status" },
             { key: "req", label: "Requested($)", num: true }, { key: "app", label: "Approved($)", num: true },
-            { key: "status", label: "Status" }, { key: "cost", label: "집행 비용(₩)", num: true }
+            { key: "cost", label: "집행 비용(₩)", num: true }
         ];
 
         function sortFundsRows(rows) {
@@ -2318,16 +2344,16 @@
                 : rows.map(r => `<tr class="${r.status === "Canceled" ? "row-canceled" : ""}">
                     <td>${esc(r.id)}</td><td>${esc(r.fy)} ${esc(r.fq)}</td><td><span class="badge ${industryStyle(r.industry).badge}">${esc(r.industry)}</span></td><td>${esc(r.tactics)}</td>
                     <td class="text-left wrap"><span class="act-name">${esc(r.activity || "-")}</span>${r.self ? '<span class="self-tag">Self</span>' : ""}</td><td>${esc(formatDateWithDay(r.date))}</td>
-                    <td class="num${r.self ? " mut" : ""}">${r.self ? "-" : fmtUsd(r.req)}</td><td class="num${r.self ? " mut" : ""}">${r.self ? "-" : fmtUsd(r.app)}</td>
                     <td>${statusPillHtml(r.status)}</td>
+                    <td class="num${r.self ? " mut" : ""}">${r.self ? "-" : fmtUsd(r.req)}</td><td class="num${r.self ? " mut" : ""}">${r.self ? "-" : fmtUsd(r.app)}</td>
                     <td class="num">${fmtKrw(r.cost)}</td></tr>`).join("");
 
             // 합계 줄은 KPI와 같은 기준 (Canceled · Self 제외)
             const aggRows = rows.filter(isFundsAggRow);
             document.getElementById("fundsTableFoot").innerHTML = rows.length === 0 ? "" : `<tr>
-                <td colspan="6" style="text-align:center;">합계 (${aggRows.length}건 · Canceled, Self 제외)</td>
+                <td colspan="7" style="text-align:center;">합계 (${aggRows.length}건 · Canceled, Self 제외)</td>
                 <td class="num">${fmtUsd(sumBy(aggRows, r => r.req))}</td><td class="num">${fmtUsd(sumBy(aggRows, r => r.app))}</td>
-                <td></td><td class="num">${fmtKrw(sumBy(aggRows, r => r.cost))}</td></tr>`;
+                <td class="num">${fmtKrw(sumBy(aggRows, r => r.cost))}</td></tr>`;
         }
 
         function downloadText(text, fileName, mime) {
@@ -2348,10 +2374,10 @@
                 return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
             };
             // Self는 Requested·Approved가 해당 없음이라 빈 칸. 상태가 없으면 빈 칸
-            const header = ["캠페인 ID", "FY", "FQ", "Industry", "Tactics", "Campaign", "Activity Name", "Date of Activity", "Funding", "Requested($)", "Approved($)", "Status", "집행 비용(KRW)"];
+            const header = ["캠페인 ID", "FY", "FQ", "Industry", "Tactics", "Campaign", "Activity Name", "Date of Activity", "Status", "Funding", "Requested($)", "Approved($)", "집행 비용(KRW)"];
             const lines = [header, ...sortFundsRows(fundsRows).map(r => [
                 r.id, r.fy, r.fq, r.industry, r.tactics, r.campaigns.join(", "), r.activity, formatDateWithDay(r.date),
-                r.funding, r.self ? "" : r.req, r.self ? "" : r.app, r.status || "", r.cost
+                r.status || "", r.funding, r.self ? "" : r.req, r.self ? "" : r.app, r.cost
             ])].map(row => row.map(cell).join(","));
             const f = getFundsFilters();
             const tag = [f.fy || "ALL-FY", f.fq, f.ind, f.tac, f.fund, f.st === "none" ? "NoStatus" : f.st].filter(Boolean).join("_").replace(/[\\/:*?"<>|\s&]+/g, "-");
@@ -2374,7 +2400,7 @@
             const statusKey = getStatusKey(c);
             document.getElementById("modal-title").innerText = c.Activity_Name || "-";
             document.getElementById("modal-status").innerHTML = statusKey ? statusPillHtml(statusKey) : "";   // 상태가 없으면 배지를 표시하지 않음
-            // 부제목은 Funding(MDF/Self)과 무관하게 항상 "Autodesk MDP : 캠페인_ID" (Funding은 아래 정보 그룹에 표시)
+            // 부제목은 Funding(MDF/Self)과 무관하게 항상 "Autodesk MDP : 캠페인_ID" (v33: 상세 창에는 Funding 행을 표시하지 않음 — Self는 Total cost 카드로 구분)
             document.getElementById("modal-subtitle").innerText = `Autodesk MDP : ${c.캠페인_ID || "-"}`;
             document.getElementById("modal-summary-date").innerText = formatDateWithDay(c.Activity_Date) || "-";
             document.getElementById("modal-summary-req").innerText = "$" + (Number(c.Cost_MDP_Requested)||0).toLocaleString();
@@ -2385,8 +2411,6 @@
             document.getElementById("modal-card-cost").style.display = isSelf ? "" : "none";
             document.getElementById("modal-summary-cost").innerText = fmtKrw(sumBy(getCampaignCosts(c) || [], x => Number(x.금액) || 0));
             document.getElementById("modal-desc").innerText = c.Activity_Description || "";
-
-            document.getElementById("modal-meta-funding").innerHTML = `<span class="badge badge-funding">${esc(getFunding(c))}</span>`;
 
             document.getElementById("modal-meta-industry").innerHTML = c.Industry ? `<span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry)}</span>` : "-";
             document.getElementById("modal-meta-tactic").innerHTML = c.Tactics ? `<span class="badge badge-tactic">${esc(c.Tactics)}</span>` : "-";
@@ -2635,7 +2659,7 @@
             card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setQuickFilter(card.dataset.quick); } });
         });
 
-        // 다가오는 활동 행 클릭 → 상세 창
+        // 이번 분기 MDP 행 클릭 → 상세 창
         document.getElementById("upcomingList").addEventListener("click", function(e) {
             const row = e.target.closest(".upcoming-row[data-campaign-id]");
             if (row) openModal(row.dataset.campaignId);
