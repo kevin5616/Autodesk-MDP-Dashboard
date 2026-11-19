@@ -486,13 +486,31 @@
         .funds-donut .center b { font-size: 15px; color: #142940; }
         .funds-donut .center span { font-size: 11px; color: #64748b; }
         .funds-donut-legend { font-size: 12px; }
-        /* 범례: 각 항목명 바로 뒤 30px 띄워 값 표시 (좌/우 끝으로 벌리지 않음) */
-        .funds-donut-legend > div { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+        /* 범례: 덩어리 전체를 도넛 가로 중앙에 두고, 가장 긴 항목명 뒤 30px 지점에서 모든 값이 시작 */
+        .funds-donut-legend-wrap { display: flex; justify-content: center; }
+        .funds-donut-legend { display: grid; grid-template-columns: 12px minmax(0, max-content) max-content; column-gap: 8px; row-gap: 6px; align-items: center; max-width: 100%; }
+        .funds-donut-legend > div { display: contents; }
+        .funds-donut-legend .zero i { opacity: .55; }
+        .funds-donut-legend .zero .nm, .funds-donut-legend .zero em { color: #94a3b8; }
         .funds-donut-legend i { width: 10px; height: 10px; border-radius: 50%; display: block; }
         .funds-donut-legend .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #334155; }
         .funds-donut-legend em { font-style: normal; color: #64748b; font-size: 11.5px; white-space: nowrap; margin-left: 22px; }
         .funds-alloc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; align-items: start; }
-        .funds-cost-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; align-items: start; }
+        .funds-cost-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; align-items: start; }
+        .funds-cost-q { position: relative; height: 250px; }
+        .funds-hr { border-top: 1px solid #e2e8f0; margin: 20px 0 14px; }
+        /* 비용 세부 항목 Top 5: 넓은 화면은 가로 한 줄 5칸, 좁은 화면(≤760px)은 항목별 세로 */
+        .funds-top5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+        .top5-tile { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 14px rgba(99,102,241,0.07); min-width: 0; }
+        .top5-tile.empty { background: #f8fafc; box-shadow: none; border-style: dashed; }
+        .top5-tile .rk { font-size: 11px; font-weight: 700; color: #94a3b8; }
+        .top5-tile .nm { font-size: 13px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 2px 0 4px; }
+        .top5-tile .grp { display: inline-block; max-width: 100%; font-size: 10.5px; padding: 1px 8px; border-radius: 999px; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: top; }
+        .top5-tile .amt { font-size: 14px; font-weight: 700; color: #142940; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .top5-tile .pct { font-size: 11.5px; color: #64748b; margin-bottom: 6px; }
+        .top5-tile .track { background: #f1f5f9; height: 10px; border-radius: 999px; overflow: hidden; }
+        .top5-tile .fill { height: 100%; border-radius: 999px; transition: width .9s cubic-bezier(.2,.8,.2,1); }
+        @media (max-width: 760px) { .funds-top5 { grid-template-columns: 1fr; gap: 10px; } }
         .funds-alloc-title { font-size: 13.5px; font-weight: 700; color: #142940; height: 20px; line-height: 20px; margin-bottom: 10px; }   /* 모든 소제목이 같은 높이 */
         .funds-bar-row { display: grid; grid-template-columns: minmax(90px, 38%) minmax(0, 1fr); gap: 4px 10px; align-items: center; margin-bottom: 9px; font-size: 12.5px; }
         .funds-bar-row .name { color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -558,6 +576,9 @@
             .funds-kpi { padding: 10px 12px; break-inside: avoid; }
             .funds-kpi .value { font-size: 18px; }
             .funds-alloc-grid, .funds-cost-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+            .funds-top5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 6px !important; }   /* 인쇄는 항상 가로 한 줄 */
+            .top5-tile { padding: 7px 8px; box-shadow: none; }
+            .top5-tile .nm { font-size: 10.5px; } .top5-tile .amt { font-size: 11px; } .top5-tile .pct, .top5-tile .grp { font-size: 9px; }
             .funds-table-wrap { overflow: visible; }
             .funds-table { min-width: 0; font-size: 10px; }
             .funds-table th, .funds-table td { padding: 4px 5px; white-space: normal; }
@@ -792,7 +813,11 @@
                 <div class="funds-cost-grid">
                     <div><div class="funds-alloc-title">비용 그룹별 합계</div><div id="fundsCostGroups"></div></div>
                     <div><div class="funds-alloc-title">Tactic별 평균 비용 (비용 입력된 MDP 기준)</div><div id="fundsCostByTactic"></div></div>
+                    <div><div class="funds-alloc-title">분기별 집행 비용</div><div class="funds-cost-q" id="fundsCostQuarter"></div></div>
                 </div>
+                <div class="funds-hr"></div>
+                <div class="funds-alloc-title" style="height:auto;line-height:1.5;">비용 세부 항목 Top 5 <span class="funds-note">· 세부 항목명 기준 금액 합계, 색은 비용 그룹</span></div>
+                <div class="funds-top5" id="fundsCostTop5"></div>
             </div>
 
             <div class="report-section funds-section">
@@ -2363,6 +2388,7 @@
             mint: "#34b27b", sky: "#4f9de0", pink: "#e8588f", lav: "#8b6cf0", peach: "#f08a3c", butter: "#e3b100", peri: "#5b5bd6", teal: "#2f9e91", gray: "#94a3b8"
         };
         const FUNDS_COST_TONES = ["butter", "peach", "lav", "sky", "mint", "pink"];
+        const FUNDS_TACTIC_TONES = ["lav", "peach", "butter", "teal", "peri"];
         let fundsPrintMode = false;                      // true인 동안(PDF 인쇄 중)에는 진한 단색으로 그림
         const fundsDonuts = {};                          // 도넛 차트 인스턴스 (요소 id → Chart)
 
@@ -2413,11 +2439,12 @@
         function renderFundsDonut(elId, items, centerText, textOf) {
             if (fundsDonuts[elId]) { fundsDonuts[elId].destroy(); delete fundsDonuts[elId]; }
             const el = document.getElementById(elId);
-            const data = items.filter(i => i.value > 0);
+            const data = items.filter(i => i.value > 0);   // 링에는 금액이 있는 항목만
             if (data.length === 0) { el.innerHTML = `<div class="funds-empty">해당 데이터가 없습니다.</div>`; return; }
-            const toneOf = i => i.muted ? "gray" : i.tone;
+            const toneOf = i => (i.muted || i.value <= 0) ? "gray" : i.tone;
+            // 범례에는 금액 0인 항목도 회색으로 남김 (승인 전 건이 있다는 정보 유지)
             el.innerHTML = `<div class="funds-donut"><canvas id="${elId}Canvas"></canvas><div class="center"><b>${esc(centerText)}</b><span>합계</span></div></div>
-                <div class="funds-donut-legend">${data.map(i => `<div><i style="background:${fundsToneColor(toneOf(i))}"></i><span class="nm" title="${esc(i.name)}">${esc(i.name)}</span><em>${esc(textOf(i))}</em></div>`).join("")}</div>`;
+                <div class="funds-donut-legend-wrap"><div class="funds-donut-legend">${items.map(i => `<div${i.value <= 0 ? ' class="zero"' : ""}><i style="background:${fundsToneColor(toneOf(i))}"></i><span class="nm" title="${esc(i.name)}">${esc(i.name)}</span><em>${esc(textOf(i))}</em></div>`).join("")}</div></div>`;
             fundsDonuts[elId] = new Chart(document.getElementById(elId + "Canvas").getContext("2d"), {
                 type: "doughnut",
                 data: { labels: data.map(i => i.name), datasets: [{
@@ -2431,6 +2458,24 @@
                 plugins: [fundsDonutTrackPlugin, fundsShadowPlugin]
             });
         }
+
+        const fmtKrwCompact = v => v >= 1e8 ? "₩" + (v / 1e8).toFixed(1).replace(/\.0$/, "") + "억" : v >= 1e4 ? "₩" + Math.round(v / 1e4).toLocaleString() + "만" : fmtKrw(v);
+
+        // 막대 위에 줄인 원화 금액 표시 (분기별 집행 비용)
+        const fundsKrwValuePlugin = {
+            id: "fundsKrwValue",
+            afterDatasetsDraw(chart) {
+                const ctx = chart.ctx; ctx.save();
+                ctx.font = "600 10.5px 'Malgun Gothic', sans-serif"; ctx.fillStyle = "#475569"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+                const bars = chart.getDatasetMeta(0).data, step = bars.length > 1 ? Math.abs(bars[1].x - bars[0].x) : 999;
+                bars.forEach((bar, j) => {
+                    const v = chart.data.datasets[0].data[j], txt = fmtKrwCompact(v);
+                    if (v && ctx.measureText(txt).width <= step - 2) ctx.fillText(txt, bar.x, bar.y - 4);   // 막대 간격이 좁아 겹치면 생략(툴팁으로 확인)
+                });
+                ctx.restore();
+            }
+        };
+        let fundsCostQuarterInstance = null;
 
         // 막대 위에 금액 표시 (별도 라이브러리 없이 Chart.js 플러그인으로 직접 그림)
         const fundsBarValuePlugin = {
@@ -2644,14 +2689,18 @@
                     name, value: d.amount, muted: name === "미지정",
                     text: `${fmtUsd(d.amount)} · ${total > 0 ? (d.amount / total * 100).toFixed(1) : "0.0"}% · MDP ${d.count}건`
                 }));
-            // Industry는 도넛 (비중이 핵심), Tactics·Campaign은 막대 (순위·긴 이름)
+            // Industry·Tactics는 도넛 (비중이 핵심), Campaign은 막대 (항목이 많고 이름이 김)
             const indTone = { aec: "mint", dm: "sky", all: "pink" };
             const indItems = groupSmallItems(Object.entries(ind).sort((a, b) => b[1].amount - a[1].amount || a[0].localeCompare(b[0]))
                 .map(([name, d]) => ({ name, value: d.amount, count: d.count, muted: name === "미지정",
                     tone: indTone[industryStyle(name).fill.replace("fill-ind-", "")] || "gray" })), total);
             renderFundsDonut("fundsAllocIndustry", indItems, fmtUsd(total),
                 i => `${fmtUsd(i.value)} · ${total > 0 ? (i.value / total * 100).toFixed(1) : "0.0"}% · MDP ${i.count}건`);
-            renderBarList("fundsAllocTactics", toItems(tac), "lav");
+            // Tactics 색은 Industry(하늘·초록·분홍)와 겹치지 않게 라벤더·복숭아·노랑·청록·남보라 순
+            const tacItems = groupSmallItems(Object.entries(tac).sort((a, b) => b[1].amount - a[1].amount || a[0].localeCompare(b[0]))
+                .map(([name, d], idx) => ({ name, value: d.amount, count: d.count, muted: name === "미지정", tone: FUNDS_TACTIC_TONES[idx % FUNDS_TACTIC_TONES.length] })), total);
+            renderFundsDonut("fundsAllocTactics", tacItems, fmtUsd(total),
+                i => `${fmtUsd(i.value)} · ${total > 0 ? (i.value / total * 100).toFixed(1) : "0.0"}% · MDP ${i.count}건`);
             renderBarList("fundsAllocCampaign", toItems(camp), "mint", true);
         }
 
@@ -2665,17 +2714,80 @@
             }));
             const groupTotal = Object.values(groups).reduce((s, v) => s + v, 0);
             // 비용 그룹은 구성 비율이 핵심이라 도넛 (색은 그룹 순서대로 돌려 쓰고, 미분류·기타는 회색)
-            const krwCompact = v => v >= 1e8 ? "₩" + (v / 1e8).toFixed(1).replace(/\.0$/, "") + "억" : v >= 1e4 ? "₩" + Math.round(v / 1e4).toLocaleString() + "만" : fmtKrw(v);
             const groupItems = groupSmallItems(Object.entries(groups).sort((a, b) => b[1] - a[1])
                 .map(([name, v], idx) => ({ name, value: v, muted: name === "미분류", tone: FUNDS_COST_TONES[idx % FUNDS_COST_TONES.length] })), groupTotal);
-            renderFundsDonut("fundsCostGroups", groupItems, krwCompact(groupTotal),
+            renderFundsDonut("fundsCostGroups", groupItems, fmtKrwCompact(groupTotal),
                 i => `${fmtKrw(i.value)} · ${groupTotal > 0 ? (i.value / groupTotal * 100).toFixed(1) : "0.0"}%`);
+            const groupTone = {};   // 비용 그룹 → 도넛과 같은 색 (도넛에서 "기타"로 묶인 그룹은 회색)
+            groupItems.forEach(i => { if (!i.muted && i.tone) groupTone[i.name] = i.tone; });
+
+            // 분기별 집행 비용 (상단 필터 범위 안의 분기들)
+            renderFundsCostQuarter(rows);
+
+            // 비용 세부 항목 Top 5 (같은 비용 그룹·세부 항목명끼리 합산)
+            const details = {};
+            rows.forEach(r => (getCampaignCosts(r.c) || []).forEach(x => {
+                const amount = Number(x.금액) || 0; if (amount === 0) return;
+                const g = String(x.비용_그룹 || "").trim() || "미분류", n = String(x.세부_항목명 || "").trim() || "(항목명 없음)";
+                const k = g + "\u0000" + n; details[k] ??= { group: g, name: n, amount: 0 }; details[k].amount += amount;
+            }));
+            renderFundsCostTop5(Object.values(details).sort((a, b) => b.amount - a.amount || a.name.localeCompare(b.name)).slice(0, 5), groupTotal, groupTone);
 
             const byTactic = {};
             rows.filter(r => r.cost > 0).forEach(r => { byTactic[r.tactics] ??= { total: 0, count: 0 }; byTactic[r.tactics].total += r.cost; byTactic[r.tactics].count += 1; });
             renderBarList("fundsCostByTactic", Object.entries(byTactic).map(([name, d]) => ({ name, avg: d.total / d.count, d }))
                 .sort((a, b) => b.avg - a.avg)
                 .map(({ name, avg, d }) => ({ name, value: avg, text: `평균 ${fmtKrw(avg)} · MDP ${d.count}건 · 합계 ${fmtKrw(d.total)}` })), "peach");
+        }
+
+        // 분기별 집행 비용: FY·FQ별 집행 비용(₩) 세로 막대 (위 진함 → 아래 연함 그라데이션)
+        function renderFundsCostQuarter(rows) {
+            if (fundsCostQuarterInstance) { fundsCostQuarterInstance.destroy(); fundsCostQuarterInstance = null; }
+            const el = document.getElementById("fundsCostQuarter");
+            const agg = {};
+            rows.filter(r => r.fy !== "기타").forEach(r => { const k = `${r.fy} ${r.fq}`; agg[k] = (agg[k] || 0) + r.cost; });
+            const keys = Object.keys(agg).sort();
+            if (keys.length === 0 || keys.every(k => agg[k] === 0)) { el.innerHTML = `<div class="funds-empty">해당 데이터가 없습니다.</div>`; return; }
+            el.innerHTML = `<canvas id="fundsCostQuarterCanvas"></canvas>`;
+            fundsCostQuarterInstance = new Chart(document.getElementById("fundsCostQuarterCanvas").getContext("2d"), {
+                type: "bar",
+                data: { labels: keys.map(k => { const [fy, q] = k.split(" "); return ["FY" + fy.slice(4), q]; }), datasets: [{ label: "집행 비용 (₩)", data: keys.map(k => agg[k]),   // 라벨은 "FY27 / Q1" 두 줄 (좁은 폭에서도 겹치지 않게) backgroundColor: fundsBarFill("peach"),
+                    borderRadius: fundsBarRadius(), borderSkipped: false, maxBarThickness: 44 }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, animation: fundsAnim(),
+                    scales: {
+                        x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 }, autoSkip: false, maxRotation: 0, minRotation: 0 } },
+                        y: { beginAtZero: true, border: { display: false }, grid: { color: "rgba(148,163,184,0.2)", drawTicks: false }, ticks: { font: { size: 11 }, callback: v => fmtKrwCompact(v) } }
+                    },
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtKrw(ctx.raw)}` } } }
+                },
+                plugins: [fundsShadowPlugin, fundsKrwValuePlugin]
+            });
+        }
+
+        // 비용 세부 항목 Top 5: 가로 한 줄 5칸 타일 (좁은 화면에서는 CSS가 세로로 쌓음)
+        function renderFundsCostTop5(items, total, groupTone) {
+            const el = document.getElementById("fundsCostTop5");
+            if (items.length === 0) { el.innerHTML = `<div class="funds-empty" style="grid-column:1/-1">해당 데이터가 없습니다.</div>`; return; }
+            const max = Math.max(...items.map(i => i.amount), 1);
+            const tiles = items.map((i, n) => {
+                const t = i.group === "미분류" ? "gray" : (groupTone[i.group] || "gray");
+                const w = (i.amount / max * 100).toFixed(1);
+                const bg = fundsPrintMode ? FC_PRINT[t] : `linear-gradient(90deg, ${FC[t][0]}, ${FC[t][1]})`;
+                const sd = fundsPrintMode ? "" : `box-shadow:0 3px 8px ${FC[t][1]}88;`;
+                const tag = fundsPrintMode ? `background:#fff;border:1px solid ${FC_PRINT[t]};` : `background:${FC[t][0]};`;
+                return `<div class="top5-tile" title="${esc(i.name)} · ${esc(i.group)} · ${esc(fmtKrw(i.amount))}">
+                    <div class="rk">${n + 1}위</div>
+                    <div class="nm">${esc(i.name)}</div>
+                    <span class="grp" style="${tag}">${esc(i.group)}</span>
+                    <div class="amt">${esc(fmtKrw(i.amount))}</div>
+                    <div class="pct">${total > 0 ? (i.amount / total * 100).toFixed(1) : "0.0"}%</div>
+                    <div class="track"><div class="fill" data-w="${w}" style="width:${fundsPrintMode ? w : 0}%;background:${bg};${sd}"></div></div>
+                </div>`;
+            });
+            while (tiles.length < 5) tiles.push(`<div class="top5-tile empty"></div>`);   // 5칸 폭 유지
+            el.innerHTML = tiles.join("");
+            if (!fundsPrintMode) setTimeout(() => el.querySelectorAll(".fill[data-w]").forEach(f => { f.style.width = f.dataset.w + "%"; }), 40);
         }
 
         const FUNDS_TABLE_COLUMNS = [
