@@ -644,6 +644,10 @@
         .rr-cm-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
         .rr-cm-h .rr-cm-l { margin-bottom: 0; }
         .rr-cm-btn { padding: 4px 12px; font-size: 12px; }
+        .rr-cm-bs { display: flex; gap: 6px; }
+        .rr-cm-cancel[hidden] { display: none; }
+        textarea.rr-ta[readonly] { background: #f8fafc; color: #334155; cursor: default; }
+        .rr-desc.two { column-count: 2; column-gap: 28px; column-rule: 1px solid #cbd5e1; orphans: 2; widows: 2; }
         .rr-desc { white-space: pre-wrap; word-break: break-word; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-top: 6px; font-size: 12.5px; }
         .rr-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
         .rr-cd { border: 1px solid #e2e8f0; border-left: 4px solid #cbd5e1; border-radius: 8px; padding: 9px 12px; }
@@ -689,6 +693,7 @@
             .rr-imgs, .rr-cover-cards { grid-template-columns: 1fr; }
             .rr-ov { grid-template-columns: 1fr; }
             .rr-ov-div { display: none; }
+            .rr-desc.two { column-count: 1; }
             .rr-tbl-scroll { overflow-x: auto; }
         }
         .rr-tbl-scroll { overflow-x: auto; }
@@ -703,7 +708,8 @@
             .rr-cm, .rr-cd, .rr-box, .rr-ov { break-inside: avoid; }
             .rr-ov { grid-template-columns: 1fr 1px 1fr !important; }
             .rr-ov-div { display: block !important; }
-            .rr-cm-btn { display: none !important; }
+            .rr-cm-btn, .rr-cm-bs { display: none !important; }
+            .rr-desc.two { column-count: 2 !important; }
             .rr-h1 { font-size: 19px; }
             .rr-cover-t { font-size: 24px; }
             .rr-cd .v { font-size: 15px; }
@@ -3306,22 +3312,25 @@
                 body += sec("성과 코멘트", RR_COMMENTS.map(([k, label, field]) => {
                     const v = String(c[field] ?? "");
                     return `<div class="rr-cm ${k}"><div class="rr-cm-h"><div class="rr-cm-l">${label}</div>
-                        <button type="button" class="rr-btn rr-cm-btn" data-rr-save="${field}" onclick="rrSaveComment(this)">${v ? "수정" : "저장"}</button></div>
-                        <textarea class="rr-ta" maxlength="2000" data-rr-field="${field}" placeholder="${label}을(를) 입력하세요">${esc(v)}</textarea>
+                        <div class="rr-cm-bs"><button type="button" class="rr-btn rr-cm-btn rr-cm-cancel" hidden onclick="rrCancelComment(this)">취소</button>
+                        <button type="button" class="rr-btn rr-cm-btn rr-cm-main" data-rr-save="${field}" onclick="rrSaveComment(this)">${v ? "수정" : "저장"}</button></div></div>
+                        <textarea class="rr-ta" maxlength="2000" data-rr-field="${field}" placeholder="${label}을(를) 입력하세요"${v ? " readonly" : ""}>${esc(v)}</textarea>
                         <div class="rr-ta-print">${esc(v)}</div></div>`;
                 }).join(""));
             }
             if (rrInc.overview) {
                 // 상세 창과 같은 2열 + 가운데 구분선 (왼쪽: 분류, 오른쪽: 기간·타깃)
-                const left = kv("Industry", c.Industry ? `<span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry)}</span>` : `<span class="rr-mut">-</span>`)
+                const left = kv("FY / FQ", `${esc(af.fy)} ${esc(af.fq)}`)
                     + kv("Tactics", c.Tactics ? `<span class="badge badge-tactic">${esc(c.Tactics)}</span>` : `<span class="rr-mut">-</span>`)
                     + kv("Campaign", badges(c.Campaign_Name, "badge-campaign"));
-                const right = kv("FY / FQ", `${esc(af.fy)} ${esc(af.fq)}`)
+                const right = kv("Industry", c.Industry ? `<span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry)}</span>` : `<span class="rr-mut">-</span>`)
                     + kv("Life Cycle", badges(c.Life_Cycle, "badge-lifecycle"))
                     + kv("Persona", badges(c.Persona, "badge-persona"));
+                // 설명 본문: 200자 초과면 2열 + 구분선 (짧으면 1열 유지)
+                const desc = String(c.Activity_Description || "");
                 body += sec("캠페인 개요",
                     `<div class="rr-ov"><div class="rr-ov-col">${left}</div><div class="rr-ov-div"></div><div class="rr-ov-col">${right}</div></div>`
-                    + (c.Activity_Description ? `<div class="rr-desc">${esc(c.Activity_Description)}</div>` : ""));
+                    + (desc ? `<div class="rr-desc${desc.length > 200 ? " two" : ""}">${esc(desc)}</div>` : ""));
             }
             if (rrInc.budget) {
                 const groups = new Map();
@@ -3411,7 +3420,6 @@
             const t = e.target, page = t.closest && t.closest(".rr-paper[data-rr-id]"); if (!page) return;
             if (t.dataset.rrField) {
                 const mirror = t.parentElement.querySelector(".rr-ta-print"); if (mirror) mirror.textContent = t.value;
-                const cb = t.parentElement.querySelector(".rr-cm-btn"); if (cb) cb.textContent = (t.value === rrStoredField(page.dataset.rrId, t.dataset.rrField) && t.value) ? "수정" : "저장";
             } else if (t.dataset.rrImg !== undefined) {
                 const slot = t.closest(".rr-img-slot"), pv = slot.querySelector(".rr-img-pv"), url = rrSafeUrl(t.value);
                 pv.innerHTML = "";
@@ -3428,33 +3436,58 @@
             return String((c && c[field]) ?? "");
         }
 
-        // 항목별 [저장]/[수정] 버튼: 이미 저장된 내용이 그대로면 [수정]=입력칸으로 이동, 바뀌었으면 [저장]=해당 필드만 merge 저장
+        // 코멘트 칸 상태: locked(저장된 내용 보호, [수정]) / edit(편집 중, [저장] + 저장된 내용이 있으면 [취소])
+        function rrCmSet(wrap, mode) {
+            const ta = wrap.querySelector("textarea[data-rr-field]"), pg = wrap.closest(".rr-paper[data-rr-id]");
+            const main = wrap.querySelector(".rr-cm-main"), cancel = wrap.querySelector(".rr-cm-cancel");
+            const hasStored = !!(pg && ta && rrStoredField(pg.dataset.rrId, ta.dataset.rrField));
+            ta.readOnly = mode === "locked";
+            main.textContent = mode === "locked" ? "수정" : "저장";
+            cancel.hidden = !(mode === "edit" && hasStored);
+        }
+
+        // 이 캠페인에 아직 저장 안 된 코멘트·이미지가 남아 있는지 다시 계산
+        function rrRecalcDirty(page) {
+            const id = page.dataset.rrId, c = globalData.campaigns.find(x => x.캠페인_ID === id);
+            const pending = [...page.querySelectorAll("textarea[data-rr-field]")].some(t => t.value !== rrStoredField(id, t.dataset.rrField))
+                || [...page.querySelectorAll("input[data-rr-img]")].some((inp, i) => inp.value.trim() !== String((c && Array.isArray(c.Report_Images) ? c.Report_Images[i] : "") || ""));
+            if (pending) rrDirty.add(id); else rrDirty.delete(id);
+            rrUpdateDirtyUi();
+        }
+
+        // [취소]: 저장된 내용으로 되돌리고 다시 잠금
+        function rrCancelComment(btn) {
+            const wrap = btn.closest(".rr-cm"), ta = wrap.querySelector("textarea[data-rr-field]"), page = btn.closest(".rr-paper[data-rr-id]");
+            if (!ta || !page) return;
+            ta.value = rrStoredField(page.dataset.rrId, ta.dataset.rrField);
+            const mirror = wrap.querySelector(".rr-ta-print"); if (mirror) mirror.textContent = ta.value;
+            rrCmSet(wrap, ta.value ? "locked" : "edit");
+            rrRecalcDirty(page);
+        }
+
+        // 항목별 버튼: [수정]=편집 잠금 해제, [저장]=해당 필드만 merge 저장 후 다시 잠금
         async function rrSaveComment(btn) {
             const wrap = btn.closest(".rr-cm"), ta = wrap.querySelector("textarea[data-rr-field]"), page = btn.closest(".rr-paper[data-rr-id]");
             if (!ta || !page) return;
             const id = page.dataset.rrId, field = ta.dataset.rrField;
-            if (btn.textContent.trim() === "수정") { ta.focus(); return; }
+            if (btn.textContent.trim() === "수정") {
+                rrCmSet(wrap, "edit"); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); return;
+            }
             btn.disabled = true; btn.textContent = "저장 중...";
+            let ok = false;
             try {
                 await window.FB_SET_DOC(window.FB_DOC(window.FB_DB, "Campaign_Master", id), { [field]: ta.value }, { merge: true });
                 const c = globalData.campaigns.find(x => x.캠페인_ID === id);
                 if (c) c[field] = ta.value;
                 showToast("저장했습니다.");
-                btn.textContent = ta.value ? "수정" : "저장";
+                ok = true;
             } catch (err) {
                 console.error(err);
                 showToast("저장에 실패했습니다. 입력한 내용은 화면에 남아 있습니다.");
-                btn.textContent = "저장";
             }
             btn.disabled = false;
-            // 이 캠페인에 아직 저장 안 된 코멘트·이미지가 남아 있는지 다시 계산
-            const pending = [...page.querySelectorAll("textarea[data-rr-field]")].some(t => t.value !== rrStoredField(id, t.dataset.rrField))
-                || [...page.querySelectorAll("input[data-rr-img]")].some((inp, i) => {
-                    const c2 = globalData.campaigns.find(x => x.캠페인_ID === id), s = c2 && Array.isArray(c2.Report_Images) ? c2.Report_Images[i] : "";
-                    return (inp.value.trim()) !== String(s || "");
-                });
-            if (pending) rrDirty.add(id); else rrDirty.delete(id);
-            rrUpdateDirtyUi();
+            rrCmSet(wrap, ok && ta.value ? "locked" : "edit");
+            rrRecalcDirty(page);
         }
 
         function rrUpdateDirtyUi() {
@@ -3499,9 +3532,9 @@
                 showToast("저장에 실패했습니다. 입력한 내용은 화면에 남아 있습니다.");
             }
             btn.textContent = "코멘트·이미지 저장";
-            document.querySelectorAll("#rrReportBody .rr-cm-btn").forEach(b => {
-                const ta = b.closest(".rr-cm").querySelector("textarea[data-rr-field]"), pg = b.closest(".rr-paper[data-rr-id]");
-                b.textContent = (ta && pg && ta.value && ta.value === rrStoredField(pg.dataset.rrId, ta.dataset.rrField)) ? "수정" : "저장";
+            document.querySelectorAll("#rrReportBody .rr-cm").forEach(w => {
+                const ta = w.querySelector("textarea[data-rr-field]"), pg = w.closest(".rr-paper[data-rr-id]");
+                if (ta && pg) rrCmSet(w, (ta.value && ta.value === rrStoredField(pg.dataset.rrId, ta.dataset.rrField)) ? "locked" : "edit");
             });
             rrUpdateDirtyUi();
         }
