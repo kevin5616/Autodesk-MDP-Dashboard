@@ -636,8 +636,14 @@
         .rr-sec { margin-bottom: 18px; }
         .rr-sec-t { font-size: 15px; font-weight: 800; color: #142940; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px; }
         .rr-kv { display: flex; gap: 10px; padding: 4px 0; align-items: flex-start; }
-        .rr-k { flex: 0 0 92px; color: #64748b; font-weight: 600; font-size: 12.5px; padding-top: 2px; }
-        .rr-v { flex: 1; min-width: 0; }
+        .rr-k { flex: 0 0 76px; width: 76px; color: #64748b; font-weight: 600; font-size: 12.5px; padding-top: 2px; }
+        .rr-v { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+        .rr-ov { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0 16px; align-items: stretch; }
+        .rr-ov-div { background: #cbd5e1; width: 1px; }
+        .rr-ov-col { min-width: 0; }
+        .rr-cm-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+        .rr-cm-h .rr-cm-l { margin-bottom: 0; }
+        .rr-cm-btn { padding: 4px 12px; font-size: 12px; }
         .rr-desc { white-space: pre-wrap; word-break: break-word; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-top: 6px; font-size: 12.5px; }
         .rr-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
         .rr-cd { border: 1px solid #e2e8f0; border-left: 4px solid #cbd5e1; border-radius: 8px; padding: 9px 12px; }
@@ -681,7 +687,8 @@
         @media (max-width: 760px) {
             .rr-paper { padding: 20px 16px; }
             .rr-imgs, .rr-cover-cards { grid-template-columns: 1fr; }
-            .rr-kv { flex-direction: column; gap: 2px; }
+            .rr-ov { grid-template-columns: 1fr; }
+            .rr-ov-div { display: none; }
             .rr-tbl-scroll { overflow-x: auto; }
         }
         .rr-tbl-scroll { overflow-x: auto; }
@@ -691,7 +698,12 @@
             #rrReportView { display: block !important; }
             .rr-paper { max-width: none; margin: 0; padding: 0; box-shadow: none; border-radius: 0; background: #fff; font-size: 11.5px; }
             .rr-paper + .rr-paper { break-before: page; page-break-before: always; }
-            .rr-sec { break-inside: avoid; }
+            .rr-sec { break-inside: auto; }
+            .rr-sec-t { break-after: avoid; }
+            .rr-cm, .rr-cd, .rr-box, .rr-ov { break-inside: avoid; }
+            .rr-ov { grid-template-columns: 1fr 1px 1fr !important; }
+            .rr-ov-div { display: block !important; }
+            .rr-cm-btn { display: none !important; }
             .rr-h1 { font-size: 19px; }
             .rr-cover-t { font-size: 24px; }
             .rr-cd .v { font-size: 15px; }
@@ -3049,11 +3061,11 @@
         // 보고서 전용 저장 필드: Report_Comment_Good / Report_Comment_Bad / Report_Comment_Next / Report_Images(https 링크 배열)
         // 이 필드들은 merge 저장(해당 필드만)이며, 플랜 수정 저장 때는 기존 값을 복사해 보존한다 (submitPlanData)
         const RR_SECTIONS = [
-            { k: "overview", t: "캠페인 개요" }, { k: "budget", t: "예산·집행" }, { k: "kpi", t: "KPI 실적" },
-            { k: "eff", t: "효율과 비교" }, { k: "comment", t: "성과 코멘트" }, { k: "image", t: "첨부 이미지", opt: "기본 해제" }
+            { k: "comment", t: "성과 코멘트" }, { k: "overview", t: "캠페인 개요" }, { k: "budget", t: "예산·집행" },
+            { k: "kpi", t: "KPI 실적" }, { k: "eff", t: "효율과 비교" }, { k: "image", t: "첨부 이미지", opt: "기본 해제" }
         ];
         const RR_IMG_SLOTS = 2;
-        const RR_COMMENTS = [["good", "잘된 점", "Report_Comment_Good"], ["bad", "아쉬운 점", "Report_Comment_Bad"], ["next", "다음 액션", "Report_Comment_Next"]];
+        const RR_COMMENTS = [["good", "잘된 점", "Report_Comment_Good"], ["bad", "아쉬운 점", "Report_Comment_Bad"], ["next", "다음 계획", "Report_Comment_Next"]];
 
         // 상단 필터(검색어·FY·FQ·Industry·Tactics·Funding·Status)를 그대로 적용. MDP Status 전용 빠른 필터(quickFilter)는 적용하지 않음. Date 최신순
         function getReportCampaigns() {
@@ -3289,14 +3301,26 @@
             const kv = (l, v) => `<div class="rr-kv"><span class="rr-k">${l}</span><div class="rr-v">${v}</div></div>`;
 
             let body = "";
+            // 보고서이므로 성과 코멘트를 가장 먼저 표시. 항목별 [저장]/[수정] 버튼 (해당 필드만 저장)
+            if (rrInc.comment) {
+                body += sec("성과 코멘트", RR_COMMENTS.map(([k, label, field]) => {
+                    const v = String(c[field] ?? "");
+                    return `<div class="rr-cm ${k}"><div class="rr-cm-h"><div class="rr-cm-l">${label}</div>
+                        <button type="button" class="rr-btn rr-cm-btn" data-rr-save="${field}" onclick="rrSaveComment(this)">${v ? "수정" : "저장"}</button></div>
+                        <textarea class="rr-ta" maxlength="2000" data-rr-field="${field}" placeholder="${label}을(를) 입력하세요">${esc(v)}</textarea>
+                        <div class="rr-ta-print">${esc(v)}</div></div>`;
+                }).join(""));
+            }
             if (rrInc.overview) {
-                body += sec("캠페인 개요",
-                    kv("FY / FQ", `${esc(af.fy)} ${esc(af.fq)}`)
-                    + kv("Industry", c.Industry ? `<span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry)}</span>` : `<span class="rr-mut">-</span>`)
-                    + kv("Campaign", badges(c.Campaign_Name, "badge-campaign"))
+                // 상세 창과 같은 2열 + 가운데 구분선 (왼쪽: 분류, 오른쪽: 기간·타깃)
+                const left = kv("Industry", c.Industry ? `<span class="badge ${industryStyle(c.Industry).badge}">${esc(c.Industry)}</span>` : `<span class="rr-mut">-</span>`)
                     + kv("Tactics", c.Tactics ? `<span class="badge badge-tactic">${esc(c.Tactics)}</span>` : `<span class="rr-mut">-</span>`)
+                    + kv("Campaign", badges(c.Campaign_Name, "badge-campaign"));
+                const right = kv("FY / FQ", `${esc(af.fy)} ${esc(af.fq)}`)
                     + kv("Life Cycle", badges(c.Life_Cycle, "badge-lifecycle"))
-                    + kv("Persona", badges(c.Persona, "badge-persona"))
+                    + kv("Persona", badges(c.Persona, "badge-persona"));
+                body += sec("캠페인 개요",
+                    `<div class="rr-ov"><div class="rr-ov-col">${left}</div><div class="rr-ov-div"></div><div class="rr-ov-col">${right}</div></div>`
                     + (c.Activity_Description ? `<div class="rr-desc">${esc(c.Activity_Description)}</div>` : ""));
             }
             if (rrInc.budget) {
@@ -3357,14 +3381,6 @@
                 }
                 body += sec("효율과 비교", eff);
             }
-            if (rrInc.comment) {
-                body += sec("성과 코멘트", RR_COMMENTS.map(([k, label, field]) => {
-                    const v = String(c[field] ?? "");
-                    return `<div class="rr-cm ${k}"><div class="rr-cm-l">${label}</div>
-                        <textarea class="rr-ta" maxlength="2000" data-rr-field="${field}" placeholder="${label}을(를) 입력하세요"${""}>${esc(v)}</textarea>
-                        <div class="rr-ta-print">${esc(v)}</div></div>`;
-                }).join(""));
-            }
             if (rrInc.image) {
                 const imgs = Array.isArray(c.Report_Images) ? c.Report_Images : [];
                 let slots = "";
@@ -3395,6 +3411,7 @@
             const t = e.target, page = t.closest && t.closest(".rr-paper[data-rr-id]"); if (!page) return;
             if (t.dataset.rrField) {
                 const mirror = t.parentElement.querySelector(".rr-ta-print"); if (mirror) mirror.textContent = t.value;
+                const cb = t.parentElement.querySelector(".rr-cm-btn"); if (cb) cb.textContent = (t.value === rrStoredField(page.dataset.rrId, t.dataset.rrField) && t.value) ? "수정" : "저장";
             } else if (t.dataset.rrImg !== undefined) {
                 const slot = t.closest(".rr-img-slot"), pv = slot.querySelector(".rr-img-pv"), url = rrSafeUrl(t.value);
                 pv.innerHTML = "";
@@ -3405,6 +3422,40 @@
             rrDirty.add(page.dataset.rrId);
             rrUpdateDirtyUi();
         });
+
+        function rrStoredField(id, field) {
+            const c = globalData.campaigns.find(x => x.캠페인_ID === id);
+            return String((c && c[field]) ?? "");
+        }
+
+        // 항목별 [저장]/[수정] 버튼: 이미 저장된 내용이 그대로면 [수정]=입력칸으로 이동, 바뀌었으면 [저장]=해당 필드만 merge 저장
+        async function rrSaveComment(btn) {
+            const wrap = btn.closest(".rr-cm"), ta = wrap.querySelector("textarea[data-rr-field]"), page = btn.closest(".rr-paper[data-rr-id]");
+            if (!ta || !page) return;
+            const id = page.dataset.rrId, field = ta.dataset.rrField;
+            if (btn.textContent.trim() === "수정") { ta.focus(); return; }
+            btn.disabled = true; btn.textContent = "저장 중...";
+            try {
+                await window.FB_SET_DOC(window.FB_DOC(window.FB_DB, "Campaign_Master", id), { [field]: ta.value }, { merge: true });
+                const c = globalData.campaigns.find(x => x.캠페인_ID === id);
+                if (c) c[field] = ta.value;
+                showToast("저장했습니다.");
+                btn.textContent = ta.value ? "수정" : "저장";
+            } catch (err) {
+                console.error(err);
+                showToast("저장에 실패했습니다. 입력한 내용은 화면에 남아 있습니다.");
+                btn.textContent = "저장";
+            }
+            btn.disabled = false;
+            // 이 캠페인에 아직 저장 안 된 코멘트·이미지가 남아 있는지 다시 계산
+            const pending = [...page.querySelectorAll("textarea[data-rr-field]")].some(t => t.value !== rrStoredField(id, t.dataset.rrField))
+                || [...page.querySelectorAll("input[data-rr-img]")].some((inp, i) => {
+                    const c2 = globalData.campaigns.find(x => x.캠페인_ID === id), s = c2 && Array.isArray(c2.Report_Images) ? c2.Report_Images[i] : "";
+                    return (inp.value.trim()) !== String(s || "");
+                });
+            if (pending) rrDirty.add(id); else rrDirty.delete(id);
+            rrUpdateDirtyUi();
+        }
 
         function rrUpdateDirtyUi() {
             document.getElementById("rrDirtyInfo").textContent = rrDirty.size ? `저장되지 않은 변경 ${rrDirty.size}건` : "";
@@ -3448,6 +3499,10 @@
                 showToast("저장에 실패했습니다. 입력한 내용은 화면에 남아 있습니다.");
             }
             btn.textContent = "코멘트·이미지 저장";
+            document.querySelectorAll("#rrReportBody .rr-cm-btn").forEach(b => {
+                const ta = b.closest(".rr-cm").querySelector("textarea[data-rr-field]"), pg = b.closest(".rr-paper[data-rr-id]");
+                b.textContent = (ta && pg && ta.value && ta.value === rrStoredField(pg.dataset.rrId, ta.dataset.rrField)) ? "수정" : "저장";
+            });
             rrUpdateDirtyUi();
         }
 
