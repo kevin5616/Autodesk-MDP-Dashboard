@@ -594,6 +594,19 @@
         .rr-hint { font-size: 12.5px; color: #64748b; margin-top: 3px; }
         .rr-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .rr-selnote { flex-basis: 100%; margin-top: 0; }
+        .rr-seg { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; margin-bottom: 14px; }
+        .rr-seg button { padding: 9px 18px; border: 0; background: #fff; color: #334155; font-weight: 600; font-size: 13px; font-family: inherit; cursor: pointer; }
+        .rr-seg button + button { border-left: 1px solid #cbd5e1; }
+        .rr-seg button.on { background: #142940; color: #fff; }
+        .rr-annual .rr-cards { grid-template-columns: repeat(3, 1fr); }
+        .rr-annual .rr-cd .v { font-size: 17px; }
+        .rr-sub { font-size: 12.5px; font-weight: 700; color: #475569; margin-bottom: 4px; }
+        .rr-stps { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+        .rr-stp b { margin-left: 2px; }
+        .rr-stack { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: #e2e8f0; }
+        .rr-stack i { display: block; height: 100%; }
+        .rr-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; font-size: 12px; }
+        .rr-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; }
         .rr-btn { padding: 9px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; border: 1px solid #cbd5e1; background: #fff; color: #334155; }
         .rr-btn:hover { background: #f1f5f9; }
         .rr-btn.solid { background: #142940; color: #fff; border-color: #142940; }
@@ -695,6 +708,7 @@
             .rr-ov { grid-template-columns: 1fr; }
             .rr-ov-div { display: none; }
             .rr-desc.two { column-count: 1; }
+            .rr-annual .rr-cards { grid-template-columns: 1fr; }
             .rr-tbl-scroll { overflow-x: auto; }
         }
         .rr-tbl-scroll { overflow-x: auto; }
@@ -705,6 +719,8 @@
             .rr-paper { max-width: none; margin: 0; padding: 0; box-shadow: none; border-radius: 0; background: #fff; font-size: 11.5px; }
             .rr-paper + .rr-paper { break-before: page; page-break-before: always; }
             .rr-sec { break-inside: auto; }
+            .rr-annual .rr-sec { break-inside: avoid; }
+            .rr-annual .rr-cards { grid-template-columns: repeat(3, 1fr) !important; }
             .rr-sec-t { break-after: avoid; }
             .rr-cm, .rr-cd, .rr-box, .rr-ov { break-inside: avoid; }
             .rr-ov { grid-template-columns: 1fr 1px 1fr !important; }
@@ -973,6 +989,24 @@
         <div id="resultReportTab" class="tab-content">
             <!-- v38: 선택 화면 -->
             <div id="rrSelectView">
+                <div class="rr-seg" role="tablist" aria-label="보고서 종류">
+                    <button type="button" class="on" id="rrKindCampaign" onclick="rrSetKind('campaign')">캠페인별 보고서</button>
+                    <button type="button" id="rrKindAnnual" onclick="rrSetKind('annual')">연간 요약 보고서</button>
+                </div>
+                <div id="rrAnnualPane" style="display:none;">
+                    <div class="rr-card rr-selbar">
+                        <div>
+                            <div class="rr-count" id="rrAnnTitle">연간 요약 보고서</div>
+                            <div class="rr-hint" id="rrAnnHint"></div>
+                        </div>
+                        <div class="rr-btns">
+                            <button type="button" class="rr-btn solid" id="rrAnnViewBtn" onclick="rrOpenAnnual()">미리보기</button>
+                            <button type="button" class="rr-btn green" id="rrAnnPdfBtn" onclick="rrAnnualPdf()">PDF로 저장</button>
+                        </div>
+                        <div class="rr-note rr-selnote">상단 필터(FY·FQ·Industry·Tactics·Funding·Status·검색어)를 그대로 적용합니다. 합계는 Canceled를 제외하고, Denied는 건수와 Requested에만 포함합니다. PDF로 저장: 인쇄 창에서 대상(프린터)을 'PDF로 저장'으로 선택하세요. A4 세로 기준입니다.</div>
+                    </div>
+                </div>
+                <div id="rrCampaignPane">
                 <div class="rr-card">
                     <div class="rr-title">보고서에 포함할 구역</div>
                     <div class="rr-inc" id="rrIncBox" style="margin-bottom:0;"></div>
@@ -999,6 +1033,7 @@
                             <tbody id="rrListBody"></tbody>
                         </table>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -1260,6 +1295,8 @@
         let rrSel = new Set();                                 // 선택한 캠페인 ID
         let rrInc = { overview: true, budget: true, kpi: true, eff: true, comment: true, image: false };   // 포함 구역 (첨부 이미지는 기본 해제)
         let rrMode = "select";                                 // select | report
+        let rrKind = "campaign";                               // campaign(캠페인별) | annual(연간 요약)
+        let rrAnnualIds = [];                                  // 연간 요약 미리보기 시점에 고정한 대상 ID
         let rrReportIds = [];                                  // 보고서 화면에 표시 중인 ID (미리보기 시점 고정)
         let rrDirty = new Set();                               // 저장하지 않은 코멘트·이미지가 있는 ID
 
@@ -3159,8 +3196,14 @@
             if (rrMode === "report") { document.getElementById("rrSelectView").style.display = "none"; document.getElementById("rrReportView").style.display = "block"; return; }
             document.getElementById("rrSelectView").style.display = "block";
             document.getElementById("rrReportView").style.display = "none";
-            rrRenderSelect();
+            const ann = rrKind === "annual";
+            document.getElementById("rrKindCampaign").classList.toggle("on", !ann);
+            document.getElementById("rrKindAnnual").classList.toggle("on", ann);
+            document.getElementById("rrCampaignPane").style.display = ann ? "none" : "block";
+            document.getElementById("rrAnnualPane").style.display = ann ? "block" : "none";
+            if (ann) rrRenderAnnualSelect(); else rrRenderSelect();
         }
+        function rrSetKind(k) { rrKind = k; renderResultReportTab(); }
 
         function rrRenderSelect() {
             const list = getReportCampaigns(), q = getCurrentQuarterInfo();
@@ -3236,6 +3279,8 @@
             rrReportIds = list.map(c => c.캠페인_ID);
             rrDirty.clear();
             rrMode = "report";
+            document.getElementById("rrSaveBtn").style.display = "";
+            document.getElementById("rrDirtyInfo").style.display = "";
             rrRenderReport();
             renderResultReportTab();
             window.scrollTo({ top: 0 });
@@ -3260,11 +3305,194 @@
             window.print();
         }
 
+        // ===== v42 연간 요약 보고서 =====
+        // 상단 필터 결과 전체를 집계한다 (저장 데이터 없음, 화면에서 계산).
+        // 합계 규칙: Canceled는 모든 합계에서 제외, Denied는 건수·Requested에만 포함(승인·집행·KPI 집계 제외). 환율 1,000원/$ 고정
+        const RR_FQ_MONTHS = { Q1: "2~4월", Q2: "5~7월", Q3: "8~10월", Q4: "11~1월" };
+        const RR_COST_COLORS = ["#534AB7", "#0F6E56", "#BA7517", "#185FA5", "#993556", "#888780"];
+
+        function rrAnnualFilterText() {
+            const f = getFundsFilters(), kw = document.getElementById("searchInput").value.trim(), p = [];
+            if (f.fy) p.push(f.fy);
+            if (f.fq.length) p.push("FQ " + f.fq.join(", "));
+            if (f.ind.length) p.push("Industry " + f.ind.join(", "));
+            if (f.tac.length) p.push("Tactics " + f.tac.join(", "));
+            if (f.fund) p.push("Funding " + f.fund);
+            if (f.st.length) p.push("Status " + f.st.join(", "));
+            if (kw) p.push(`검색어 "${kw}"`);
+            return p.length ? p.join(" · ") : "필터 없음";
+        }
+
+        function rrRenderAnnualSelect() {
+            const list = getReportCampaigns(), q = getCurrentQuarterInfo();
+            const live = list.filter(c => getStatusKey(c, q) !== "Canceled"), canc = list.length - live.length;
+            const fy = document.getElementById("filterFY").value;
+            document.getElementById("rrAnnTitle").textContent = `${fy || "전체 기간"} 연간 요약 · 집계 대상 ${live.length}건`;
+            document.getElementById("rrAnnHint").textContent = rrAnnualFilterText() + (canc ? ` · Canceled ${canc}건 제외` : "") + (fy ? "" : " · FY를 선택하지 않아 모든 기간을 합산합니다");
+            document.getElementById("rrAnnViewBtn").disabled = document.getElementById("rrAnnPdfBtn").disabled = live.length === 0;
+        }
+
+        function rrOpenAnnual() {
+            const list = getReportCampaigns();
+            if (!list.some(c => getStatusKey(c) !== "Canceled")) { showToast("집계할 캠페인이 없습니다. 필터를 확인하세요."); return false; }
+            rrAnnualIds = list.map(c => c.캠페인_ID);
+            rrDirty.clear();
+            rrMode = "report";
+            document.getElementById("rrSaveBtn").style.display = "none";
+            document.getElementById("rrDirtyInfo").style.display = "none";
+            document.getElementById("rrReportBody").innerHTML = rrAnnualHtml(list);
+            renderResultReportTab();
+            window.scrollTo({ top: 0 });
+            return true;
+        }
+        function rrAnnualPdf() { if (rrOpenAnnual()) rrPrint(); }
+
+        // 집계 (순수 계산: 화면과 분리해 검증하기 쉽게)
+        function rrAnnualCalc(list) {
+            const q = getCurrentQuarterInfo(), sk = c => getStatusKey(c, q);
+            const live = list.filter(c => sk(c) !== "Canceled");
+            const counted = live.filter(c => sk(c) !== "Denied");
+            const num = v => Number(v) || 0;
+            const stCnt = { Completed: 0, Ongoing: 0, Planning: 0, Denied: 0, none: 0 };
+            live.forEach(c => { stCnt[sk(c) || "none"]++; });
+            const mdfLive = live.filter(c => getFunding(c) === "MDF"), mdfCounted = counted.filter(c => getFunding(c) === "MDF");
+            const req = sumBy(mdfLive, c => num(c.Cost_MDP_Requested));
+            const app = sumBy(mdfCounted, c => num(c.Cost_Approved));
+            const approvedN = mdfCounted.filter(c => num(c.Cost_Approved) > 0).length;
+            const decidedN = approvedN + stCnt.Denied;
+            const cost = sumBy(counted, rrCost);
+            const support = Math.min(app * 1000, cost);
+            const out = {
+                live, counted, stCnt, req, app, approvedN, decidedN, cost, support, selfPay: Math.max(0, cost - support),
+                rateAmt: decidedN > 0 ? approvedN / decidedN * 100 : null,   // 승인율 = 승인 건수 ÷ 판정 건수(승인+Denied). Approved가 Requested보다 클 수 있어 금액 기준은 쓰지 않음
+                supportRate: cost > 0 ? support / cost * 100 : null,
+                selfN: live.filter(c => getFunding(c) === "Self").length,
+                carryN: live.filter(isCarryOver).length
+            };
+            // 그룹 집계 (분기·Industry·Tactics)
+            const group = keyFn => {
+                const m = new Map();
+                live.forEach(c => {
+                    const k = keyFn(c), o = m.get(k) || { k, n: 0, req: 0, app: 0, cost: 0, costN: 0 }, isC = sk(c) !== "Denied";
+                    o.n++;
+                    if (getFunding(c) === "MDF") { o.req += num(c.Cost_MDP_Requested); if (isC) o.app += num(c.Cost_Approved); }
+                    if (isC) { const cc = rrCost(c); o.cost += cc; if (cc > 0) o.costN++; }
+                    m.set(k, o);
+                });
+                return [...m.values()];
+            };
+            out.byQ = group(c => { const a = getAutodeskFYFQ(c.Activity_Date); return a.fy === "기타" ? "기타" : a.fy + " " + a.fq; }).sort((a, b) => a.k.localeCompare(b.k));
+            out.byInd = group(c => String(c.Industry || "").trim() || "미지정").sort((a, b) => b.cost - a.cost);
+            const tacs = group(c => String(c.Tactics || "").trim() || "미지정").sort((a, b) => b.cost - a.cost);
+            out.byTac = tacs.length > 6 ? tacs.slice(0, 5).concat([tacs.slice(5).reduce((s, o) => ({ k: `기타 (${tacs.length - 5}종)`, n: s.n + o.n, req: s.req + o.req, app: s.app + o.app, cost: s.cost + o.cost, costN: s.costN + o.costN }), { n: 0, req: 0, app: 0, cost: 0, costN: 0 })]) : tacs;
+            // 비용 그룹
+            const cg = new Map();
+            counted.forEach(c => (getCampaignCosts(c) || []).forEach(x => { const g = String(x.비용_그룹 || "").trim() || "미분류"; cg.set(g, (cg.get(g) || 0) + num(x.금액)); }));
+            let cgl = [...cg.entries()].map(([k, v]) => ({ k, v })).filter(o => o.v > 0).sort((a, b) => b.v - a.v);
+            if (cgl.length > 6) cgl = cgl.slice(0, 5).concat([{ k: `기타 (${cgl.length - 5}종)`, v: sumBy(cgl.slice(5), o => o.v) }]);
+            out.costGroups = cgl;
+            // KPI: 지표명별 (목표·결과가 모두 입력된 건만 달성률에 반영, 단가는 결과>0인 건의 집행 비용 ÷ 결과)
+            const km = new Map(), judge = { ok: 0, near: 0, low: 0 };
+            counted.forEach(c => {
+                const cc = rrCost(c), seen = new Set();
+                rrKpiRows(c).forEach(r => {
+                    const key = r.name.toLowerCase(), o = km.get(key) || { name: r.name, t: 0, a: 0, n: 0, ucost: 0, ua: 0 };
+                    if (r.rate !== null) { o.t += r.target; o.a += r.actual; o.n++; judge[r.judge]++; }
+                    if (r.actual > 0 && cc > 0) { if (!seen.has(key)) o.ucost += cc; o.ua += r.actual; }
+                    seen.add(key); km.set(key, o);
+                });
+            });
+            out.kpi = [...km.values()].filter(o => o.n > 0).sort((a, b) => b.n - a.n);
+            out.judge = judge;
+            const ks = counted.map(rrKpiSummary);
+            out.kn = sumBy(ks, s => s.n); out.km = sumBy(ks, s => s.m);
+            out.kpiCamps = ks.filter(s => s.m > 0).length;
+            // 캠페인별 점수 = 달성률(결과가 입력된 지표의 평균)
+            const scored = counted.map(c => { const rs = rrKpiRows(c).filter(r => r.rate !== null); return rs.length ? { c, score: sumBy(rs, r => r.rate) / rs.length } : null; }).filter(Boolean);
+            out.top = scored.slice().sort((a, b) => b.score - a.score).slice(0, 5);
+            const imp = [];
+            live.filter(c => sk(c) === "Denied").forEach(c => imp.push({ c, why: "Denied", r: 0 }));
+            scored.filter(o => o.score < 80).sort((a, b) => a.score - b.score).forEach(o => imp.push({ c: o.c, why: `미달 ${Math.round(o.score)}%`, r: 1 }));
+            counted.filter(c => sk(c) === "Completed" && rrKpiSummary(c).m === 0).forEach(c => imp.push({ c, why: "결과 미입력", r: 2 }));
+            out.improve = imp;
+            const byDate = (a, b) => String(a.Activity_Date || "").slice(0, 10).localeCompare(String(b.Activity_Date || "").slice(0, 10));
+            out.comments = live.filter(c => RR_COMMENTS.some(([, , f]) => String(c[f] || "").trim())).sort((a, b) => byDate(b, a));
+            out.next = live.filter(c => sk(c) === "Planning").sort(byDate);
+            return out;
+        }
+
+        function rrAnnualHtml(list) {
+            const d = rrAnnualCalc(list), fyV = document.getElementById("filterFY").value, multiFy = new Set(list.map(c => getAutodeskFYFQ(c.Activity_Date).fy)).size > 1;
+            const pct = (v, t) => t > 0 ? Math.round(v / t * 100) + "%" : "-";
+            const none = `<div class="rr-mut">해당 데이터가 없습니다.</div>`;
+            let n = 0;
+            const sec = (title, inner) => `<div class="rr-sec"><div class="rr-sec-t">${++n}. ${esc(title)}</div>${inner}</div>`;
+            const tbl = (heads, rows, foot) => `<div class="rr-tbl-scroll"><table class="rr-tbl"><thead><tr>${heads.map((h, i) => `<th${i ? ' class="num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody>${foot || ""}</table></div>`;
+            const tr = cells => `<tr>${cells.map((x, i) => `<td${i ? ' class="num"' : ""}>${x}</td>`).join("")}</tr>`;
+            const cut = s => { const t = String(s || "").split(/\r?\n/).map(x => x.trim()).find(Boolean) || ""; return t.length > 40 ? t.slice(0, 40) + "…" : t; };
+            const title = (fyV || (multiFy ? "전체 기간" : getAutodeskFYFQ((list[0] || {}).Activity_Date).fy)) + " MDP 연간 요약";
+            const st = d.stCnt;
+            const summary = `${d.live.length}건 중 완료 ${st.Completed}건` + (d.app > 0 ? `, 승인 ${fmtUsd(d.app)}` + (d.rateAmt !== null ? `(승인율 ${Math.round(d.rateAmt)}%)` : "") : "")
+                + (d.cost > 0 ? `, 집행 ${fmtKrw(d.cost)}` : "") + (d.km ? `, KPI ${d.kn}/${d.km}개 달성` : ", KPI 결과 미입력") + ".";
+            const cards = `<div class="rr-cards">
+                <div class="rr-cd c4"><div class="l">캠페인</div><div class="v">${d.live.length}건</div><div class="s">완료 ${st.Completed} · 진행 ${st.Ongoing} · 예정 ${st.Planning} · Denied ${st.Denied}</div></div>
+                <div class="rr-cd c1"><div class="l">Requested</div><div class="v">${fmtUsd(d.req)}</div><div class="s">MDF 기준 · Denied 포함</div></div>
+                <div class="rr-cd c2"><div class="l">Approved</div><div class="v">${fmtUsd(d.app)}</div><div class="s">${d.rateAmt !== null ? `승인율 ${Math.round(d.rateAmt)}% (승인 ${d.approvedN} / 판정 ${d.decidedN}건)` : "판정된 건 없음"}</div></div>
+                <div class="rr-cd c4"><div class="l">집행 비용 (KRW)</div><div class="v">${fmtKrw(d.cost)}</div><div class="s">Self 포함 · Denied 제외</div></div>
+                <div class="rr-cd c3"><div class="l">MDF 지원 비율</div><div class="v">${d.supportRate !== null ? Math.round(d.supportRate) + "%" : "-"}</div><div class="s">지원액 ${fmtKrw(d.support)} · 자부담 ${fmtKrw(d.selfPay)}</div></div>
+                <div class="rr-cd c3"><div class="l">Self / 이월</div><div class="v">${d.selfN}건 / ${d.carryN}건</div><div class="s">이월은 활동 시작일의 FY에 집계</div></div>
+            </div>`;
+            let body = "";
+            body += sec("분기별 추이", d.byQ.length ? tbl(["분기", "건수", "Requested", "Approved", "집행 비용"],
+                d.byQ.map(o => tr([esc(o.k === "기타" ? o.k : (multiFy ? o.k : o.k.split(" ")[1]) + (RR_FQ_MONTHS[o.k.split(" ")[1]] ? ` (${RR_FQ_MONTHS[o.k.split(" ")[1]]})` : "")), o.n, fmtUsd(o.req), fmtUsd(o.app), fmtKrw(o.cost)])).join(""),
+                `<tfoot><tr><td>합계</td><td class="num">${d.live.length}</td><td class="num">${fmtUsd(d.req)}</td><td class="num">${fmtUsd(d.app)}</td><td class="num">${fmtKrw(d.cost)}</td></tr></tfoot>`) : none);
+            const pills = ["Completed", "Ongoing", "Planning", "Denied"].filter(k => st[k]).map(k => `<span class="rr-stp">${statusPillHtml(k)} <b>${st[k]}</b></span>`).join("")
+                + (st.none ? `<span class="rr-stp"><span class="status-none">상태 없음</span> <b>${st.none}</b></span>` : "");
+            const canc = list.length - d.live.length;
+            body += sec("상태 현황", `<div class="rr-stps">${pills || none}</div>` + (canc ? `<div class="rr-note">Canceled ${canc}건은 모든 합계에서 제외했습니다.</div>` : ""));
+            const grpTbl = (rows, label) => rows.length ? tbl([label, "건수", "집행 비용", "비중", "건당 평균"], rows.map(o => tr([esc(o.k), o.n, fmtKrw(o.cost), pct(o.cost, d.cost), o.costN ? fmtKrw(o.cost / o.costN) : "-"])).join("")) : none;
+            body += sec("Industry별", grpTbl(d.byInd, "Industry"));
+            body += sec("Tactics별", grpTbl(d.byTac, "Tactics"));
+            body += sec("비용 구성", d.costGroups.length
+                ? `<div class="rr-stack">${d.costGroups.map((o, i) => `<i style="width:${(o.v / d.cost * 100).toFixed(2)}%;background:${RR_COST_COLORS[i % 6]}"></i>`).join("")}</div>
+                   <div class="rr-legend">${d.costGroups.map((o, i) => `<span><i style="background:${RR_COST_COLORS[i % 6]}"></i>${esc(o.k)} ${pct(o.v, d.cost)} <span class="rr-mut">${fmtKrw(o.v)}</span></span>`).join("")}</div>` : none);
+            const jl = d.judge;
+            body += sec("KPI 성과", d.kpi.length
+                ? tbl(["지표", "목표", "결과", "달성률", "단가"], d.kpi.map(o => { const r = o.t > 0 ? o.a / o.t * 100 : null, j = r === null ? "" : r >= 100 ? "ok" : r >= 80 ? "near" : "low";
+                    return tr([`<b>${esc(o.name)}</b>`, o.t.toLocaleString(), o.a.toLocaleString(), r === null ? "-" : `<div class="rr-bar"><div class="rr-bar-t"><div class="rr-bar-f ${j}" style="width:${Math.min(100, Math.round(r))}%"></div></div><span class="rr-bar-p">${Math.round(r)}%</span></div>`, o.ua > 0 ? fmtKrw(o.ucost / o.ua) : "-"]); }).join(""))
+                  + `<div class="rr-note">지표 판정: 달성 ${jl.ok} · 근접 ${jl.near} · 미달 ${jl.low} (달성 ≥100% · 근접 80~99% · 미달 &lt;80%) · 결과 입력 ${d.kpiCamps} / ${d.counted.length}건 (미입력 건은 달성률에서 제외) · 단가 = 집행 비용 ÷ 결과</div>`
+                : `<div class="rr-mut">목표와 결과가 모두 입력된 KPI가 없습니다.</div>`);
+            const topT = d.top.length ? tbl(["캠페인", "달성률", "집행 비용"], d.top.map(o => tr([esc(o.c.Activity_Name || "-"), Math.round(o.score) + "%", fmtKrw(rrCost(o.c))])).join("")) : none;
+            const impList = d.improve.slice(0, 8);
+            const impT = impList.length ? tbl(["캠페인", "사유"], impList.map(o => tr([esc(o.c.Activity_Name || "-"), esc(o.why)])).join("")) + (d.improve.length > 8 ? `<div class="rr-note">외 ${d.improve.length - 8}건</div>` : "") : `<div class="rr-mut">개선이 필요한 건이 없습니다.</div>`;
+            body += sec("성과 평가", `<div class="rr-ov"><div class="rr-ov-col"><div class="rr-sub">상위 5건 (달성률)</div>${topT}</div><div class="rr-ov-div"></div><div class="rr-ov-col"><div class="rr-sub">개선 필요</div>${impT}</div></div>`);
+            const cm = d.comments.slice(0, 10);
+            body += sec("코멘트 취합", cm.length
+                ? tbl(["캠페인", "잘된 점", "아쉬운 점", "다음 계획"], cm.map(c => `<tr><td>${esc(c.Activity_Name || "-")}</td>` + RR_COMMENTS.map(([, , f]) => `<td>${esc(cut(c[f])) || '<span class="rr-mut">-</span>'}</td>`).join("") + `</tr>`).join(""))
+                  + `<div class="rr-note">코멘트가 있는 ${d.comments.length}건 중 ${cm.length}건, 건당 첫 줄만 표시 (전체는 캠페인별 보고서)</div>`
+                : `<div class="rr-mut">저장된 성과 코멘트가 없습니다.</div>`);
+            const nx = d.next.slice(0, 10);
+            body += sec("다음 일정 (Planning)", nx.length
+                ? tbl(["활동일", "캠페인", "Industry", "Requested"], nx.map(c => tr([esc(formatDateWithDay(c.Activity_Date)), esc(c.Activity_Name || "-"), esc(c.Industry || "-"), getFunding(c) === "Self" ? "-" : fmtUsd(Number(c.Cost_MDP_Requested) || 0)])).join("")) + (d.next.length > 10 ? `<div class="rr-note">외 ${d.next.length - 10}건</div>` : "")
+                : `<div class="rr-mut">예정된(Planning) 캠페인이 없습니다.</div>`);
+            return `<div class="rr-paper rr-annual">
+                <div class="rr-head">
+                    <div class="rr-brand">ZOOMINTECH · Autodesk MDP 연간 요약 보고서</div>
+                    <div class="rr-h1">${esc(title)}</div>
+                    <div class="rr-meta">작성일 ${esc(formatDateWithDay(toLocalDateKey(new Date())))} · ${esc(rrAnnualFilterText())} · 환율 1,000원/$ 고정</div>
+                </div>
+                <div class="rr-summary">${esc(summary)}</div>
+                ${cards}
+                ${body}
+            </div>`;
+        }
+
         // 상세 창의 [보고서] 버튼: Result & Report 탭으로 이동해 그 건만 선택. 필터에 걸려 안 보이면 필터를 초기화
         function openReportFromModal() {
             const id = currentSelectedId; if (!id) return;
             closeModal();
             rrMode = "select";
+            rrKind = "campaign";
             rrSel = new Set([id]);
             switchTab("resultReportTab", document.getElementById("btn-resultReportTab"));
             if (!getReportCampaigns().some(c => c.캠페인_ID === id)) { resetFilters(); showToast("필터에 가려져 있어 필터를 초기화했습니다."); }
