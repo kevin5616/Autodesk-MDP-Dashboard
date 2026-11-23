@@ -3553,14 +3553,20 @@
         }
 
         // 상세 창의 [보고서] 버튼: Result & Report 탭으로 이동해 그 건만 선택. 필터에 걸려 안 보이면 필터를 초기화
-        function openReportFromModal() {
+        // v47: 선택 화면을 거치지 않고 그 캠페인의 보고서를 바로 연다 (다른 보고서에 저장하지 않은 입력이 있으면 먼저 확인)
+        async function openReportFromModal() {
             const id = currentSelectedId; if (!id) return;
+            if (rrDirty.size || rrDirtyRes.size) {
+                const ok = await showConfirmDialog("다른 보고서에 저장하지 않은 코멘트·이미지·결과 변경이 있습니다. 버리고 이 캠페인 보고서를 열까요?", "저장되지 않음");
+                if (!ok) return;
+            }
             closeModal();
             rrMode = "select";
             rrKind = "campaign";
             rrSel = new Set([id]);
             switchTab("resultReportTab", document.getElementById("btn-resultReportTab"));
             if (!getReportCampaigns().some(c => c.캠페인_ID === id)) { resetFilters(); showToast("필터에 가려져 있어 필터를 초기화했습니다."); }
+            rrOpenReport();
             window.scrollTo({ top: 0 });
         }
 
@@ -4163,15 +4169,21 @@
         }
 
         async function confirmCancelEditMode() {
-            const editId = document.getElementById("editCampaignId").value;
             if(!hasFormContentChanged()) {
-                closeCreateModal();
+                closeCreateAndReturn();
                 return;
             }
             const isConfirmed = await showConfirmDialog("작성 중인 내용이 있습니다. 정말 종료하시겠습니까?", "작성 취소");
             if(isConfirmed) {
-                closeCreateModal();
+                closeCreateAndReturn();
             }
+        }
+
+        // v47: 수정 화면을 취소/ESC로 닫으면 그 캠페인의 상세 창으로 돌아감 (새 플랜 등록 화면은 그대로 닫기만)
+        function closeCreateAndReturn() {
+            const id = document.getElementById("editCampaignId").value;
+            closeCreateModal();
+            if (id && globalData.campaigns.some(c => c.캠페인_ID === id)) openModal(id);
         }
 
         function addCostRow(g="", n="", a="") {
@@ -4205,12 +4217,12 @@
 
                 if(createModal.style.display === 'block') {
                     if(!hasFormContentChanged()) {
-                        closeCreateModal();
+                        closeCreateAndReturn();
                         return;
                     }
                     const isConfirmed = await showConfirmDialog("작성 중인 내용이 있습니다. 정말 종료하시겠습니까?", "창 닫기 확인");
                     if(isConfirmed) {
-                        closeCreateModal();
+                        closeCreateAndReturn();
                     }
                 } else if(detailModal.style.display === 'block') {
                     closeModal();
