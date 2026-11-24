@@ -692,6 +692,7 @@
         .rr-sec-t.has-n { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
         .rr-sec-n { font-size: 11px; font-weight: 400; color: #94a3b8; flex: 1 1 240px; min-width: 0; line-height: 1.45; }
         .rr-cmt-tbl td { border: 1px solid #e2e8f0; vertical-align: top; overflow-wrap: anywhere; }
+        .rr-cmt-tbl .rr-cmt-v { white-space: pre-line; }   /* v49: 코멘트 줄바꿈 유지 */
         .rr-cmt-tbl .rr-cmt-nm { font-weight: 700; background: #f8fafc; }
         .rr-cmt-tbl .rr-cmt-k { color: #64748b; white-space: nowrap; }
         .rr-cmt-tbl tbody { break-inside: avoid; }
@@ -3488,6 +3489,17 @@
             const tbl = (heads, rows, foot) => `<div class="rr-tbl-scroll"><table class="rr-tbl"><thead><tr>${heads.map((h, i) => `<th${i ? ' class="num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody>${foot || ""}</table></div>`;
             const tr = cells => `<tr>${cells.map((x, i) => `<td${i ? ' class="num"' : ""}>${x}</td>`).join("")}</tr>`;
             const cut = (s, n = 40) => { const t = String(s || "").split(/\r?\n/).map(x => x.trim()).find(Boolean) || ""; return t.length > n ? t.slice(0, n) + "…" : t; };
+            // v49: 줄바꿈 유지, 빈 줄은 제거, 눈에 보이는 글자(줄바꿈 제외) n자까지 — 넘으면 그 지점에서 끊고 …
+            const cutMulti = (s, n = 200) => {
+                const lines = String(s || "").split(/\r?\n/).map(x => x.trim()).filter(Boolean), out = [];
+                let left = n;
+                for (const ln of lines) {
+                    if (left <= 0) { out[out.length - 1] += "…"; break; }
+                    if (ln.length > left) { out.push(ln.slice(0, left) + "…"); left = 0; break; }
+                    out.push(ln); left -= ln.length;
+                }
+                return out.join("\n");
+            };
             const title = fyV + " MDP 연간 요약";
             const st = d.stCnt;
             const summary = `${d.live.length}건 중 완료 ${st.Completed}건` + (d.app > 0 ? `, 승인 ${fmtUsd(d.app)}` + (d.rateAmt !== null ? `(승인율 ${Math.round(d.rateAmt)}%)` : "") : "")
@@ -3546,14 +3558,14 @@
             body += sec("성과 평가", `<div class="rr-ov"><div class="rr-ov-col"><div class="rr-sub">상위 5건 (달성률)</div>${topT}</div><div class="rr-ov-div"></div><div class="rr-ov-col"><div class="rr-sub">개선 필요</div>${impT}</div></div>`);
             const cm = d.comments.slice(0, 10);
             body += sec("코멘트 취합", cm.length
-                ? `<div class="rr-tbl-scroll"><table class="rr-tbl rr-cmt-tbl"><colgroup><col style="width:32%"><col style="width:11%"><col style="width:57%"></colgroup>`
+                ? `<div class="rr-tbl-scroll"><table class="rr-tbl rr-cmt-tbl"><colgroup><col style="width:30%"><col style="width:10%"><col style="width:60%"></colgroup>`
                   + cm.map(c => {
                       // v46: 내용이 있는 항목만 행으로 (캠페인 이름 칸은 행 수만큼 세로 병합, 캠페인 단위로 쪽 나눔 방지)
-                      const items = RR_COMMENTS.map(([, lb, f]) => [lb, cut(c[f], 200)]).filter(x => x[1]);
-                      return `<tbody>` + items.map((x, i) => `<tr>${i === 0 ? `<td class="rr-cmt-nm" rowspan="${items.length}">${esc(c.Activity_Name || "-")}</td>` : ""}<td class="rr-cmt-k">${esc(x[0])}</td><td>${esc(x[1])}</td></tr>`).join("") + `</tbody>`;
+                      const items = RR_COMMENTS.map(([, lb, f]) => [lb, cutMulti(c[f], 200)]).filter(x => x[1]);
+                      return `<tbody>` + items.map((x, i) => `<tr>${i === 0 ? `<td class="rr-cmt-nm" rowspan="${items.length}">${esc(c.Activity_Name || "-")}</td>` : ""}<td class="rr-cmt-k">${esc(x[0])}</td><td class="rr-cmt-v">${esc(x[1])}</td></tr>`).join("") + `</tbody>`;
                   }).join("") + `</table></div>`
                 : `<div class="rr-mut">저장된 성과 코멘트가 없습니다.</div>`,
-                cm.length ? `코멘트가 있는 ${d.comments.length}건 중 ${cm.length}건, 항목당 첫 줄 200자까지 표시 (전체는 캠페인별 보고서)` : "");
+                cm.length ? `코멘트가 있는 ${d.comments.length}건 중 ${cm.length}건, 항목당 200자까지 표시 (전체는 캠페인별 보고서)` : "");
             const nx = d.next.slice(0, 10);
             body += sec("다음 일정 (Planning)", nx.length
                 ? tbl(["활동일", "캠페인", "Industry", "Requested"], nx.map(c => tr([esc(formatDateWithDay(c.Activity_Date)), esc(c.Activity_Name || "-"), esc(c.Industry || "-"), getFunding(c) === "Self" ? "-" : fmtUsd(Number(c.Cost_MDP_Requested) || 0)])).join("")) + (d.next.length > 10 ? `<div class="rr-note">외 ${d.next.length - 10}건</div>` : "")
