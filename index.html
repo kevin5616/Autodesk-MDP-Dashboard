@@ -766,6 +766,14 @@
             .rr-tbl th, .rr-tbl td { padding: 4px 6px; }
             .rr-tbl tr { break-inside: avoid; }
             .rr-tbl-scroll { overflow: visible; }
+            /* v50: 코멘트 취합 — 구역은 쪽 나눔 허용(캠페인 칸 tbody만 나눔 금지), 인쇄 폭이 760px 이하여도 모바일 쌓기 대신 표 형태 강제 */
+            .rr-annual .rr-sec.rr-sec-split { break-inside: auto; }
+            .rr-cmt-tbl { display: table !important; width: 100% !important; }
+            .rr-cmt-tbl colgroup { display: table-column-group !important; }
+            .rr-cmt-tbl tbody { display: table-row-group !important; border: none !important; border-radius: 0 !important; margin: 0 !important; overflow: visible !important; break-inside: avoid; page-break-inside: avoid; }
+            .rr-cmt-tbl tr { display: table-row !important; }
+            .rr-cmt-tbl td { display: table-cell !important; border: 1px solid #e2e8f0 !important; padding: 4px 6px !important; }
+            .rr-cmt-tbl .rr-cmt-k { font-size: inherit !important; }
             textarea.rr-ta { display: none !important; }
             .rr-ta-print { display: block !important; }
             .rr-img-slot { border: none; padding: 0; }
@@ -3485,7 +3493,7 @@
             const none = `<div class="rr-mut">해당 데이터가 없습니다.</div>`;
             let n = 0;
             // v48: note가 있으면 제목 옆(좁으면 아래 줄)에 설명으로 표시
-            const sec = (title, inner, note) => `<div class="rr-sec"><div class="rr-sec-t${note ? " has-n" : ""}"><span>${++n}. ${esc(title)}</span>${note ? `<span class="rr-sec-n">${note}</span>` : ""}</div>${inner}</div>`;
+            const sec = (title, inner, note, cls) => `<div class="rr-sec${cls ? " " + cls : ""}"><div class="rr-sec-t${note ? " has-n" : ""}"><span>${++n}. ${esc(title)}</span>${note ? `<span class="rr-sec-n">${note}</span>` : ""}</div>${inner}</div>`;
             const tbl = (heads, rows, foot) => `<div class="rr-tbl-scroll"><table class="rr-tbl"><thead><tr>${heads.map((h, i) => `<th${i ? ' class="num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody>${foot || ""}</table></div>`;
             const tr = cells => `<tr>${cells.map((x, i) => `<td${i ? ' class="num"' : ""}>${x}</td>`).join("")}</tr>`;
             const cut = (s, n = 40) => { const t = String(s || "").split(/\r?\n/).map(x => x.trim()).find(Boolean) || ""; return t.length > n ? t.slice(0, n) + "…" : t; };
@@ -3565,7 +3573,7 @@
                       return `<tbody>` + items.map((x, i) => `<tr>${i === 0 ? `<td class="rr-cmt-nm" rowspan="${items.length}">${esc(c.Activity_Name || "-")}</td>` : ""}<td class="rr-cmt-k">${esc(x[0])}</td><td class="rr-cmt-v">${esc(x[1])}</td></tr>`).join("") + `</tbody>`;
                   }).join("") + `</table></div>`
                 : `<div class="rr-mut">저장된 성과 코멘트가 없습니다.</div>`,
-                cm.length ? `코멘트가 있는 ${d.comments.length}건 중 ${cm.length}건, 항목당 200자까지 표시 (전체는 캠페인별 보고서)` : "");
+                cm.length ? `코멘트가 있는 ${d.comments.length}건 중 ${cm.length}건, 항목당 200자까지 표시 (전체는 캠페인별 보고서)` : "", "rr-sec-split");   // v50: 인쇄 시 이 구역은 캠페인 단위로 쪽 나눔 허용
             const nx = d.next.slice(0, 10);
             body += sec("다음 일정 (Planning)", nx.length
                 ? tbl(["활동일", "캠페인", "Industry", "Requested"], nx.map(c => tr([esc(formatDateWithDay(c.Activity_Date)), esc(c.Activity_Name || "-"), esc(c.Industry || "-"), getFunding(c) === "Self" ? "-" : fmtUsd(Number(c.Cost_MDP_Requested) || 0)])).join("")) + (d.next.length > 10 ? `<div class="rr-note">외 ${d.next.length - 10}건</div>` : "")
