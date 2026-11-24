@@ -685,7 +685,12 @@
         .rr-tbl th.num, .rr-tbl td.num { text-align: right; white-space: nowrap; }
         .rr-tbl tfoot td { font-weight: 700; background: #f8fafc; border-top: 2px solid #cbd5e1; }
         .rr-tbl tr.canc td { opacity: .55; text-decoration: line-through; }
-        .rr-v2 { margin-left: 10px; }   /* v46: 영업 성과 카드의 건수 옆 금액(같은 크기) */
+        /* v48: 연간 요약 — 제목 옆 설명(구역 제목·헤더 meta), 좁으면 자동으로 제목 아래 줄로 */
+        .rr-head-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 14px; }
+        .rr-head-row .rr-h1 { flex: 0 1 auto; }
+        .rr-head-row .rr-meta { margin-top: 0; flex: 1 1 240px; padding-bottom: 3px; }
+        .rr-sec-t.has-n { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+        .rr-sec-n { font-size: 11px; font-weight: 400; color: #94a3b8; flex: 1 1 240px; min-width: 0; line-height: 1.45; }
         .rr-cmt-tbl td { border: 1px solid #e2e8f0; vertical-align: top; overflow-wrap: anywhere; }
         .rr-cmt-tbl .rr-cmt-nm { font-weight: 700; background: #f8fafc; }
         .rr-cmt-tbl .rr-cmt-k { color: #64748b; white-space: nowrap; }
@@ -725,6 +730,14 @@
             .rr-desc.two { column-count: 1; }
             .rr-annual .rr-cards { grid-template-columns: 1fr; }
             .rr-tbl-scroll { overflow-x: auto; }
+            /* v48: 코멘트 취합 — 모바일은 캠페인 이름 위, 항목 라벨·내용은 세로로 쌓음 (가로 스크롤 방지) */
+            .rr-cmt-tbl, .rr-cmt-tbl tbody, .rr-cmt-tbl tr, .rr-cmt-tbl td { display: block; width: auto; }
+            .rr-cmt-tbl colgroup { display: none; }
+            .rr-cmt-tbl tbody { border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+            .rr-cmt-tbl td { border: none; padding: 2px 10px; }
+            .rr-cmt-tbl .rr-cmt-nm { border-bottom: 1px solid #e2e8f0; padding: 7px 10px; }
+            .rr-cmt-tbl .rr-cmt-k { padding-top: 6px; font-size: 11.5px; }
+            .rr-cmt-tbl tr:last-child td:last-child { padding-bottom: 8px; }
         }
         .rr-tbl-scroll { overflow-x: auto; }
 
@@ -947,9 +960,11 @@
             <div class="funds-self-strip" id="fundsSelfStrip" style="display:none;"></div>
 
             <div class="report-section funds-section">
-                <div class="report-header fqc-header">
-                    <span>분기별 MDF 신청·승인 현황</span>
-                    <span class="funds-note fqc-topnote">Industry·Tactics·Funding·Status는 상단 필터를 따릅니다</span>
+                <div class="report-header fqc-header" style="align-items: flex-end; flex-wrap: wrap; gap: 6px 16px;">
+                    <span style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; flex: 1 1 0; min-width: 0;">
+                        <span>분기별 MDF 신청·승인 현황</span>
+                        <span class="funds-note">Industry·Tactics·Funding·Status는 상단 필터를 따릅니다</span>
+                    </span>
                 </div>
                 <div class="fqc-controls">
                     <div class="fqc-grp"><span class="fqc-lbl">보기</span><span class="funds-basis-toggle" id="fqcMode"></span></div>
@@ -3468,7 +3483,8 @@
             const pct = (v, t) => t > 0 ? Math.round(v / t * 100) + "%" : "-";
             const none = `<div class="rr-mut">해당 데이터가 없습니다.</div>`;
             let n = 0;
-            const sec = (title, inner) => `<div class="rr-sec"><div class="rr-sec-t">${++n}. ${esc(title)}</div>${inner}</div>`;
+            // v48: note가 있으면 제목 옆(좁으면 아래 줄)에 설명으로 표시
+            const sec = (title, inner, note) => `<div class="rr-sec"><div class="rr-sec-t${note ? " has-n" : ""}"><span>${++n}. ${esc(title)}</span>${note ? `<span class="rr-sec-n">${note}</span>` : ""}</div>${inner}</div>`;
             const tbl = (heads, rows, foot) => `<div class="rr-tbl-scroll"><table class="rr-tbl"><thead><tr>${heads.map((h, i) => `<th${i ? ' class="num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody>${foot || ""}</table></div>`;
             const tr = cells => `<tr>${cells.map((x, i) => `<td${i ? ' class="num"' : ""}>${x}</td>`).join("")}</tr>`;
             const cut = (s, n = 40) => { const t = String(s || "").split(/\r?\n/).map(x => x.trim()).find(Boolean) || ""; return t.length > n ? t.slice(0, n) + "…" : t; };
@@ -3497,10 +3513,11 @@
                 + qRow("Requested", o => o.req, fmtUsd, fmtUsd(d.req))
                 + qRow("Approved", o => o.app, fmtUsd, fmtUsd(d.app))
                 + qRow("집행 비용", o => o.cost, krwM, fmtKrw(d.cost))) : none);
-            const pills = ["Completed", "Ongoing", "Planning", "Denied"].filter(k => st[k]).map(k => `<span class="rr-stp">${statusPillHtml(k)} <b>${st[k]}</b></span>`).join("")
-                + (st.none ? `<span class="rr-stp"><span class="status-none">상태 없음</span> <b>${st.none}</b></span>` : "");
             const canc = list.length - d.live.length;
-            body += sec("상태 현황", `<div class="rr-stps">${pills || none}</div>` + (canc ? `<div class="rr-note">Canceled ${canc}건은 모든 합계에서 제외했습니다.</div>` : ""));
+            const pills = ["Completed", "Ongoing", "Planning", "Denied"].filter(k => st[k]).map(k => `<span class="rr-stp">${statusPillHtml(k)} <b>${st[k]}</b></span>`).join("")
+                + (st.none ? `<span class="rr-stp"><span class="status-none">상태 없음</span> <b>${st.none}</b></span>` : "")
+                + (canc ? `<span class="rr-stp">${statusPillHtml("Canceled")} <b>${canc}</b></span>` : "");   // v48: Canceled 배지도 표시 (합계에는 계속 제외)
+            body += sec("상태 현황", `<div class="rr-stps">${pills || none}</div>`, canc ? `Canceled ${canc}건은 모든 합계에서 제외했습니다.` : "");
             const grpTbl = (rows, label) => rows.length ? tbl([label, "건수", "집행 비용", "비중", "건당 평균"], rows.map(o => tr([esc(o.k), o.n, fmtKrw(o.cost), pct(o.cost, d.cost), o.costN ? fmtKrw(o.cost / o.costN) : "-"])).join("")) : none;
             body += sec("Industry별", grpTbl(d.byInd, "Industry"));
             body += sec("Tactics별", grpTbl(d.byTac, "Tactics"));
@@ -3511,31 +3528,32 @@
             body += sec("KPI 성과", d.kpi.length
                 ? tbl(["지표", "목표", "결과", "달성률", "단가"], d.kpi.map(o => { const r = o.t > 0 ? o.a / o.t * 100 : null, j = r === null ? "" : r >= 100 ? "ok" : r >= 80 ? "near" : "low";
                     return tr([`<b>${esc(o.name)}</b>`, o.t.toLocaleString(), o.a.toLocaleString(), r === null ? "-" : `<div class="rr-bar"><div class="rr-bar-t"><div class="rr-bar-f ${j}" style="width:${Math.min(100, Math.round(r))}%"></div></div><span class="rr-bar-p">${Math.round(r)}%</span></div>`, o.ua > 0 ? fmtKrw(o.ucost / o.ua) : "-"]); }).join(""))
-                  + `<div class="rr-note">지표 판정: 달성 ${jl.ok} · 근접 ${jl.near} · 미달 ${jl.low} (달성 ≥100% · 근접 80~99% · 미달 &lt;80%) · 결과 입력 ${d.kpiCamps} / ${d.counted.length}건 (미입력 건은 달성률에서 제외) · 단가 = 집행 비용 ÷ 결과</div>`
-                : `<div class="rr-mut">목표와 결과가 모두 입력된 KPI가 없습니다.</div>`);
+                : `<div class="rr-mut">목표와 결과가 모두 입력된 KPI가 없습니다.</div>`,
+                d.kpi.length ? `지표 판정: 달성 ${jl.ok} · 근접 ${jl.near} · 미달 ${jl.low} (달성 ≥100% · 근접 80~99% · 미달 &lt;80%) · 결과 입력 ${d.kpiCamps} / ${d.counted.length}건 (미입력 건은 달성률에서 제외) · 단가 = 집행 비용 ÷ 결과` : "");
             const sl = d.sales;
             body += sec("영업 성과 (Pipeline · WIN)", sl.n
                 ? `<div class="rr-cards">
-                    <div class="rr-cd c1"><div class="l">Pipeline</div><div class="v">${sl.pc.toLocaleString()}건<span class="rr-v2">${fmtUsd(sl.pa)}</span></div></div>
-                    <div class="rr-cd c2"><div class="l">WIN</div><div class="v">${sl.wc.toLocaleString()}건<span class="rr-v2">${fmtUsd(sl.wa)}</span></div></div>
+                    <div class="rr-cd c1"><div class="l">Pipeline</div><div class="v">${sl.pc.toLocaleString()}건 / ${fmtUsd(sl.pa)}</div></div>
+                    <div class="rr-cd c2"><div class="l">WIN</div><div class="v">${sl.wc.toLocaleString()}건 / ${fmtUsd(sl.wa)}</div></div>
                     <div class="rr-cd c3"><div class="l">입력률</div><div class="v">${sl.n} / ${d.counted.length}건</div><div class="s">미입력 건은 합계에서 제외</div></div>
                    </div>
-                   <div class="rr-note">${[sl.cost > 0 && sl.pa > 0 ? `집행 비용 대비 Pipeline ×${(sl.pa / (sl.cost / 1000)).toFixed(1)} (입력된 건 기준, 1,000원/$)` : "", sl.pc > 0 ? `WIN 전환율 ${Math.round(sl.wc / sl.pc * 100)}% (건수)` : ""].filter(Boolean).join(" · ") || "Pipeline = 이 캠페인에서 발생한 영업기회 · WIN = 그중 수주 완료"}</div>`
-                : `<div class="rr-mut">입력된 영업 성과가 없습니다. (캠페인별 보고서의 "영업 성과"에서 종료 후 입력)</div>`);
+                   `
+                : `<div class="rr-mut">입력된 영업 성과가 없습니다. (캠페인별 보고서의 "영업 성과"에서 종료 후 입력)</div>`,
+                sl.n ? ([sl.cost > 0 && sl.pa > 0 ? `집행 비용 대비 Pipeline ×${(sl.pa / (sl.cost / 1000)).toFixed(1)} (입력된 건 기준, 1,000원/$)` : "", sl.pc > 0 ? `WIN 전환율 ${Math.round(sl.wc / sl.pc * 100)}% (건수)` : ""].filter(Boolean).join(" · ") || "Pipeline = 이 캠페인에서 발생한 영업기회 · WIN = 그중 수주 완료") : "");
             const topT = d.top.length ? tbl(["캠페인", "달성률", "집행 비용"], d.top.map(o => tr([esc(o.c.Activity_Name || "-"), Math.round(o.score) + "%", fmtKrw(rrCost(o.c))])).join("")) : none;
             const impList = d.improve.slice(0, 8);
             const impT = impList.length ? tbl(["캠페인", "사유"], impList.map(o => tr([esc(o.c.Activity_Name || "-"), esc(o.why)])).join("")) + (d.improve.length > 8 ? `<div class="rr-note">외 ${d.improve.length - 8}건</div>` : "") : `<div class="rr-mut">개선이 필요한 건이 없습니다.</div>`;
             body += sec("성과 평가", `<div class="rr-ov"><div class="rr-ov-col"><div class="rr-sub">상위 5건 (달성률)</div>${topT}</div><div class="rr-ov-div"></div><div class="rr-ov-col"><div class="rr-sub">개선 필요</div>${impT}</div></div>`);
             const cm = d.comments.slice(0, 10);
             body += sec("코멘트 취합", cm.length
-                ? `<div class="rr-tbl-scroll"><table class="rr-tbl rr-cmt-tbl"><colgroup><col style="width:22%"><col style="width:13%"><col style="width:65%"></colgroup>`
+                ? `<div class="rr-tbl-scroll"><table class="rr-tbl rr-cmt-tbl"><colgroup><col style="width:32%"><col style="width:11%"><col style="width:57%"></colgroup>`
                   + cm.map(c => {
                       // v46: 내용이 있는 항목만 행으로 (캠페인 이름 칸은 행 수만큼 세로 병합, 캠페인 단위로 쪽 나눔 방지)
-                      const items = RR_COMMENTS.map(([, lb, f]) => [lb, cut(c[f], 80)]).filter(x => x[1]);
+                      const items = RR_COMMENTS.map(([, lb, f]) => [lb, cut(c[f], 200)]).filter(x => x[1]);
                       return `<tbody>` + items.map((x, i) => `<tr>${i === 0 ? `<td class="rr-cmt-nm" rowspan="${items.length}">${esc(c.Activity_Name || "-")}</td>` : ""}<td class="rr-cmt-k">${esc(x[0])}</td><td>${esc(x[1])}</td></tr>`).join("") + `</tbody>`;
                   }).join("") + `</table></div>`
-                  + `<div class="rr-note">코멘트가 있는 ${d.comments.length}건 중 ${cm.length}건, 항목당 첫 줄 80자까지 표시 (전체는 캠페인별 보고서)</div>`
-                : `<div class="rr-mut">저장된 성과 코멘트가 없습니다.</div>`);
+                : `<div class="rr-mut">저장된 성과 코멘트가 없습니다.</div>`,
+                cm.length ? `코멘트가 있는 ${d.comments.length}건 중 ${cm.length}건, 항목당 첫 줄 200자까지 표시 (전체는 캠페인별 보고서)` : "");
             const nx = d.next.slice(0, 10);
             body += sec("다음 일정 (Planning)", nx.length
                 ? tbl(["활동일", "캠페인", "Industry", "Requested"], nx.map(c => tr([esc(formatDateWithDay(c.Activity_Date)), esc(c.Activity_Name || "-"), esc(c.Industry || "-"), getFunding(c) === "Self" ? "-" : fmtUsd(Number(c.Cost_MDP_Requested) || 0)])).join("")) + (d.next.length > 10 ? `<div class="rr-note">외 ${d.next.length - 10}건</div>` : "")
@@ -3543,8 +3561,10 @@
             return `<div class="rr-paper rr-annual">
                 <div class="rr-head">
                     <div class="rr-brand">ZOOMINTECH · Autodesk MDP 연간 요약 보고서</div>
-                    <div class="rr-h1">${esc(title)}</div>
-                    <div class="rr-meta">작성일 ${esc(formatDateWithDay(toLocalDateKey(new Date())))} · ${esc(rrAnnualFilterText())} · 환율 1,000원/$ 고정</div>
+                    <div class="rr-head-row">
+                        <div class="rr-h1">${esc(title)}</div>
+                        <div class="rr-meta">작성일 ${esc(formatDateWithDay(toLocalDateKey(new Date())))} · ${esc(rrAnnualFilterText())} · 환율 1,000원/$ 고정</div>
+                    </div>
                 </div>
                 <div class="rr-summary">${esc(summary)}</div>
                 ${cards}
