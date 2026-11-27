@@ -16,11 +16,9 @@
         import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, runTransaction, writeBatch, deleteField } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
-        // 접근 허용 계정 목록 (화면 표시용 1차 확인)
-        // ※ 실제 보안은 Firestore 보안 규칙(firestore.rules)이 담당하므로 두 곳의 목록을 항상 동일하게 유지할 것
-        const ALLOWED_EMAILS = [
-            "kevin5616@gmail.com"
-        ];
+        // v51: 허용 이메일 목록을 코드에서 제거함 (공개 저장소에 이메일이 노출되지 않도록).
+        // 접근 권한은 Firestore 보안 규칙(firestore.rules, 비공개)이 전담 — 허용 계정 추가·삭제는 규칙 파일의 목록만 수정할 것.
+        // 허가되지 않은 계정은 로그인 직후 첫 데이터 읽기가 permission-denied로 거절되어 안내 후 자동 로그아웃된다.
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuzVQdSJ90mygRkngN9PcvBeJhr9xKzJA",
@@ -93,21 +91,32 @@
             }
 
             const email = (user.email || "").toLowerCase();
-            if (!ALLOWED_EMAILS.includes(email)) {
-                await signOut(auth);
-                setLoginMessage(`${email} 계정은 접근 권한이 없습니다. 관리자에게 문의해 주세요.`, true);
-                return;
+
+            // v51: 화면에 허용 목록이 없으므로, 데이터 읽기가 허용되는지(= 보안 규칙 통과)로 접근 권한을 확인한다.
+            // 확인이 끝나기 전에는 로그인 화면을 유지해 대시보드 화면이 보이지 않게 한다.
+            if (!dataLoaded) {
+                setLoginMessage("접근 권한을 확인하는 중입니다...");
+                let result = "error";
+                try {
+                    if (typeof window.loadDataFromFirebase === 'function') result = await window.loadDataFromFirebase();
+                } catch (e) { result = "error"; }
+                if (result === "denied") {
+                    await signOut(auth);
+                    setLoginMessage(`${email} 계정은 접근 권한이 없습니다. 관리자에게 문의해 주세요.`, true);
+                    return;
+                }
+                if (result !== "ok") {
+                    await signOut(auth);
+                    setLoginMessage("데이터를 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 로그인해 주세요.", true);
+                    return;
+                }
+                dataLoaded = true;
             }
 
             loginOverlay.style.display = "none";
             document.getElementById("userEmail").innerText = email;
             document.getElementById("userInfo").style.display = "flex";
             document.getElementById("tabActions").style.display = "flex";
-
-            if (!dataLoaded && typeof window.loadDataFromFirebase === 'function') {
-                dataLoaded = true;
-                window.loadDataFromFirebase();
-            }
         });
     </script>
 
@@ -1476,15 +1485,17 @@
             const loader = document.getElementById("loader");
             if(loader) loader.style.display = "block";
 
+            let stage = 0;   // v51: 0 = 허용 컬렉션 첫 읽기 전, 1 = 첫 읽기 성공(접근 권한 확인됨)
             try {
                 const db = window.FB_DB;
-                if (!db) { setTimeout(loadDataFromFirebase, 500); return; }
+                if (!db) { setTimeout(loadDataFromFirebase, 500); return "error"; }
 
                 // 비용/ROI는 캠페인 문서 안(Cost_Items, ROI_Items)에 저장되므로 기본은 2개 컬렉션만 읽음
                 const [masterSnap, detailSnap] = await Promise.all(
                     ["Campaign_Master", "Campaign_Details"]
                         .map(name => window.FB_GET_DOCS(window.FB_COLLECTION(db, name)))
                 );
+                stage = 1;
                 globalData.campaigns = masterSnap.docs.map(d => ({ 캠페인_ID: d.id, ...d.data() }));
                 globalData.campaignDetails = detailSnap.docs.map(d => ({ ...d.data() }));
 
@@ -1511,10 +1522,17 @@
                 updateTrashCount();
 
                 if(loader) loader.style.display = "none";
+                return "ok";
             } catch (e) {
                 console.error("Firebase Load Error:", e);
                 if(loader) loader.style.display = "none";
-                showToast(e.code === "permission-denied" ? "데이터 접근 권한이 없습니다. 관리자에게 문의해 주세요." : "데이터를 불러오는 중 오류가 발생했습니다.");
+                // v51: 로그인 모듈이 결과로 접근 권한(denied)과 일반 오류(error)를 구분한다. 거부된 경우 읽어 온 데이터는 비운다.
+                if (e && e.code === "permission-denied" && stage === 0) {
+                    globalData.campaigns = []; globalData.campaignDetails = []; globalData.costs = []; globalData.rois = [];
+                    return "denied";
+                }
+                showToast("데이터를 불러오는 중 오류가 발생했습니다.");
+                return "error";
             }
         }
         window.loadDataFromFirebase = loadDataFromFirebase;
